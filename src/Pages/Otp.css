@@ -1,0 +1,34 @@
+.otp-container {
+  max-width: 400px;
+  margin: auto;
+  text-align: center;
+  padding: 2rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.otp-container input {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 1rem 0;
+  font-size: 16px;
+}
+
+.otp-container button {
+  padding: 0.6rem 1.2rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.otp-container .error-message {
+  color: red;
+  margin-top: 1rem;
+}
+
+.otp-container.success {
+  border-color: green;
+  color: green;
+}

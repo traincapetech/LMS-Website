@@ -1,0 +1,147 @@
+/* Page wrapper */
+.create-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 20px;
+  background: linear-gradient(to bottom right, #ffffff, #f1f5f9);
+}
+
+/* Card wrapper */
+.create-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Step indicator */
+.step-indicator {
+  font-size: 18px;
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* Headings */
+.create-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 24px;
+}
+
+.create-subtext {
+  font-size: 17px;
+  color: #374151;
+  margin-top: 10px;
+}
+
+/* Card styles */
+.card-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1 1 48%;
+  background: #f3f4f6;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  background: #e5e7eb;
+}
+
+.card.active {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+/* Select */
+.create-select {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+}
+
+/* Radio group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-label {
+  font-size: 16px;
+  color: #374151;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Buttons */
+.btn-group {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.btn {
+  padding: 12px 28px;
+  font-size: 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border: none;
+}
+
+.back-btn {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.primary-btn {
+  background-color: #2563eb;
+  color: white;
+}
+
+.primary-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+  .card-grid {
+    flex-direction: column;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .create-wrapper {
+    padding: 28px 20px;
+  }
+
+  .create-heading {
+    font-size: 22px;
+  }
+}
