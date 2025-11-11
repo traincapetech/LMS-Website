@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCourseById } from "./CourseData";
@@ -9,6 +10,7 @@ const CourseDetails = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [videos, setVideos] = useState([]);
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate();
 
@@ -22,10 +24,10 @@ const CourseDetails = () => {
       thumbnailUrl: course.thumbnailUrl,
       isApiCourse: course.id && course.id.length > 20 // MongoDB ObjectId length
     };
-    
+
     // Store the course info temporarily for the cart page
     localStorage.setItem('courseToAdd', JSON.stringify(courseToAdd));
-    
+
     // Redirect to cart page
     navigate('/cart');
   };
@@ -45,26 +47,26 @@ const CourseDetails = () => {
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-    
+
     const fetchCourse = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // First try to get from API
         try {
           const response = await axios.get(`https://lms-backend-5s5x.onrender.com/api/courses/${id}`);
           const apiCourse = response.data;
-          
+
           // Transform API data to match the expected format
           const transformedCourse = {
             id: apiCourse._id,
             title: apiCourse.title,
             subtitle: apiCourse.subtitle || apiCourse.description,
-            instructor: { 
-              name: apiCourse.instructor?.name || "Instructor", 
-              role: "Instructor", 
-              avatar: "https://img-c.udemycdn.com/user/200_H/437533_72a6_2.jpg" 
+            instructor: {
+              name: apiCourse.instructor?.name || "Instructor",
+              role: "Instructor",
+              avatar: "https://img-c.udemycdn.com/user/200_H/437533_72a6_2.jpg"
             },
             rating: apiCourse.rating || 4.5,
             ratingsCount: apiCourse.ratingsCount || 100,
@@ -91,7 +93,7 @@ const CourseDetails = () => {
             courseContent: { totalSections: 10, totalLectures: 50, totalLength: "5h 30m" },
             includes: ["5.5 hours on-demand video", "10 articles", "50 downloadable resources", "Access on mobile and TV", "Certificate of completion", "Full lifetime access"]
           };
-          
+
           setCourse(transformedCourse);
         } catch (apiError) {
           // If API fails, fallback to static data
@@ -113,6 +115,29 @@ const CourseDetails = () => {
 
     fetchCourse();
   }, [id]);
+
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        if (!id) return;
+        const res = await fetch(`http://localhost:5001/api/videos/${id}`);
+
+        const videodata = await res.json();
+
+        if (videodata.success && videodata.videos) {
+          setVideos(videodata.videos); // ensure correct data structure
+        } else {
+          console.log("No videos found for this course");
+        }
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+      }
+    };
+
+    fetchVideos();
+  }, [id]);
+
 
   if (loading) {
     return (
@@ -209,6 +234,45 @@ const CourseDetails = () => {
               {course.courseContent.totalSections} sections • {course.courseContent.totalLectures} lectures • {course.courseContent.totalLength} total length
             </div>
             <div style={{ fontSize: 14, color: '#f4c150', cursor: 'pointer' }}>Expand all sections</div>
+
+            <div>
+              <h2 style={{ color: "#f4c150", marginBottom: "15px" }}>Course Videos</h2>
+
+              {videos.length > 0 ? (
+                videos.map((video, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      marginBottom: "10px",
+                      padding: "12px 16px",
+                      background: "#2a2a3b",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      transition: "background 0.3s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#3b3b4a")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a3b")}
+                    onClick={() =>
+                      navigate(`/play-video/${video._id}`, {
+                        state: {
+                          video,        // current clicked video
+                          videos,       // all videos in this course ✅
+                        },
+                      })
+                    }
+
+                  >
+
+                    <span style={{ color: "#fff", fontSize: "16px", fontWeight: "500" }}>
+                      🎬 {video.title}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p style={{ color: "#b1b1b1" }}>No videos available for this course.</p>
+              )}
+            </div>
+
             {course.courseContent.sections && course.courseContent.sections.slice(0, 3).map((section, idx) => (
               <div key={idx} style={{ marginTop: 16, padding: '12px 0', borderBottom: '1px solid #333' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -224,6 +288,7 @@ const CourseDetails = () => {
             )}
           </div>
 
+
           {/* This course includes */}
           <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
             <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>This course includes:</div>
@@ -235,22 +300,25 @@ const CourseDetails = () => {
                 </li>
               ))}
             </ul>
+
+
           </div>
+
         </div>
 
         {/* Sidebar */}
         <div style={{ flex: 1, minWidth: 320 }}>
           <div style={{ background: '#23272f', borderRadius: 8, padding: 20, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-            <img 
-              src={course.thumbnailUrl} 
-              alt="Course Preview" 
+            <img
+              src={course.thumbnailUrl}
+              alt="Course Preview"
               style={{ width: '100%', borderRadius: 8, marginBottom: 16 }}
               onError={(e) => {
                 // Fallback to default image if the uploaded image fails to load
                 e.target.src = "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg";
               }}
             />
-            
+
             {/* Pricing */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>

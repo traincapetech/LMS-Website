@@ -29,6 +29,9 @@ import ResetPassword from "./Pages/ResetPassword";
 import OtpVerification from "./Pages/OtpVerification";
 import SetNewPassword from "./Pages/SetNewPassword";
 import CourseDetails from "./Pages/CourseDetails";
+import QuizPage from "./Pages/quizPage";
+import CreateQuiz from "./Pages/CreateQuiz";
+import LectureVideo from "./Pages/LectureVideo";
 
 // Cart context setup
 export const CartContext = createContext();
@@ -144,6 +147,9 @@ function App() {
               <Route path="/purchase-history" element={<PurchaseHistory />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/public-profile" element={<PublicProfile />} />
+              <Route path="/quiz" element={<QuizPage/>} />
+              <Route path="/createQuiz" element={<CreateQuiz/>} />
+              <Route path="/play-video/:videoId" element={<LectureVideo/>} />
             </Routes>
           </div>
           <Footer />
