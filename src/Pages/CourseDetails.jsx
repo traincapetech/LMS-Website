@@ -257,6 +257,7 @@ const CourseDetails = () => {
                         state: {
                           video,        // current clicked video
                           videos,       // all videos in this course ✅
+                          courseId: {id},
                         },
                       })
                     }
@@ -264,7 +265,7 @@ const CourseDetails = () => {
                   >
 
                     <span style={{ color: "#fff", fontSize: "16px", fontWeight: "500" }}>
-                      🎬 {video.title}
+                      🎬 {video.title} 
                     </span>
                   </div>
                 ))
