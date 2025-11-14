@@ -11,7 +11,7 @@ const Otp = ({ email, otpFromServer, onSuccess }) => {
     setLoading(true);
     try {
       // Call backend to verify OTP
-              const res = await fetch("https://lms-backend-5s5x.onrender.com/api/otp/verify-otp", {
+      const res = await fetch("https://lms-backend-5s5x.onrender.com/api/otp/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, enteredOtp: otp }),

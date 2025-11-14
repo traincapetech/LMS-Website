@@ -33,6 +33,7 @@ import QuizPage from "./Pages/quizPage";
 import CreateQuiz from "./Pages/CreateQuiz";
 import LectureVideo from "./Pages/LectureVideo";
 import ResourceView from "./Pages/ResourceView";
+import UploadLecture from "./Pages/UploadLecture";
 
 // Cart context setup
 export const CartContext = createContext();
@@ -152,6 +153,7 @@ function App() {
               <Route path="/createQuiz" element={<CreateQuiz/>} />
               <Route path="/play-video/:videoId" element={<LectureVideo/>} />
               <Route path="/resource/:id" element={<ResourceView />} />
+              <Route path="/instructor/upload-video" element={<UploadLecture />} />
             </Routes>
           </div>
           <Footer />

@@ -1488,3 +1488,27 @@ body {
   
   
   
+  /* Scrollbar for Chrome, Edge, Safari */
+.pdf-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-track {
+  background: #dddddd;      /* track color */
+  border-radius: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb {
+  background-color: #7e22ce; /* scrollbar color */
+  border-radius: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #5b17a1; /* darker on hover */
+}
+
+/* Scrollbar for Firefox */
+.pdf-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #7e22ce #dddddd;
+}

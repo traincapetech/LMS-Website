@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaDownload } from "react-icons/fa";
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
 
-// ✅ Local worker for Vite
+// Worker for Vite
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 const ResourceView = () => {
@@ -12,75 +12,86 @@ const ResourceView = () => {
   const navigate = useNavigate();
 
   const fileUrl = location.state?.fileUrl;
-  const [pdfText, setPdfText] = useState("Loading PDF content...");
+  const containerRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+
+  // Default scale
+  const scale = 0.9;
 
   useEffect(() => {
-    const extractPdfText = async () => {
-      try {
-        const pdf = await pdfjsLib.getDocument(fileUrl).promise;
-        let fullText = "";
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          const strings = content.items.map((item) => item.str).join(" ");
-          fullText += strings + "\n\n";
-        }
-
-        setPdfText(fullText || "No text found in PDF.");
-      } catch (error) {
-        console.error("Error extracting PDF text:", error);
-        setPdfText("❌ Unable to extract content from PDF.");
-      }
-    };
-
-    if (fileUrl) extractPdfText();
+    renderPDF();
   }, [fileUrl]);
 
-  // ✨ Format extracted text into readable HTML
-  const formatText = (text) => {
-    // Highlight filenames like "1. authRoutes.js"
-    let formatted = text.replace(
-      /(\d+\.\s*[A-Za-z0-9_-]+\.js)/g,
-      '<h3 style="color:#7e22ce;margin-top:16px;font-weight:700;">📘 $1</h3>'
-    );
+  const renderPDF = async () => {
+    if (!fileUrl) return;
 
-    // Highlight HTTP methods (GET, POST, PUT, DELETE)
-    formatted = formatted.replace(
-      /\b(GET|POST|PUT|DELETE|PATCH)\b/g,
-      '<span style="color:#16a34a;font-weight:600;">$1</span>'
-    );
+    setLoading(true);
+    const container = containerRef.current;
+    container.innerHTML = "";
 
-    // Highlight words like "Features:" or "Purpose:"
-    formatted = formatted.replace(
-      /\b(Features|Purpose|Security|Helper Function|Validation|Example|Response|Request)\b:/g,
-      '<span style="color:#2563eb;font-weight:600;">$1:</span>'
-    );
+    try {
+      const pdf = await pdfjsLib.getDocument(fileUrl).promise;
 
-    // Convert newlines to paragraphs
-    formatted = formatted
-      .split("\n")
-      .map((line) => `<p style="margin:8px 0;line-height:1.7;">${line.trim()}</p>`)
-      .join("");
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
 
-    return formatted;
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        const viewport = page.getViewport({ scale });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.borderRadius = "6px";
+
+        await page.render({
+          canvasContext: context,
+          viewport,
+        }).promise;
+
+        container.appendChild(canvas);
+      }
+    } catch (error) {
+      console.error("Error rendering PDF:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Download PDF
+ // Download PDF directly (no new tab)
+const handleDownload = async () => {
+  try {
+    const response = await fetch(fileUrl, { mode: "cors" });
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileUrl.split("/").pop() || "document.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Direct download failed:", error);
+  }
+};
 
   if (!fileUrl) {
     return (
-      <div style={{ padding: "40px", textAlign: "center", color: "#555" }}>
-        <h2>❌ Resource Not Found</h2>
-        <p>The file link is missing or invalid.</p>
+      <div style={{ padding: 40, textAlign: "center" }}>
+        <h2>❌ File URL Missing</h2>
         <button
           onClick={() => navigate(-1)}
           style={{
-            marginTop: "20px",
             padding: "10px 20px",
-            borderRadius: "6px",
             background: "#7e22ce",
             color: "#fff",
+            borderRadius: 6,
             border: "none",
             cursor: "pointer",
+            marginTop: 20,
           }}
         >
           Go Back
@@ -94,7 +105,7 @@ const ResourceView = () => {
       style={{
         width: "100%",
         height: "100vh",
-        backgroundColor: "#f9fafb",
+        background: "#f3f4f6",
         display: "flex",
         flexDirection: "column",
       }}
@@ -102,37 +113,48 @@ const ResourceView = () => {
       {/* Header */}
       <div
         style={{
-          backgroundColor: "#111",
+          background: "#111",
           color: "#fff",
           padding: "14px 20px",
           display: "flex",
           alignItems: "center",
-          gap: "10px",
+          justifyContent: "space-between",
         }}
       >
-        <FaArrowLeft
-          onClick={() => navigate(-1)}
-          style={{ cursor: "pointer", fontSize: "18px" }}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <FaArrowLeft
+            onClick={() => navigate(-1)}
+            style={{ cursor: "pointer", fontSize: 18 }}
+          />
+          <h3 style={{ margin: 0 }}>Resource</h3>
+        </div>
+
+        <FaDownload
+          onClick={handleDownload}
+          style={{ cursor: "pointer", fontSize: 20 }}
+          title="Download PDF"
         />
-        <h3 style={{ margin: 0, fontWeight: "600" }}>Resource Content</h3>
       </div>
 
-      {/* Formatted PDF text */}
+      {/* PDF Pages */}
       <div
+        ref={containerRef}
+         className="pdf-scroll"
         style={{
           flex: 1,
-          padding: "30px 60px",
           overflowY: "auto",
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          margin: "20px auto",
-          width: "85%",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          fontFamily: "Inter, sans-serif",
-          color: "#1f2937",
+          overflowX: "hidden",
+          padding: "20px 40px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "40px",
+          alignItems: "center",
         }}
-        dangerouslySetInnerHTML={{ __html: formatText(pdfText) }}
-      />
+      ></div>
+
+      {loading && (
+        <p style={{ textAlign: "center", padding: 20 }}>Loading PDF...</p>
+      )}
     </div>
   );
 };
