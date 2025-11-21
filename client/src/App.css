@@ -1,0 +1,1589 @@
+
+body {
+    margin: 0;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    color: #1a1a1a;
+    line-height: 1.6;
+  }
+  
+  /* Container */
+  .home-container {
+    padding: 3rem 2rem;
+    max-width: 1400px;
+    margin: auto;
+  }
+  
+  /* Hero Section */
+  .hero-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4rem;
+    gap: 2rem;
+  }
+  
+  .hero-text {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  .hero-text h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #0f0f0f;
+  }
+  
+  .hero-text p {
+    font-size: 1.25rem;
+    margin: 1.25rem 0;
+    line-height: 1.75;
+    color: #2c2c2c;
+  }
+  
+  .explore-btn {
+    background-color: #6a11cb;
+    background-image: linear-gradient(315deg, #6a11cb 0%, #2575fc 74%);
+    color: #fff;
+    padding: 0.9rem 2.4rem;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+  }
+  
+  .explore-btn:hover {
+    transform: translateY(-2px);
+    background-image: linear-gradient(315deg, #2575fc 0%, #6a11cb 74%);
+  }
+  
+  .hero-image img {
+    max-width: 600px;
+    width: 100%;
+    border-radius: 1.2rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Career Section */
+  .career-section {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  
+  .career-section h2 {
+    font-size: 2.8rem;
+    margin-bottom: 0.6rem;
+    color: #111;
+  }
+  
+  .career-section p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 2rem;
+  }
+  
+  .career-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  .career-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    max-width: 280px;
+    transition: transform 0.3s;
+  }
+  
+  .career-card:hover {
+    transform: translateY(-6px);
+  }
+  
+  .career-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .card-content {
+    padding: 1.3rem;
+  }
+  
+  .card-content h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: #1c1c1c;
+  }
+  
+  .rating {
+    font-size: 0.95rem;
+    color: #777;
+    margin-top: 0.4rem;
+  }
+  
+  .career-button button {
+    margin-top: 2rem;
+    padding: 0.9rem 2.2rem;
+    font-size: 1rem;
+    background-color: #2575fc;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .career-button button:hover {
+    background-color: #1a56d6;
+  }
+  
+  /* Skills Tabs */
+  .skills-section {
+    margin-bottom: 4rem;
+    text-align: center;
+  }
+  
+  .skills-section h2 {
+    font-size: 2.6rem;
+    margin-bottom: 0.75rem;
+    color: #1c1c1c;
+  }
+  
+  .skills-section p {
+    color: #444;
+    margin-bottom: 2rem;
+    font-size: 1.15rem;
+  }
+  
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .tab {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 2rem;
+    padding: 0.85rem 1.8rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .tab:hover,
+  .tab.active {
+    background-color: #e4e8ef;
+    border-color: #888;
+  }
+  
+  /* Course Grid */
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .course-card {
+    background-color: #ffffff;
+    padding: 1.4rem;
+    border-radius: 1rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    transition: transform 0.3s ease;
+  }
+  
+  .course-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .course-card img {
+    width: 100%;
+    border-radius: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  
+  .course-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #222;
+  }
+  
+  .course-card .author,
+  .course-card .rating,
+  .course-card .price {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .badge {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .badge.green {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .badge.purple {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+  }
+  
+  .icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 240px;
+    background-color: #f0f0f0;
+    border-radius: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Partners Section */
+  .partners-section {
+    margin-top: 4rem;
+    text-align: center;
+  }
+  
+  .partners-section h2 {
+    font-size: 2.6rem;
+    margin-bottom: 2rem;
+    color: #111;
+  }
+  
+  .partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+  
+  .partner-card {
+    background-color: #fff;
+    padding: 1.8rem;
+    border-radius: 1rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
+    text-align: center;
+  }
+  
+  .partner-card.dark {
+    background-color: #1f1f1f;
+    color: #fff;
+  }
+  
+  .partner-card:hover {
+    transform: translateY(-6px);
+  }
+  
+  .partner-card img {
+    height: 60px;
+    margin-bottom: 1rem;
+  }
+  
+  .partner-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .partner-card p {
+    font-size: 1rem;
+    color: inherit;
+  }
+  
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .partner-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+  }
+  .partner-card:hover {
+    transform: translateY(-5px);
+  }
+  .icon-wrap {
+    margin-bottom: 10px;
+  }
+  
+  /* Learning Goals Section */
+  .goals-section {
+    padding: 50px 20px;
+    background: #f9f9ff;
+    animation: fadeInUp 0.8s ease-in-out;
+  }
+  
+  /* Flex container with spacing */
+  .goals-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+  }
+  
+  /* Left and right split */
+  .goals-left, .goals-right {
+    flex: 1;
+    min-width: 300px;
+    transition: transform 0.3s ease;
+  }
+  
+  .goal-card {
+    background: white;
+    border-left: 4px solid #7c3aed;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  /* Hover or touch effect on card */
+  .goal-card:hover,
+  .goal-card:focus,
+  .goal-card:active {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+    background: linear-gradient(135deg, #f9f9ff 0%, #ffffff 100%);
+  }
+  
+  .goal-icon {
+    margin-top: 4px;
+    color: #7c3aed;
+    font-size: 24px;
+    transition: transform 0.3s ease;
+  }
+  
+  /* Add bounce to icons on hover */
+  .goal-card:hover .goal-icon {
+    transform: rotate(10deg) scale(1.2);
+  }
+  
+  .goals-right {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .goals-img {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 15px;
+    transition: transform 0.4s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Touch/hover zoom effect for image */
+  .goals-img:hover {
+    transform: scale(1.03);
+  }
+  
+  /* Animation Keyframes */
+  @keyframes fadeInUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0px);
+      opacity: 1;
+    }
+  }
+  
+  /* Pricing Section */
+  .pricing-section {
+    padding: 40px 20px;
+    background: #f9fafe;
+    text-align: center;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .pricing-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #111827; /* darker heading */
+    margin-bottom: 10px;
+  }
+  
+  .pricing-subtitle {
+    font-size: 1.1rem;
+    color: #6b7280;
+    max-width: 600px;
+    margin: 0 auto 50px;
+  }
+  
+  .pricing-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 32px;
+  }
+  
+  /* Card Container */
+  .pricing-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px 25px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    text-align: left;
+    border-top: 5px solid transparent;
+    position: relative;
+  }
+  
+  /* Card Hover Effect */
+  .pricing-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(72, 36, 243, 0.15);
+    border-top: 5px solid #4f46e5;
+  }
+  
+  /* Plan Header */
+  .plan-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    color: #4338ca;
+  }
+  
+  .plan-icon {
+    font-size: 1.8rem;
+  }
+  
+  /* Price Text */
+  .plan-price {
+    font-size: 1.3rem;
+    color: #1e293b;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  
+  .original-price {
+    text-decoration: line-through;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    margin-right: 6px;
+  }
+  
+  .discounted-price {
+    color: #4f46e5;
+    font-weight: 700;
+  }
+  
+  /* Discount Label */
+  .plan-discount {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 5px 10px;
+    display: inline-block;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  
+  /* Button Style */
+  .plan-btn {
+    background: linear-gradient(to right, #6366f1, #7c3aed);
+    color: #ffffff;
+    border: none;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 18px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
+  }
+  
+  .plan-btn:hover {
+    background: linear-gradient(to right, #4f46e5, #5b21b6);
+    transform: scale(1.02);
+  }
+  
+  /* Feature List */
+  .plan-features {
+    margin-top: 20px;
+    color: #374151;
+    list-style: none;
+    padding: 0;
+  }
+  
+  .plan-features li {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+  
+  .check-icon {
+    color: #10b981;
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  
+  .testimonials-section {
+    padding: 60px 20px;
+    background-color: #f9f9fb;
+    text-align: center;
+  }
+  
+  .testimonials-heading {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #1c1d1f;
+  }
+  
+  .testimonials-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .testimonial-card {
+    background-color: #fff;
+    padding: 24px;
+    border: 1px solid #e4e4e7;
+    border-radius: 10px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .testimonial-quote {
+    font-size: 14px;
+    margin-bottom: 20px;
+    color: #3e3e3e;
+  }
+  
+  .testimonial-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .testimonial-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #1c1d1f;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  
+  .testimonial-name {
+    font-size: 14px;
+    color: #3e3e3e;
+  }
+  
+  .testimonial-link {
+    font-size: 14px;
+    color: #5624d0;
+    text-decoration: none;
+    margin-top: auto;
+  }
+  
+  .testimonial-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* AI Section - Enhanced */
+  .ai-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 80px 40px;
+    gap: 40px;
+    background: linear-gradient(135deg, #f9fafe, #ffffff);
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .ai-content {
+    max-width: 460px;
+    flex: 1;
+  }
+  
+  .ai-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 20px;
+  }
+  
+  .ai-description {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #374151;
+    margin-bottom: 25px;
+  }
+  
+  .ai-button {
+    padding: 12px 24px;
+    font-weight: 600;
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .ai-button:hover {
+    background-color: #4338ca;
+    transform: translateY(-2px);
+  }
+  
+  .ai-image-wrapper {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .ai-stack-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1);
+  }
+  
+  .trending-now-plain {
+    padding: 80px 40px;
+    background: #f8f9fc;
+    font-family: 'Segoe UI', sans-serif;
+    color: #0f172a;
+    max-width: 1200px;
+    margin: auto;
+  }
+  
+  .trending-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 12px;
+  }
+  
+  .trending-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    margin-top: 20px;
+  }
+  
+  .trending-column {
+    flex: 1 1 260px;
+    min-width: 240px;
+  }
+  
+  .trending-column h3,
+  .trending-column h4 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  .trending-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .trending-column li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background-color: transparent;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .trending-column li:hover {
+    background-color: #eef2ff;
+    transform: translateY(-2px);
+  }
+  
+  .trending-column li a {
+    color: #5b21b6;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s;
+  }
+  
+  .trending-column li a::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background-color: #5b21b6;
+    transition: width 0.3s ease;
+  }
+  
+  .trending-column li a:hover::after {
+    width: 100%;
+  }
+  
+  .trending-column li a:hover {
+    color: #4c1d95;
+  }
+  
+  .trending-column li span {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  
+  .purple-link {
+    color: #7c3aed;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 6px;
+    transition: color 0.3s ease;
+  }
+  
+  .purple-link:hover {
+    color: #5b21b6;
+    text-decoration: underline;
+  }
+  
+  .learner-count {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+  
+  .outline-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    border: 2px solid #7c3aed;
+    background-color: transparent;
+    color: #7c3aed;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .outline-btn:hover {
+    background-color: #ede9fe;
+    color: #4c1d95;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 78, 200, 0.2);
+  }
+  
+  /* Responsive Design - Mobile First Approach */
+  
+  /* Extra Extra Small devices (phones, 320px and down) */
+  @media (max-width: 320px) {
+    .home-container {
+      padding: 1rem 0.5rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 1.8rem;
+      line-height: 1.1;
+    }
+    
+    .hero-text p {
+      font-size: 0.9rem;
+      margin: 0.8rem 0;
+    }
+    
+    .explore-btn {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.9rem;
+      width: 100%;
+    }
+    
+    .career-section h2,
+    .skills-section h2,
+    .partners-section h2,
+    .pricing-title,
+    .trending-title {
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
+    }
+    
+    .ai-title {
+      font-size: 1.4rem;
+    }
+    
+    .ai-description {
+      font-size: 0.9rem;
+    }
+    
+    .pricing-section {
+      padding: 40px 10px;
+    }
+    
+    .pricing-card {
+      padding: 15px 10px;
+    }
+    
+    .plan-btn {
+      padding: 8px 15px;
+      font-size: 0.85rem;
+    }
+    
+    .goals-section {
+      padding: 30px 10px;
+    }
+    
+    .goal-card {
+      padding: 12px;
+      gap: 8px;
+    }
+    
+    .goal-icon {
+      font-size: 18px;
+    }
+    
+    .trending-now-plain {
+      padding: 40px 10px;
+    }
+    
+    .course-grid {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    
+    .career-cards {
+      gap: 0.8rem;
+    }
+    
+    .partners-grid {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .testimonial-card {
+      padding: 15px;
+    }
+    
+    .testimonial-quote {
+      font-size: 12px;
+    }
+    
+    .tabs {
+      gap: 0.3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tab {
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+    }
+    
+    .outline-btn {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    
+    .purple-link {
+      font-size: 0.9rem;
+    }
+    
+    .learner-count {
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Extra Small devices (phones, 321px to 480px) */
+  @media (min-width: 321px) and (max-width: 480px) {
+    .home-container {
+      padding: 1.5rem 0.8rem;
+    }
+    
+    .hero-section {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 2rem;
+      line-height: 1.2;
+    }
+    
+    .hero-text p {
+      font-size: 0.95rem;
+      margin: 1rem 0;
+    }
+    
+    .explore-btn {
+      padding: 0.8rem 2rem;
+      font-size: 0.95rem;
+    }
+    
+    .career-section h2,
+    .skills-section h2,
+    .partners-section h2,
+    .pricing-title,
+    .trending-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    
+    .career-section p,
+    .skills-section p {
+      font-size: 1rem;
+    }
+    
+    .ai-title {
+      font-size: 1.6rem;
+    }
+    
+    .ai-description {
+      font-size: 0.95rem;
+    }
+    
+    .ai-section {
+      flex-direction: column;
+      padding: 40px 15px;
+      text-align: center;
+      gap: 20px;
+    }
+    
+    .ai-content {
+      max-width: 100%;
+    }
+    
+    .ai-button {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+    
+    .pricing-section {
+      padding: 60px 15px;
+    }
+    
+    .pricing-subtitle {
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+    
+    .pricing-cards {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .pricing-card {
+      max-width: 100%;
+      padding: 20px 15px;
+      margin-bottom: 15px;
+    }
+    
+    .plan-btn {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+    }
+    
+    .goals-section {
+      padding: 40px 15px;
+    }
+    
+    .goals-container {
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .goals-left,
+    .goals-right {
+      min-width: 100%;
+    }
+    
+    .trending-columns {
+      flex-direction: column;
+      gap: 25px;
+    }
+    
+    .course-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .career-cards {
+      gap: 1rem;
+    }
+    
+    .career-card {
+      max-width: 100%;
+    }
+    
+    .card-content {
+      padding: 1rem;
+    }
+    
+    .card-content h3 {
+      font-size: 1.2rem;
+    }
+    
+    .partners-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .partner-card {
+      padding: 15px;
+    }
+    
+    .partner-card h3 {
+      font-size: 1.1rem;
+    }
+    
+    .testimonials-section {
+      padding: 40px 15px;
+    }
+    
+    .testimonials-heading {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    .testimonial-card {
+      padding: 20px;
+    }
+    
+    .testimonial-quote {
+      font-size: 13px;
+    }
+    
+    .tabs {
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .tab {
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+    }
+    
+    .outline-btn {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+    
+    .purple-link {
+      font-size: 1rem;
+    }
+    
+    .learner-count {
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Small devices (tablets and large phones, 481px to 767px) */
+  @media (min-width: 481px) and (max-width: 767px) {
+    .home-container {
+      padding: 2rem 1rem;
+    }
+    
+    .hero-section {
+      flex-direction: column;
+      text-align: center;
+      gap: 1.5rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 2.5rem;
+    }
+    
+    .hero-text p {
+      font-size: 1rem;
+    }
+    
+    .career-section h2,
+    .skills-section h2,
+    .partners-section h2,
+    .pricing-title,
+    .trending-title {
+      font-size: 2rem;
+    }
+    
+    .ai-title {
+      font-size: 1.8rem;
+    }
+    
+    .ai-section {
+      flex-direction: column;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    
+    .ai-content {
+      max-width: 100%;
+    }
+    
+    .pricing-cards {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .pricing-card {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .goals-container {
+      flex-direction: column;
+    }
+    
+    .goals-left,
+    .goals-right {
+      min-width: 100%;
+    }
+    
+    .trending-columns {
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .course-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .career-cards {
+      gap: 1.5rem;
+    }
+    
+    .career-card {
+      max-width: 250px;
+    }
+    
+    .partners-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+  }
+
+  /* Medium devices (tablets, 768px to 1023px) */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .home-container {
+      padding: 2.5rem 1.5rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 3rem;
+    }
+    
+    .hero-text p {
+      font-size: 1.1rem;
+    }
+    
+    .career-section h2,
+    .skills-section h2,
+    .partners-section h2,
+    .pricing-title,
+    .trending-title {
+      font-size: 2.4rem;
+    }
+    
+    .ai-title {
+      font-size: 2rem;
+    }
+    
+    .pricing-cards {
+      gap: 24px;
+    }
+    
+    .pricing-card {
+      max-width: 320px;
+      padding: 25px 20px;
+    }
+    
+    .course-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .partners-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+  }
+
+  /* Large devices (desktops, 1024px to 1199px) */
+  @media (min-width: 1024px) and (max-width: 1199px) {
+    .home-container {
+      padding: 3rem 2rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 3.2rem;
+    }
+    
+    .career-section h2,
+    .skills-section h2,
+    .partners-section h2,
+    .pricing-title,
+    .trending-title {
+      font-size: 2.6rem;
+    }
+    
+    .ai-title {
+      font-size: 2.2rem;
+    }
+    
+    .pricing-cards {
+      gap: 28px;
+    }
+    
+    .pricing-card {
+      max-width: 340px;
+    }
+    
+    .course-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.8rem;
+    }
+    
+    .partners-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.8rem;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+  }
+
+  /* Extra Large devices (large desktops, 1200px and up) */
+  @media (min-width: 1200px) {
+    .home-container {
+      padding: 4rem 3rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 4rem;
+    }
+    
+    .pricing-cards {
+      gap: 40px;
+    }
+    
+    .course-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    
+    .partners-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    
+    .testimonials-container {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+  }
+
+  /* Landscape orientation for phones */
+  @media (max-width: 767px) and (orientation: landscape) {
+    .hero-section {
+      flex-direction: row;
+      text-align: left;
+      gap: 1rem;
+    }
+    
+    .hero-text h1 {
+      font-size: 2.2rem;
+    }
+    
+    .ai-section {
+      flex-direction: row;
+      text-align: left;
+      gap: 20px;
+    }
+    
+    .goals-container {
+      flex-direction: row;
+      gap: 20px;
+    }
+    
+    .pricing-cards {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .pricing-card {
+      max-width: 300px;
+      margin: 0 10px 20px 10px;
+    }
+  }
+
+  /* Portrait orientation for tablets */
+  @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+    .hero-section {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .ai-section {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .goals-container {
+      flex-direction: column;
+    }
+    
+    .pricing-cards {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  /* High DPI displays */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .hero-image img,
+    .career-card img,
+    .goals-img,
+    .ai-stack-image {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+  }
+
+  /* Reduced motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .hero-section,
+    .career-card,
+    .course-card,
+    .partner-card,
+    .goal-card,
+    .pricing-card,
+    .testimonial-card {
+      transform: none !important;
+    }
+  }
+
+  
+
+  /* Print styles */
+  @media print {
+    .explore-btn,
+    .ai-button,
+    .plan-btn,
+    .outline-btn,
+    .career-button button {
+      display: none;
+    }
+    
+    .hero-section,
+    .ai-section {
+      flex-direction: column;
+    }
+    
+    .course-grid,
+    .partners-grid,
+    .testimonials-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  
+  
+  
+  /* Scrollbar for Chrome, Edge, Safari */
+.pdf-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-track {
+  background: #dddddd;      /* track color */
+  border-radius: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb {
+  background-color: #7e22ce; /* scrollbar color */
+  border-radius: 10px;
+}
+
+.pdf-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #5b17a1; /* darker on hover */
+}
+
+/* Scrollbar for Firefox */
+.pdf-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #7e22ce #dddddd;
+}
+/* animation for auto horizontal scroll */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* apply animation - adjust duration for speed (longer = slower) */
+.animate-scroll-left {
+  animation: scroll-left 20s linear infinite;
+  /* ensure smoothness */
+  display: flex;
+}
+
+/* pause animation on hover/focus for accessibility */
+div.will-change-transform:hover,
+div.will-change-transform:focus-within {
+  animation-play-state: paused;
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-left { animation: none !important; }
+}
+/* --- Slider Button Styles --- */
+
+/* Container ko relative position denge taaki buttons iske andar hi rahein */
+.slider-container {
+  position: relative;
+}
+
+/* Buttons ka common style */
+.slider-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 1.2rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Magic yahan hai: Default opacity 0 (Invisible) */
+  opacity: 0; 
+  transition: opacity 0.3s ease, transform 0.2s ease, background-color 0.3s;
+}
+
+/* Left Button position */
+.prev-btn {
+  left: 15px;
+}
+
+/* Right Button position */
+.next-btn {
+  right: 15px;
+}
+
+/* Jab Slider Container pe mouse hover ho, tab buttons dikhein (Opacity 0.6 - Thoda halka) */
+.slider-container:hover .slider-nav-btn {
+  opacity: 0.6;
+}
+
+/* Jab specific Button pe mouse hover ho, tab woh full dark (Opacity 1) ho jaye */
+.slider-nav-btn:hover {
+  opacity: 1 !important;
+  background-color: #fff;
+  transform: translateY(-50%) scale(1.1); /* Thoda sa bada bhi hoga */
+}
