@@ -54,4 +54,3 @@ const pendingCourseSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('PendingCourse', pendingCourseSchema);
-//691d7acd9e2c2837e2494ffd

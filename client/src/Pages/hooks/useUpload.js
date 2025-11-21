@@ -1,7 +1,7 @@
 // useUpload.js
 import axios from "axios";
-
 const API_BASE = "http://localhost:5001";
+
 
 const useUploads = (setSections, courseId) => {
   const token = localStorage.getItem("token");

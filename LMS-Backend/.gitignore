@@ -1,5 +1,2 @@
 node_modules/
-client/node_modules/
-LMS-Backend/node_modules/
 .env
-uploads/

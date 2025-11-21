@@ -14,7 +14,8 @@ import VideoUpload from "./VideoUpload";
 import DocumentUpload from "./DocumentUpload";
 import QuizPage from "./QuizPage";
 
-const API_BASE = "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 
 const steps = [
   { key: "intended", label: "Intended learners" },
@@ -77,7 +78,8 @@ const Dashboard = () => {
   const { pendingCourseId } = useParams();
   const courseId = pendingCourseId;
 
-  const uploads = useUploads(setSections, courseId);
+  const uploads = courseId ? useUploads(setSections, courseId) : null;
+
   const quiz = useQuiz(setSections);
 
   // inline editing
@@ -125,8 +127,8 @@ const Dashboard = () => {
 
   // ---------- Load pending draft on mount ----------
   useEffect(() => {
-    if (!courseId) return;
-    const url = `${API_BASE}/api/pending-courses/${courseId}`;
+    if (!pendingCourseId) return;
+    const url = `${API_BASE}/api/pending-courses/${pendingCourseId}`;
     axios
       .get(url)
       .then((res) => {
