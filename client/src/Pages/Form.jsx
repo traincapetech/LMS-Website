@@ -43,7 +43,7 @@ const Form = () => {
 
   // After OTP verification, go to course creation steps
   const handleOtpSuccess = () => {
-    navigate("/create", { state: { name, email } });
+    navigate("/instructor-dashboard", { state: { name, email } });
   };
 
   return (

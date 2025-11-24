@@ -1,22 +1,51 @@
 const PendingCourse = require('../models/PendingCourse');
 const Course = require('../models/Course');
 
+
 // POST /api/pending-courses/apply
 exports.apply = async (req, res) => {
   try {
+    const instructorId = req.user.id; // logged-in instructor
     console.log("📩 Incoming course payload:", req.body);
-    const course = new PendingCourse({ ...req.body, status: 'pending' });
-    await course.save();
-    res.status(201).json({ message: 'Course submitted for review', course });
+    // 1️⃣ If course has pendingCourseId → UPDATE instead of create
+    if (req.body.pendingCourseId) {
+      const updatedCourse = await PendingCourse.findOneAndUpdate(
+        { _id: req.body.pendingCourseId, instructorId },
+        {
+          ...req.body,
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+      if (!updatedCourse) {
+        return res.status(404).json({
+          message: "Course not found or unauthorized",
+        });
+      }
+      return res.json({
+        message: "Course updated successfully",
+        course: updatedCourse,
+      });
+    }
+    // 2️⃣ ELSE → CREATE NEW COURSE
+    const newCourse = new PendingCourse({
+      instructorId,
+      ...req.body,
+      status: "pending",
+    });
+    await newCourse.save();
+    res.status(201).json({
+      message: "Course submitted for review",
+      course: newCourse,
+    });
   } catch (err) {
-  console.error("🔥 PENDING COURSE ERROR:", err);
-  res.status(500).json({
-    message: 'Failed to submit course for review',
-    error: err.message,
-    stack: err.stack
-  });
-}
-
+    console.error("🔥 PENDING COURSE ERROR:", err);
+    res.status(500).json({
+      message: "Failed to submit course for review",
+      error: err.message,
+      stack: err.stack,
+    });
+  }
 };
 
 // GET /api/pending-courses/
@@ -32,6 +61,7 @@ exports.getAll = async (req, res) => {
 // GET /api/pending-courses/:id
 exports.getById = async (req, res) => {
   try {
+
     const course = await PendingCourse.findById(req.params.id);
     if (!course) return res.status(404).json({ message: 'Course not found' });
     res.json(course);
@@ -39,6 +69,30 @@ exports.getById = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch course', error: err.message });
   }
 };
+
+// /api/pending-courses/my-courses
+exports.getMyCourses = async (req, res) => {
+  try {
+    const instructorId = req.user.id;
+
+    const courses = await PendingCourse.find({
+      $or: [
+        { instructor: instructorId },       // when instructor is stored as String
+        { "instructor._id": instructorId }   // when instructor is stored as Object
+      ]
+    });
+
+    res.json(courses);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch pending courses",
+      error: error.message
+    });
+  }
+};
+
+
 
 // Post /api/pending-course/create
 exports.createPendingCourse = async (req, res) => {
@@ -57,6 +111,32 @@ exports.createPendingCourse = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+exports.editCourse = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const instructorId = req.user.id;
+
+    const updated = await PendingCourse.findOneAndUpdate(
+      { _id: id, instructorId },
+      { ...req.body, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Course not found or unauthorized" });
+    }
+
+    res.json({
+      message: "Pending course updated successfully",
+      course: updated,
+    });
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ message: "Failed to update course", error: error.message });
+  }
+}
 
 
 // PUT /api/pending-courses/:id/approve

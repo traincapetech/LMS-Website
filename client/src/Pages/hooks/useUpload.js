@@ -29,7 +29,7 @@ const useUploads = (setSections, courseId) => {
   // ---------------------------------------------------------
   //  VIDEO UPLOAD WITH PROGRESS
   // ---------------------------------------------------------
-  const uploadVideo = async (sectionId, itemId, file, progressCallback = () => {}) => {
+  const uploadVideo = async (sectionId, itemId, file, progressCallback = () => { }) => {
     try {
       if (!courseId) {
         console.error("❌ uploadVideo failed: courseId missing");
@@ -46,6 +46,10 @@ const useUploads = (setSections, courseId) => {
       form.append("title", file.name);
       form.append("duration", "0");
       form.append("instructor", instructorId);
+      
+      // ⭐ THE IMPORTANT FIX ⭐
+      form.append("sectionId", sectionId);
+      form.append("itemId", itemId);
 
       console.log("📤 Sending video upload request...");
 
@@ -64,7 +68,6 @@ const useUploads = (setSections, courseId) => {
           }
         }
       );
-
       console.log("✅ Video upload response:", res.data);
 
       const url = res.data?.url;
@@ -74,11 +77,11 @@ const useUploads = (setSections, courseId) => {
         prev.map((section) =>
           section.id === sectionId
             ? {
-                ...section,
-                items: section.items.map((item) =>
-                  item.id === itemId ? { ...item, videoUrl: url, uploadProgress: 100 } : item
-                ),
-              }
+              ...section,
+              items: section.items.map((item) =>
+                item.id === itemId ? { ...item, videoUrl: url, uploadProgress: 100 } : item
+              ),
+            }
             : section
         )
       );
@@ -95,71 +98,71 @@ const useUploads = (setSections, courseId) => {
   // ---------------------------------------------------------
   //  DOCUMENT UPLOAD WITH PROGRESS
   // ---------------------------------------------------------
-// ------------------ UPLOAD DOCUMENT ------------------
-const uploadDocument = async (sectionId, itemId, file, progressCallback = () => {}) => {
-  try {
-    if (!courseId) {
-      console.error("❌ uploadDocument failed: courseId missing");
-      return;
-    }
-
-    console.log("📄 Uploading DOCUMENT:", file.name);
-
-    const form = new FormData();
-    form.append("file", file); // ⭐ FIXED HERE
-
-    const res = await axios.post(
-      `${API_BASE}/api/document/upload/${courseId}`,
-      form,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-        onUploadProgress: (event) => {
-          const percent = Math.round((event.loaded * 100) / event.total);
-          console.log(`📡 Document Upload Progress: ${percent}%`);
-          progressCallback(percent);
-        }
+  // ------------------ UPLOAD DOCUMENT ------------------
+  const uploadDocument = async (sectionId, itemId, file, progressCallback = () => { }) => {
+    try {
+      if (!courseId) {
+        console.error("❌ uploadDocument failed: courseId missing");
+        return;
       }
-    );
 
-    console.log("✅ Document upload response:", res.data);
+      console.log("📄 Uploading DOCUMENT:", file.name);
 
-    const docData = {
-      id: Date.now(),
-      type: "document",
-      filename: res.data.document.fileName,
-      fileUrl: res.data.document.fileUrl,
-    };
+      const form = new FormData();
+      form.append("file", file); // ⭐ FIXED HERE
 
-    setSections((prev) =>
-      prev.map((section) =>
-        section.id === sectionId
-          ? {
+      const res = await axios.post(
+        `${API_BASE}/api/document/upload/${courseId}`,
+        form,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+          onUploadProgress: (event) => {
+            const percent = Math.round((event.loaded * 100) / event.total);
+            console.log(`📡 Document Upload Progress: ${percent}%`);
+            progressCallback(percent);
+          }
+        }
+      );
+
+      console.log("✅ Document upload response:", res.data);
+
+      const docData = {
+        id: Date.now(),
+        type: "document",
+        filename: res.data.document.fileName,
+        fileUrl: res.data.document.fileUrl,
+      };
+
+      setSections((prev) =>
+        prev.map((section) =>
+          section.id === sectionId
+            ? {
               ...section,
               items: section.items.map((it) =>
                 it.id === itemId
                   ? {
-                      ...it,
-                      contents: [...(it.contents || []), docData],
-                      docProgress: 100,
-                      docFileName: file.name,
-                      docComplete: true
-                    }
+                    ...it,
+                    contents: [...(it.contents || []), docData],
+                    docProgress: 100,
+                    docFileName: file.name,
+                    docComplete: true
+                  }
                   : it
               ),
             }
-          : section
-      )
-    );
+            : section
+        )
+      );
 
-  } catch (err) {
-    console.error("❌ Document upload FAILED:", err);
-    if (err.response) console.error("❌ Server Response:", err.response.data);
-    alert("Document upload failed — check your backend logs.");
-  }
-};
+    } catch (err) {
+      console.error("❌ Document upload FAILED:", err);
+      if (err.response) console.error("❌ Server Response:", err.response.data);
+      alert("Document upload failed — check your backend logs.");
+    }
+  };
 
 
   // ---------------------------------------------------------

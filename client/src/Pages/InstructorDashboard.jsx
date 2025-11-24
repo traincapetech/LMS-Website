@@ -35,7 +35,7 @@ export default function InstructorDashboard() {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/api/pending-courses`, {
+        const res = await fetch(`${API_BASE}/api/pending-courses/my-courses`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -191,7 +191,7 @@ function CourseList({ courses }) {
 
   const { pendingCourseId } = useParams();
   const handlePreview = (id) => {
-        navigate(`/admin/pending-course/${id}`);
+    navigate(`/admin/pending-course/${id}`);
   }
 
   return (
@@ -240,7 +240,12 @@ function CourseList({ courses }) {
 
             <div className="ic-course-footer-row">
               <div className="ic-course-actions">
-                <button className="ic-link-btn">Edit / Manage</button>
+                <button
+                  className="ic-link-btn"
+                  onClick={() => navigate(`/instructor/edit/${course._id}`)}
+                >
+                  Edit / Manage
+                </button>
                 <button className="ic-link-btn" onClick={() => handlePreview(course._id)}>Preview</button>
                 <button className="ic-link-btn">Promotions</button>
                 <button className="ic-link-btn">More ▾</button>

@@ -14,8 +14,8 @@ import VideoUpload from "./VideoUpload";
 import DocumentUpload from "./DocumentUpload";
 import QuizPage from "./QuizPage";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
+const API_BASE = "http://localhost:5001";
 
 const steps = [
   { key: "intended", label: "Intended learners" },
@@ -322,12 +322,24 @@ const Dashboard = () => {
       };
 
       // Now post to backend
-      await axios.post(`${API_BASE}/api/pending-courses/apply`, courseData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
+      if (courseId) {
+        // Update Course
+        await axios.put(`${API_BASE}/api/pending-courses/update/${courseId}`, courseData, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
+      } else {
+        // Create new
+        await axios.post(`${API_BASE}/api/pending-courses/apply`, courseData, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
+      }
+
 
       alert("Course submitted for admin review!");
     } catch (err) {
@@ -797,7 +809,7 @@ const Dashboard = () => {
           </ul>
         </nav>
       </aside>
-      
+
       <main style={{ flex: 1, padding: 48, maxWidth: 900, margin: "0 auto", position: "relative" }}>
         {renderContent()}
 

@@ -119,9 +119,9 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/form" element={<Form />} />
               <Route path="/create" element={<Create />} />
-              <Route path="/dashboard/:pendingCourseId" element={<Dashboard />} /> {/* ✅ ADD THIS ROUTE */}
+              <Route path="/dashboard/:pendingCourseId" element={<Dashboard />} /> {/* this route for course creation  */}
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/pending-course/:pendingCourseId" element={<PendingCourseDetails />} />
+              <Route path="/admin/pending-course/:pendingCourseId" element={<PendingCourseDetails />} /> 
               <Route path="/admin/instructors" element={<AdminInstructors />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/subpage" element={<SubPages />} />
@@ -129,10 +129,12 @@ function App() {
               <Route path="/html" element={<Html />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/payment" element={<Payment />} />
-              <Route path="/c" element={<C />} />
+              <Route path="/c" element={<C/>} />
               <Route path="/cpp" element={<div style={{padding: '2rem', textAlign: 'center'}}>Page not available yet!</div>} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/instructor-dashboard" element={<InstructorDashboard />} />
+              <Route path="/instructor/edit/:pendingCourseId" element={<Dashboard />} />  {/* this is edit route*/ }
+
               <Route path="/verify-otp" element={<OtpVerification />} />
               <Route path="/set-new-password" element={<SetNewPassword />} />
               <Route path="/course/:id" element={<CourseDetails />} />
