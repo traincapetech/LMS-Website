@@ -1,7 +1,8 @@
 import React from "react";
+import HeroSection from "../components/HeroSection";
 import img1 from "../assets/img1.png";
 import img2 from "../assets/img2.png";
-import img4 from "../assets/img4.png";
+import img4 from "../assets/img3.png";
 import {
   FaRobot,
   FaPenNib,
@@ -28,21 +29,8 @@ const Home = () => {
   const navigate = useNavigate();
   return (
     <div className="home-container">
-      {/* Hero Section */}
-      <div className="hero-section">
-        <div className="hero-text">
-          <h1>Welcome to Traincape LMS</h1>
-          <p>
-            Traincape is your all-in-one Learning Management System. Learn new
-            skills, earn certifications, or teach students from around the globe
-            with ease and flexibility.
-          </p>
-          <button className="explore-btn" onClick={() => navigate("/courses")}>Explore Courses</button>
-        </div>
-        <div className="hero-image">
-          <img src={img1} alt="Traincape LMS" />
-        </div>
-      </div>
+      <HeroSection />
+
 
       {/* Career Accelerator Section */}
       <div className="career-section">

@@ -432,7 +432,7 @@ body {
   
   /* Pricing Section */
   .pricing-section {
-    padding: 80px 20px;
+    padding: 40px 20px;
     background: #f9fafe;
     text-align: center;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1511,4 +1511,79 @@ body {
 .pdf-scroll {
   scrollbar-width: thin;
   scrollbar-color: #7e22ce #dddddd;
+}
+/* animation for auto horizontal scroll */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* apply animation - adjust duration for speed (longer = slower) */
+.animate-scroll-left {
+  animation: scroll-left 20s linear infinite;
+  /* ensure smoothness */
+  display: flex;
+}
+
+/* pause animation on hover/focus for accessibility */
+div.will-change-transform:hover,
+div.will-change-transform:focus-within {
+  animation-play-state: paused;
+}
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-left { animation: none !important; }
+}
+/* --- Slider Button Styles --- */
+
+/* Container ko relative position denge taaki buttons iske andar hi rahein */
+.slider-container {
+  position: relative;
+}
+
+/* Buttons ka common style */
+.slider-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9); /* White background with slight transparency */
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 1.2rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Magic yahan hai: Default opacity 0 (Invisible) */
+  opacity: 0; 
+  transition: opacity 0.3s ease, transform 0.2s ease, background-color 0.3s;
+}
+
+/* Left Button position */
+.prev-btn {
+  left: 15px;
+}
+
+/* Right Button position */
+.next-btn {
+  right: 15px;
+}
+
+/* Jab Slider Container pe mouse hover ho, tab buttons dikhein (Opacity 0.6 - Thoda halka) */
+.slider-container:hover .slider-nav-btn {
+  opacity: 0.6;
+}
+
+/* Jab specific Button pe mouse hover ho, tab woh full dark (Opacity 1) ho jaye */
+.slider-nav-btn:hover {
+  opacity: 1 !important;
+  background-color: #fff;
+  transform: translateY(-50%) scale(1.1); /* Thoda sa bada bhi hoga */
 }

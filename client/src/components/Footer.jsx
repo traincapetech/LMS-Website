@@ -15,53 +15,269 @@ const Footer = () => {
           <div className="footer-col">
             <h3>In-demand Careers</h3>
             <ul>
-              <li><Link to="/course/data-scientist" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Data Scientist</Link></li>
-              <li><Link to="/course/full-stack-web-developer" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Full Stack Web Developer</Link></li>
-              <li><Link to="/course/cloud-engineer" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Cloud Engineer</Link></li>
-              <li><Link to="/course/project-management" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Project Manager</Link></li>
-              <li><Link to="/course/game-developer" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Game Developer</Link></li>
-              <li className="highlight">See all Career Accelerators</li>
+              <li>
+                <Link
+                  to="/course/data-scientist"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Data Scientist
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/full-stack-web-developer"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Full Stack Web Developer
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/cloud-engineer"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Cloud Engineer
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/project-management"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Project Manager
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/game-developer"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Game Developer
+                </Link>
+              </li>
+              <li className="highlight">
+                <Link
+                  to="/courses"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  See all Career Accelerators
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="footer-col">
             <h3>Web Development</h3>
             <ul>
-              <li><Link to="/course/web-development" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Web Development</Link></li>
-              <li><Link to="/course/javascript" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>JavaScript</Link></li>
-              <li><Link to="/course/react-js" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>React JS</Link></li>
-              <li><Link to="/course/angular" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Angular</Link></li>
-              <li><Link to="/course/java" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Java</Link></li>
+              <li>
+                <Link
+                  to="/course/web-development"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Web Development
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/javascript"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  JavaScript
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/react-js"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  React JS
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/angular"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Angular
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/java"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Java
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="footer-col">
             <h3>IT Certifications</h3>
             <ul>
-              <li><Link to="/course/aws-cloud-practitioner" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Amazon AWS</Link></li>
-              <li><Link to="/course/aws-cloud-practitioner" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>AWS Cloud Practitioner</Link></li>
-              <li><Link to="/course/azure-fundamentals" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>AZ-900: Azure Fundamentals</Link></li>
-              <li><Link to="/course/solutions-architect" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Solutions Architect</Link></li>
-              <li><Link to="/course/kubernetes" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Kubernetes</Link></li>
+              <li>
+                <Link
+                  to="/course/aws-cloud-practitioner"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Amazon AWS
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/aws-cloud-practitioner"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  AWS Cloud Practitioner
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/azure-fundamentals"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  AZ-900: Azure Fundamentals
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/solutions-architect"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Solutions Architect
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/kubernetes"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Kubernetes
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="footer-col">
             <h3>Leadership</h3>
             <ul>
-              <li><Link to="/course/leadership" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Leadership</Link></li>
-              <li><Link to="/course/management-skills" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Management Skills</Link></li>
-              <li><Link to="/course/project-management" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Project Management</Link></li>
-              <li><Link to="/course/productivity" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Productivity</Link></li>
-              <li><Link to="/course/emotional-intelligence" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Emotional Intelligence</Link></li>
+              <li>
+                <Link
+                  to="/course/leadership"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Leadership
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/management-skills"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Management Skills
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/project-management"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Project Management
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/productivity"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Productivity
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/emotional-intelligence"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Emotional Intelligence
+                </Link>
+              </li>
             </ul>
           </div>
           <div className="footer-col">
             <h3>Certifications by Skill</h3>
             <ul>
-              <li><Link to="/course/cybersecurity-certification" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Cybersecurity Certification</Link></li>
-              <li><Link to="/course/project-management" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Project Management Certification</Link></li>
-              <li><Link to="/course/cloud-certification" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Cloud Certification</Link></li>
-              <li><Link to="/course/data-analytics-certification" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>Data Analytics Certification</Link></li>
-              <li><Link to="/course/hr-certification" style={{ textDecoration: 'none', color: 'inherit' }} onClick={handleCourseClick}>HR Certification</Link></li>
-              <li className="highlight">See all Certifications</li>
+              <li>
+                <Link
+                  to="/course/cybersecurity-certification"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Cybersecurity Certification
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/project-management"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Project Management Certification
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/cloud-certification"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Cloud Certification
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/data-analytics-certification"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  Data Analytics Certification
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/course/hr-certification"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  HR Certification
+                </Link>
+              </li>
+              <li className="highlight">
+                <Link
+                  to="/courses"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  onClick={handleCourseClick}
+                >
+                  See all Certifications
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -83,7 +299,18 @@ const Footer = () => {
             <ul>
               <li>Get the app</li>
               <li>Teach on Traincape</li>
-              <li><u>Plans and Pricing</u></li>
+              <li className="highlight">
+                <Link
+                  to="/plans"
+                  style={{ textDecoration: "none", color: "#5624d0" }}
+                  onClick={handleCourseClick}
+                  onMouseEnter={(e) => (e.target.style.color = "#3c1799")}
+                  onMouseLeave={(e) => (e.target.style.color = "#5624d0")}
+                >
+                  Plans and Pricing
+                </Link>
+              </li>
+
               <li>Affiliate</li>
               <li>Help and Support</li>
             </ul>

@@ -689,7 +689,6 @@ const Dashboard = () => {
               <button className="add-section-btn" onClick={addSection}>{Icon.Plus} Add Section</button>
             </div>
           </div>
-
         );
 
       case "captions":
@@ -798,7 +797,7 @@ const Dashboard = () => {
           </ul>
         </nav>
       </aside>
-
+      
       <main style={{ flex: 1, padding: 48, maxWidth: 900, margin: "0 auto", position: "relative" }}>
         {renderContent()}
 
