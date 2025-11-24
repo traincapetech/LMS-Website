@@ -34,6 +34,7 @@ import CreateQuiz from "./Pages/CreateQuiz";
 import LectureVideo from "./Pages/LectureVideo";
 import ResourceView from "./Pages/ResourceView";
 import UploadLecture from "./Pages/UploadLecture";
+import Messages from "./Pages/Messages";
 
 // Cart context setup
 export const CartContext = createContext();
@@ -43,7 +44,7 @@ export const CartContext = createContext();
 const MyLearning = () => <div style={{padding:'2rem'}}>My Learning Page</div>;
 const Wishlist = () => <div style={{padding:'2rem'}}>Wishlist Page</div>;
 const Notifications = () => <div style={{padding:'2rem'}}>Notifications Page</div>;
-const Messages = () => <div style={{padding:'2rem'}}>Messages Page</div>;
+
 const AccountSettings = () => <div style={{padding:'2rem'}}>Account Settings Page</div>;
 const PaymentMethods = () => <div style={{padding:'2rem'}}>Payment Methods Page</div>;
 const Subscriptions = () => <div style={{padding:'2rem'}}>Subscriptions Page</div>;
