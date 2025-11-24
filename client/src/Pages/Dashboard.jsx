@@ -1,5 +1,5 @@
-// Dashboard.js
-import React, { useState, useEffect, useCallback, useRef } from "react";
+// Dashboard.jsx
+import React, { useState, useEffect, useRef } from "react";
 import "./Dashboard.css";
 import axios from "axios";
 import "./UploadLecture.css";
@@ -14,7 +14,8 @@ import VideoUpload from "./VideoUpload";
 import DocumentUpload from "./DocumentUpload";
 import QuizPage from "./QuizPage";
 
-const API_BASE = "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 
 const steps = [
   { key: "intended", label: "Intended learners" },
@@ -39,8 +40,8 @@ const Dashboard = () => {
   const [requirements, setRequirements] = useState([""]);
   const [courseFor, setCourseFor] = useState("");
   const [structure, setStructure] = useState("");
-  const [testVideo, setTestVideo] = useState(null);      // File object
-  const [testVideoUrl, setTestVideoUrl] = useState("");  // Uploaded URL
+  const [testVideo, setTestVideo] = useState(null); // File object
+  const [testVideoUrl, setTestVideoUrl] = useState(""); // Uploaded URL
   const [filmEdit, setFilmEdit] = useState("");
   const [sampleVideo, setSampleVideo] = useState(null);
   const [sampleVideoUrl, setSampleVideoUrl] = useState("");
@@ -72,48 +73,65 @@ const Dashboard = () => {
     toggleExpand,
     setSections,
   } = useSections(initialData);
+
   // URL param
-  const { courseId } = useParams();
-  const uploads = useUploads(setSections, courseId);
-  // upload helpers for lectures (existing)
+  const { pendingCourseId } = useParams();
+  const courseId = pendingCourseId;
+
+  const uploads = courseId ? useUploads(setSections, courseId) : null;
+
   const quiz = useQuiz(setSections);
 
   // inline editing
   const [editingSection, setEditingSection] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
 
-
-
-  // ---------- debounced autosave refs ----------
-  const saveTimeoutRef = useRef(null);
-  const metaSaveTimeoutRef = useRef(null);
-  const mountedRef = useRef(false);
-
-  // ---------- Icons (kept same) ----------
+  // ---------- Icons ----------
   const Icon = {
-    Edit: (/* ...same SVG... */ <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
-    </svg>),
-    Delete: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V3h6v3" />
-    </svg>),
-    ChevronDown: (<svg width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l4 4 4-4" /></svg>),
-    ChevronUp: (<svg width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 13l4-4 4 4" /></svg>),
-    Unpublish: (<svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l8 8M12 4L4 12" /></svg>),
-    Plus: (<svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v10M3 8h10" /></svg>),
+    Edit: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+      </svg>
+    ),
+    Delete: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14H6L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+        <path d="M9 6V3h6v3" />
+      </svg>
+    ),
+    ChevronDown: (
+      <svg width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9l4 4 4-4" />
+      </svg>
+    ),
+    ChevronUp: (
+      <svg width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 13l4-4 4 4" />
+      </svg>
+    ),
+    Unpublish: (
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4l8 8M12 4L4 12" />
+      </svg>
+    ),
+    Plus: (
+      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3v10M3 8h10" />
+      </svg>
+    ),
   };
 
   // ---------- Load pending draft on mount ----------
   useEffect(() => {
-    if (!courseId) return;
-    const url = `${API_BASE}/api/pending-courses/${courseId}`;
-    axios.get(url)
-      .then(res => {
+    if (!pendingCourseId) return;
+    const url = `${API_BASE}/api/pending-courses/${pendingCourseId}`;
+    axios
+      .get(url)
+      .then((res) => {
         const data = res.data || {};
         setSections(data.curriculum || []);
         setLearningObjectives(data.learningObjectives || ["", "", "", ""]);
@@ -135,98 +153,11 @@ const Dashboard = () => {
         setCongratsMsg(data.congratsMsg || "");
         setThumbnailUrl(data.thumbnailUrl || "");
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error loading pending course:", err);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
-
-  // ---------- Helper: patch draft fields to backend ----------
-  const patchDraft = useCallback(async (payload = {}) => {
-    if (!courseId) return;
-    const token = localStorage.getItem("token");
-    try {
-      await axios.patch(`${API_BASE}/api/pending-courses/${courseId}`, payload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-    } catch (err) {
-      console.error("Draft patch error:", err);
-    }
-  }, [courseId]);
-
-  // ---------- Autosave curriculum (debounced) ----------
-  useEffect(() => {
-    if (!courseId) return;
-    // avoid autosave on initial mount load (mountedRef)
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      return;
-    }
-
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      patchDraft({ curriculum: sections });
-    }, 900);
-
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [sections, courseId, patchDraft]);
-
-  // ---------- Autosave metadata (debounced) ----------
-  useEffect(() => {
-    if (!courseId) return;
-    if (!mountedRef.current) return; // don't save while initial loading
-
-    if (metaSaveTimeoutRef.current) clearTimeout(metaSaveTimeoutRef.current);
-    metaSaveTimeoutRef.current = setTimeout(() => {
-      patchDraft({
-        learningObjectives,
-        requirements,
-        courseFor,
-        structure,
-        filmEdit,
-        captions,
-        accessibility,
-        landingTitle,
-        landingSubtitle,
-        landingDesc,
-        price,
-        promoCode,
-        promoDesc,
-        welcomeMsg,
-        congratsMsg,
-        thumbnailUrl,
-        testVideoUrl,
-        sampleVideoUrl
-      });
-    }, 900);
-
-    return () => {
-      if (metaSaveTimeoutRef.current) clearTimeout(metaSaveTimeoutRef.current);
-    };
-  }, [
-    learningObjectives,
-    requirements,
-    courseFor,
-    structure,
-    filmEdit,
-    captions,
-    accessibility,
-    landingTitle,
-    landingSubtitle,
-    landingDesc,
-    price,
-    promoCode,
-    promoDesc,
-    welcomeMsg,
-    congratsMsg,
-    thumbnailUrl,
-    testVideoUrl,
-    sampleVideoUrl,
-    courseId,
-    patchDraft
-  ]);
 
   // ---------- Thumbnail upload handler ----------
   const handleThumbnailChange = async (e) => {
@@ -242,8 +173,8 @@ const Dashboard = () => {
     const form = new FormData();
     form.append("thumbnail", file);
     try {
-      const res = await axios.post(`${API_BASE}/api/upload/thumbnail`, form, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
+      const res = await axios.post(`https://lms-backend-5s5x.onrender.com/api/upload/thumbnail`, form, {
+        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.data?.url) {
         setThumbnailUrl(res.data.url);
@@ -262,8 +193,8 @@ const Dashboard = () => {
     const form = new FormData();
     form.append("video", file);
     try {
-      const res = await axios.post(`${API_BASE}/api/upload/video`, form, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` }
+      const res = await axios.post(` https://lms-backend-5s5x.onrender.com/api/upload/video`, form, {
+        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       return res.data?.url || "";
     } catch (err) {
@@ -272,9 +203,8 @@ const Dashboard = () => {
     }
   };
 
-  // ---------- Validation: adjust to required fields only; curriculum is sections ----------
+  // ---------- Validation: required fields ----------
   const allFieldsFilled = () => {
-    // You can change which fields are required here.
     return (
       learningObjectives.every((obj) => obj.trim() !== "") &&
       courseFor.trim() !== "" &&
@@ -307,8 +237,8 @@ const Dashboard = () => {
       const res = await axios.post(`${API_BASE}/api/upload/thumbnail`, form, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`
-        }
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
 
       return res.data.url || "";
@@ -321,13 +251,25 @@ const Dashboard = () => {
   // ---------- Submit for review ----------
   const handleSubmitForReview = async () => {
     try {
+      // basic validation
+      if (!allFieldsFilled()) {
+        markAllTouched();
+        setSubmitError("Please fill in all required fields before submitting.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      setSubmitError("");
 
-      // 🔹 Get token here (this was missing)
+      // Get token
       const token = localStorage.getItem("token");
 
       // Upload files
-      let finalTestVideoUrl = testVideoUrl;
-      if (testVideo) finalTestVideoUrl = await uploadVideoFile(testVideo);
+      let finalTestVideoUrl = testVideoUrl || "";
+
+      if (testVideo) {
+        const uploaded = await uploadVideoFile(testVideo);
+        if (uploaded) finalTestVideoUrl = uploaded;
+      }
 
       let finalSampleVideoUrl = sampleVideoUrl;
       if (sampleVideo) finalSampleVideoUrl = await uploadVideoFile(sampleVideo);
@@ -343,11 +285,12 @@ const Dashboard = () => {
           title: item.title,
           videoUrl: item.videoUrl || "",
           documents: (item.contents || []).map((doc) => ({
-            fileUrl: doc.fileUrl,
-            fileName: doc.filename
+            fileUrl: doc.fileUrl || "",
+            fileName: doc.fileName || doc.filename || "",
           })),
-          quizId: item.quizId || null
-        }))
+          quizId: item.quizId || null,
+
+        })),
       }));
 
       const instructorObj = JSON.parse(localStorage.getItem("user"));
@@ -357,52 +300,43 @@ const Dashboard = () => {
         requirements,
         courseFor,
         structure,
-
-        testVideo: finalTestVideoUrl,
+        testVideo: finalTestVideoUrl || "",
         sampleVideo: finalSampleVideoUrl,
         thumbnailUrl: finalThumbnailUrl,
-
         filmEdit,
         captions,
         accessibility,
-
         landingTitle,
         landingSubtitle,
         landingDesc,
         price,
         promoCode,
         promoDesc,
-
         welcomeMsg,
         congratsMsg,
-
         curriculum: curriculumPayload,
+        instructor: instructorObj,   // send full user object
 
-        instructor: instructorObj?._id
+        // include pendingCourseId if you want to update an existing pending course on server
+        pendingCourseId: courseId || undefined,
       };
 
-      // 🔹 Now token correctly exists
-      const res = await axios.post(
-        `http://localhost:5001/api/pending-courses/apply`,
-        courseData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      // Now post to backend
+      await axios.post(`${API_BASE}/api/pending-courses/apply`, courseData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
 
       alert("Course submitted for admin review!");
-
     } catch (err) {
-      console.error(err);
-      alert("Submit failed");
+      console.error("Submit failed:", err);
+      alert("Submit failed — check console for details.");
     }
   };
 
-
-  // ---------- Render content function (kept similar to your existing one) ----------
+  // ---------- Render content ----------
   const renderContent = () => {
     switch (active) {
       case "intended":
@@ -414,30 +348,33 @@ const Dashboard = () => {
             <div className="dash-section">
               <h3>What will students learn?</h3>
               {learningObjectives.map((obj, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div key={i} style={{ display: "flex", flexDirection: "column", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
                     <input
                       type="text"
                       className="input-box"
                       placeholder={`Example: Learning outcome ${i + 1}`}
                       maxLength={160}
                       value={obj}
-                      onChange={e => {
+                      onChange={(e) => {
                         const newArr = [...learningObjectives];
                         newArr[i] = e.target.value;
                         setLearningObjectives(newArr);
-                        setTouched(t => ({ ...t, learningObjectives: t.learningObjectives ? t.learningObjectives.map((v, idx) => idx === i ? true : v) : [] }));
+                        setTouched((t) => ({
+                          ...t,
+                          learningObjectives: t.learningObjectives ? t.learningObjectives.map((v, idx) => (idx === i ? true : v)) : [],
+                        }));
                       }}
                       style={{
                         flex: 1,
                         marginRight: 8,
-                        border: touched.learningObjectives && touched.learningObjectives[i] && obj.trim() === "" ? '2px solid #e11d48' : undefined
+                        border: touched.learningObjectives && touched.learningObjectives[i] && obj.trim() === "" ? "2px solid #e11d48" : undefined,
                       }}
                     />
-                    <span style={{ color: '#888', fontSize: 13 }}>{160 - obj.length}</span>
+                    <span style={{ color: "#888", fontSize: 13 }}>{160 - obj.length}</span>
                   </div>
                   {touched.learningObjectives && touched.learningObjectives[i] && obj.trim() === "" && (
-                    <span style={{ color: '#e11d48', fontSize: 13, marginTop: 2 }}>This field is required</span>
+                    <span style={{ color: "#e11d48", fontSize: 13, marginTop: 2 }}>This field is required</span>
                   )}
                 </div>
               ))}
@@ -449,30 +386,48 @@ const Dashboard = () => {
             <div className="dash-section">
               <h3>Requirements / prerequisites</h3>
               {requirements.map((req, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
                   <input
                     type="text"
                     className="input-box"
                     placeholder="Example: No programming experience needed."
                     value={req}
-                    onChange={e => {
+                    onChange={(e) => {
                       const newArr = [...requirements];
                       newArr[i] = e.target.value;
                       setRequirements(newArr);
-                      setTouched(t => ({ ...t, requirements: t.requirements ? t.requirements.map((v, idx) => idx === i ? true : v) : [] }));
+                      setTouched((t) => ({ ...t, requirements: t.requirements ? t.requirements.map((v, idx) => (idx === i ? true : v)) : [] }));
                     }}
                     style={{ flex: 1, marginRight: 8 }}
                   />
-                  <button type="button" onClick={() => setRequirements(requirements.filter((_, idx) => idx !== i))} style={{ color: '#c00', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }} disabled={requirements.length === 1}>×</button>
+                  <button
+                    type="button"
+                    onClick={() => setRequirements(requirements.filter((_, idx) => idx !== i))}
+                    style={{ color: "#c00", background: "none", border: "none", fontSize: 18, cursor: "pointer" }}
+                    disabled={requirements.length === 1}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
-              <button className="add-more-btn" type="button" onClick={() => setRequirements([...requirements, ""])}>+ Add more</button>
+              <button className="add-more-btn" type="button" onClick={() => setRequirements([...requirements, ""])}>
+                + Add more
+              </button>
             </div>
 
             <div className="dash-section">
               <h3>Who is this course for?</h3>
-              <input type="text" className="input-box" placeholder="Example: Beginners interested in Python for data science" value={courseFor} onChange={e => { setCourseFor(e.target.value); setTouched(t => ({ ...t, courseFor: true })); }} />
-              {touched.courseFor && courseFor.trim() === "" && <span style={{ color: '#e11d48', fontSize: 13 }}>This field is required</span>}
+              <input
+                type="text"
+                className="input-box"
+                placeholder="Example: Beginners interested in Python for data science"
+                value={courseFor}
+                onChange={(e) => {
+                  setCourseFor(e.target.value);
+                  setTouched((t) => ({ ...t, courseFor: true }));
+                }}
+              />
+              {touched.courseFor && courseFor.trim() === "" && <span style={{ color: "#e11d48", fontSize: 13 }}>This field is required</span>}
             </div>
           </div>
         );
@@ -481,8 +436,8 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Course structure</h2>
-            <textarea className="input-box" rows={6} placeholder="Outline sections..." value={structure} onChange={e => { setStructure(e.target.value); setTouched(t => ({ ...t, structure: true })); }} />
-            {touched.structure && structure.trim() === "" && <span style={{ color: '#e11d48', fontSize: 13 }}>This field is required</span>}
+            <textarea className="input-box" rows={6} placeholder="Outline sections..." value={structure} onChange={(e) => { setStructure(e.target.value); setTouched((t) => ({ ...t, structure: true })); }} />
+            {touched.structure && structure.trim() === "" && <span style={{ color: "#e11d48", fontSize: 13 }}>This field is required</span>}
           </div>
         );
 
@@ -492,8 +447,8 @@ const Dashboard = () => {
             <h2 className="dash-heading">Setup & test video</h2>
             <p className="dash-desc">Upload a short test video so the team can check audio/video quality.</p>
             <div style={{ marginBottom: 16 }}>
-              <input type="file" accept="video/*" onChange={e => { setTestVideo(e.target.files[0]); setTouched(t => ({ ...t, testVideo: true })); }} style={{ marginBottom: 8, padding: 8, border: '2px dashed #ccc', borderRadius: 4, width: '100%' }} />
-              {testVideo && <div style={{ color: '#5624d0', padding: 8, background: '#f3f0ff', borderRadius: 4, marginTop: 8 }}>✅ Selected: {testVideo.name} ({(testVideo.size / 1024 / 1024).toFixed(2)} MB)</div>}
+              <input type="file" accept="video/*" onChange={(e) => { setTestVideo(e.target.files[0]); setTouched((t) => ({ ...t, testVideo: true })); }} style={{ marginBottom: 8, padding: 8, border: "2px dashed #ccc", borderRadius: 4, width: "100%" }} />
+              {testVideo && <div style={{ color: "#5624d0", padding: 8, background: "#f3f0ff", borderRadius: 4, marginTop: 8 }}>✅ Selected: {testVideo.name} ({(testVideo.size / 1024 / 1024).toFixed(2)} MB)</div>}
             </div>
           </div>
         );
@@ -502,11 +457,11 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Film & edit</h2>
-            <textarea className="input-box" rows={4} placeholder="Describe filming/editing plan (optional)" value={filmEdit} onChange={e => { setFilmEdit(e.target.value); setTouched(t => ({ ...t, filmEdit: true })); }} />
+            <textarea className="input-box" rows={4} placeholder="Describe filming/editing plan (optional)" value={filmEdit} onChange={(e) => { setFilmEdit(e.target.value); setTouched((t) => ({ ...t, filmEdit: true })); }} />
             <div style={{ marginTop: 12 }}>
-              <label style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>Sample Video (Optional)</label>
-              <input type="file" accept="video/*" onChange={e => { setSampleVideo(e.target.files[0]); }} style={{ padding: 8, border: '2px dashed #ccc', borderRadius: 4, width: '100%' }} />
-              {sampleVideo && <div style={{ color: '#5624d0', padding: 8, background: '#f3f0ff', borderRadius: 4, marginTop: 8 }}>✅ Selected: {sampleVideo.name}</div>}
+              <label style={{ fontWeight: 600, display: "block", marginBottom: 8 }}>Sample Video (Optional)</label>
+              <input type="file" accept="video/*" onChange={(e) => { setSampleVideo(e.target.files[0]); }} style={{ padding: 8, border: "2px dashed #ccc", borderRadius: 4, width: "100%" }} />
+              {sampleVideo && <div style={{ color: "#5624d0", padding: 8, background: "#f3f0ff", borderRadius: 4, marginTop: 8 }}>✅ Selected: {sampleVideo.name}</div>}
             </div>
           </div>
         );
@@ -520,39 +475,204 @@ const Dashboard = () => {
                 <div key={section.id} className="section-block">
                   <div className="section-header">
                     {editingSection === section.id ? (
-                      <input className="inline-input" autoFocus defaultValue={section.title} onBlur={(e) => { editSection(section.id, e.target.value.trim()); setEditingSection(null); }} onKeyDown={(e) => { if (e.key === "Enter") { editSection(section.id, e.target.value.trim()); setEditingSection(null); } }} />
-                    ) : <strong>{section.title}</strong>}
+                      <input
+                        className="inline-input"
+                        autoFocus
+                        defaultValue={section.title}
+                        onBlur={(e) => {
+                          editSection(section.id, e.target.value.trim());
+                          setEditingSection(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            editSection(section.id, e.target.value.trim());
+                            setEditingSection(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <strong>{section.title}</strong>
+                    )}
+
                     <div className="header-actions">
                       <button className="icon-btn" onClick={() => setEditingSection(section.id)}>{Icon.Edit}</button>
                       <button className="icon-btn danger" onClick={() => deleteSection(section.id)}>{Icon.Delete}</button>
                     </div>
                   </div>
 
+                  {/* SECTION ITEMS */}
                   {section.items.map((item) => (
                     <div key={item.id} className="item-block">
                       <div className="item-header">
                         {editingItem === item.id ? (
-                          <input className="inline-input" autoFocus defaultValue={item.title} onBlur={(e) => { editItem(section.id, item.id, e.target.value.trim()); setEditingItem(null); }} onKeyDown={(e) => { if (e.key === "Enter") { editItem(section.id, item.id, e.target.value.trim()); setEditingItem(null); } }} />
-                        ) : <span>{item.type.toUpperCase()}: {item.title}</span>}
+                          <input
+                            className="inline-input"
+                            autoFocus
+                            defaultValue={item.title}
+                            onBlur={(e) => {
+                              editItem(section.id, item.id, e.target.value.trim());
+                              setEditingItem(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                editItem(section.id, item.id, e.target.value.trim());
+                                setEditingItem(null);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span>{item.type.toUpperCase()}: {item.title}</span>
+                        )}
+
                         <div className="item-actions">
                           <button className="icon-btn" title="Edit" onClick={() => setEditingItem(item.id)}>{Icon.Edit}</button>
                           <button className="icon-btn danger" title="Delete" onClick={() => deleteItem(section.id, item.id)}>{Icon.Delete}</button>
-                          <button className="icon-btn" onClick={() => toggleExpand(section.id, item.id)}>{item.expanded ? Icon.ChevronUp : Icon.ChevronDown}</button>
+                          <button className="icon-btn" onClick={() => toggleExpand(section.id, item.id)}>
+                            {item.expanded ? Icon.ChevronUp : Icon.ChevronDown}
+                          </button>
                         </div>
                       </div>
 
+                      {/* CONTENT */}
                       {item.expanded && (
                         <div className="item-content">
+
                           {item.type === "lecture" && (
                             <>
-                              <VideoUpload onUpload={(file) => uploads.uploadVideo(section.id, item.id, file)} />
-                              <DocumentUpload onUpload={(file) => uploads.uploadDocument(section.id, item.id, file)} />
-                              {item.contents?.length > 0 && <ul className="content-list">{item.contents.map(c => <li key={c.id}>{c.type} — {c.filename}</li>)}</ul>}
+                              {/* 🔵 VIDEO UPLOAD */}
+                              <VideoUpload
+                                onUpload={(file) =>
+                                  uploads.uploadVideo(
+                                    section.id,
+                                    item.id,
+                                    file,
+                                    (progress) => {
+                                      setSections((prev) =>
+                                        prev.map((sec) =>
+                                          sec.id === section.id
+                                            ? {
+                                              ...sec,
+                                              items: sec.items.map((it) =>
+                                                it.id === item.id
+                                                  ? {
+                                                    ...it,
+                                                    uploadProgress: progress,
+                                                    uploadComplete: false,
+                                                    videoFileName: file.name
+                                                  }
+                                                  : it
+                                              ),
+                                            }
+                                            : sec
+                                        )
+                                      );
+                                    }
+                                  )
+                                }
+                              />
+
+                              {/* 🔵 VIDEO PROGRESS BAR */}
+                              {item.uploadProgress >= 0 && item.uploadProgress < 100 && (
+                                <div style={{ marginTop: 10 }}>
+                                  <div
+                                    style={{
+                                      width: `${item.uploadProgress}%`,
+                                      height: "8px",
+                                      background: "#7c3aed",
+                                      borderRadius: "6px",
+                                      transition: "width 0.2s",
+                                    }}
+                                  ></div>
+                                  <p style={{ fontSize: 13, marginTop: 4 }}>
+                                    Uploading video… {item.uploadProgress}%
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* 🔵 VIDEO SUCCESS MESSAGE */}
+                              {item.uploadProgress === 100 && (
+                                <p style={{ color: "green", marginTop: 10 }}>
+                                  ✔ Video uploaded successfully<br />
+                                  <strong>{item.videoFileName}</strong>
+                                </p>
+                              )}
+
+                              {/* 🟢 DOCUMENT UPLOAD */}
+                              <DocumentUpload
+                                onUpload={(file) =>
+                                  uploads.uploadDocument(
+                                    section.id,
+                                    item.id,
+                                    file,
+                                    (progress) => {
+                                      setSections((prev) =>
+                                        prev.map((sec) =>
+                                          sec.id === section.id
+                                            ? {
+                                              ...sec,
+                                              items: sec.items.map((it) =>
+                                                it.id === item.id
+                                                  ? {
+                                                    ...it,
+                                                    docProgress: progress,
+                                                    docComplete: false,
+                                                    docFileName: file.name
+                                                  }
+                                                  : it
+                                              ),
+                                            }
+                                            : sec
+                                        )
+                                      );
+                                    }
+                                  )
+                                }
+                              />
+
+                              {/* 🟢 DOCUMENT PROGRESS */}
+                              {item.docProgress >= 0 && item.docProgress < 100 && (
+                                <div style={{ marginTop: 10 }}>
+                                  <div
+                                    style={{
+                                      width: `${item.docProgress}%`,
+                                      height: "8px",
+                                      background: "#10b981",
+                                      borderRadius: "6px",
+                                      transition: "width 0.2s",
+                                    }}
+                                  ></div>
+                                  <p style={{ fontSize: 13, marginTop: 4 }}>
+                                    Uploading document… {item.docProgress}%
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* 🟢 DOCUMENT SUCCESS */}
+                              {item.docProgress === 100 && (
+                                <p style={{ color: "green", marginTop: 10 }}>
+                                  ✔ Document uploaded successfully<br />
+                                  <strong>{item.docFileName}</strong>
+                                </p>
+                              )}
+
+                              {/* 📁 SHOW DOCUMENT LIST */}
+                              {item.contents?.length > 0 && (
+                                <ul className="content-list">
+                                  {item.contents.map((c) => (
+                                    <li key={c.id}>{c.type} — {c.filename}</li>
+                                  ))}
+                                </ul>
+                              )}
                             </>
                           )}
 
                           {item.type === "quiz" && (
-                            <QuizPage sectionId={section.id} itemId={item.id} questions={item.questions} quiz={quiz} />
+                            <QuizPage
+                              sectionId={section.id}
+                              itemId={item.id}
+                              questions={item.questions}
+                              quiz={quiz}
+                            />
                           )}
                         </div>
                       )}
@@ -575,7 +695,7 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Captions (optional)</h2>
-            <textarea className="input-box" rows={3} placeholder="Describe caption plan" value={captions} onChange={e => { setCaptions(e.target.value); setTouched(t => ({ ...t, captions: true })); }} />
+            <textarea className="input-box" rows={3} placeholder="Describe caption plan" value={captions} onChange={(e) => { setCaptions(e.target.value); setTouched((t) => ({ ...t, captions: true })); }} />
           </div>
         );
 
@@ -583,7 +703,7 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Accessibility (optional)</h2>
-            <textarea className="input-box" rows={3} placeholder="Accessibility notes" value={accessibility} onChange={e => { setAccessibility(e.target.value); setTouched(t => ({ ...t, accessibility: true })); }} />
+            <textarea className="input-box" rows={3} placeholder="Accessibility notes" value={accessibility} onChange={(e) => { setAccessibility(e.target.value); setTouched((t) => ({ ...t, accessibility: true })); }} />
           </div>
         );
 
@@ -591,15 +711,20 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Course landing page</h2>
-            <input type="text" className="input-box" placeholder="Course Title" value={landingTitle} onChange={e => { setLandingTitle(e.target.value); setTouched(t => ({ ...t, landingTitle: true })); }} />
-            <input type="text" className="input-box" placeholder="Subtitle" value={landingSubtitle} onChange={e => { setLandingSubtitle(e.target.value); setTouched(t => ({ ...t, landingSubtitle: true })); }} />
-            <textarea className="input-box" rows={4} placeholder="Full course description..." value={landingDesc} onChange={e => { setLandingDesc(e.target.value); setTouched(t => ({ ...t, landingDesc: true })); }} />
+            <input type="text" className="input-box" placeholder="Course Title" value={landingTitle} onChange={(e) => { setLandingTitle(e.target.value); setTouched((t) => ({ ...t, landingTitle: true })); }} />
+            <input type="text" className="input-box" placeholder="Subtitle" value={landingSubtitle} onChange={(e) => { setLandingSubtitle(e.target.value); setTouched((t) => ({ ...t, landingSubtitle: true })); }} />
+            <textarea className="input-box" rows={4} placeholder="Full course description..." value={landingDesc} onChange={(e) => { setLandingDesc(e.target.value); setTouched((t) => ({ ...t, landingDesc: true })); }} />
 
-            <div style={{ margin: '18px 0' }}>
-              <label style={{ fontWeight: 600, display: 'block', marginBottom: 8 }}>Course Thumbnail Image</label>
-              <input type="file" accept="image/*" onChange={handleThumbnailChange} style={{ marginTop: 8, padding: 8, border: '2px dashed #ccc', borderRadius: 4, width: '100%' }} />
-              {thumbnailFile && <div style={{ marginTop: 8, color: '#666' }}>📁 Selected file: {thumbnailFile.name} ({(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB)</div>}
-              {thumbnailUrl && <div style={{ marginTop: 10 }}><div style={{ marginBottom: 8, fontWeight: 600 }}>Thumbnail Preview:</div><img src={thumbnailUrl} alt="Thumbnail" style={{ width: 180, height: 120, borderRadius: 8, objectFit: 'contain', border: '2px solid #e5e7eb' }} onError={(e) => { console.error("Image failed:", e.target.src); }} /></div>}
+            <div style={{ margin: "18px 0" }}>
+              <label style={{ fontWeight: 600, display: "block", marginBottom: 8 }}>Course Thumbnail Image</label>
+              <input type="file" accept="image/*" onChange={handleThumbnailChange} style={{ marginTop: 8, padding: 8, border: "2px dashed #ccc", borderRadius: 4, width: "100%" }} />
+              {thumbnailFile && <div style={{ marginTop: 8, color: "#666" }}>📁 Selected file: {thumbnailFile.name} ({(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB)</div>}
+              {thumbnailUrl && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ marginBottom: 8, fontWeight: 600 }}>Thumbnail Preview:</div>
+                  <img src={thumbnailUrl} alt="Thumbnail" style={{ width: 180, height: 120, borderRadius: 8, objectFit: "contain", border: "2px solid #e5e7eb" }} onError={(e) => { console.error("Image failed:", e.target.src); }} />
+                </div>
+              )}
             </div>
           </div>
         );
@@ -608,7 +733,7 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Pricing</h2>
-            <select className="input-box" value={price} onChange={e => { setPrice(e.target.value); setTouched(t => ({ ...t, price: true })); }}>
+            <select className="input-box" value={price} onChange={(e) => { setPrice(e.target.value); setTouched((t) => ({ ...t, price: true })); }}>
               <option value="">Select price</option>
               <option value="Free">Free</option>
               <option value="$9.99">$9.99</option>
@@ -621,8 +746,8 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Promotions</h2>
-            <input type="text" className="input-box" placeholder="Promo Code" value={promoCode} onChange={e => { setPromoCode(e.target.value); setTouched(t => ({ ...t, promoCode: true })); }} />
-            <input type="text" className="input-box" placeholder="Discount description" value={promoDesc} onChange={e => { setPromoDesc(e.target.value); setTouched(t => ({ ...t, promoDesc: true })); }} />
+            <input type="text" className="input-box" placeholder="Promo Code" value={promoCode} onChange={(e) => { setPromoCode(e.target.value); setTouched((t) => ({ ...t, promoCode: true })); }} />
+            <input type="text" className="input-box" placeholder="Discount description" value={promoDesc} onChange={(e) => { setPromoDesc(e.target.value); setTouched((t) => ({ ...t, promoDesc: true })); }} />
           </div>
         );
 
@@ -630,32 +755,38 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="dash-heading">Course messages</h2>
-            <textarea className="input-box" rows={3} placeholder="Welcome message..." value={welcomeMsg} onChange={e => { setWelcomeMsg(e.target.value); setTouched(t => ({ ...t, welcomeMsg: true })); }} />
-            <textarea className="input-box" rows={3} placeholder="Congratulations message..." value={congratsMsg} onChange={e => { setCongratsMsg(e.target.value); setTouched(t => ({ ...t, congratsMsg: true })); }} />
+            <textarea className="input-box" rows={3} placeholder="Welcome message..." value={welcomeMsg} onChange={(e) => { setWelcomeMsg(e.target.value); setTouched((t) => ({ ...t, welcomeMsg: true })); }} />
+            <textarea className="input-box" rows={3} placeholder="Congratulations message..." value={congratsMsg} onChange={(e) => { setCongratsMsg(e.target.value); setTouched((t) => ({ ...t, congratsMsg: true })); }} />
           </div>
         );
 
       default:
-        return <div style={{ color: '#888', fontSize: 18, textAlign: 'center', marginTop: 40 }}>Coming soon...</div>;
+        return <div style={{ color: "#888", fontSize: 18, textAlign: "center", marginTop: 40 }}>Coming soon...</div>;
     }
   };
 
   // ---------- UI ----------
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f7f7fa' }}>
-      <aside style={{ width: 270, background: '#fff', borderRight: '1px solid #eee', paddingTop: 40 }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f7f7fa" }}>
+      <aside style={{ width: 270, background: "#fff", borderRight: "1px solid #eee", paddingTop: 40 }}>
         <nav>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {steps.map((step) => (
               <li key={step.key}>
                 <button
-                  className={active === step.key ? 'sidebar-btn active' : 'sidebar-btn'}
+                  className={active === step.key ? "sidebar-btn active" : "sidebar-btn"}
                   style={{
-                    width: '100%', textAlign: 'left', padding: '16px 32px',
-                    background: active === step.key ? '#f3f0ff' : 'none',
-                    border: 'none', borderLeft: active === step.key ? '4px solid #7c3aed' : '4px solid transparent',
-                    color: active === step.key ? '#5624d0' : '#232323', fontWeight: active === step.key ? 700 : 500,
-                    fontSize: 17, cursor: 'pointer', outline: 'none'
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "16px 32px",
+                    background: active === step.key ? "#f3f0ff" : "none",
+                    border: "none",
+                    borderLeft: active === step.key ? "4px solid #7c3aed" : "4px solid transparent",
+                    color: active === step.key ? "#5624d0" : "#232323",
+                    fontWeight: active === step.key ? 700 : 500,
+                    fontSize: 17,
+                    cursor: "pointer",
+                    outline: "none",
                   }}
                   onClick={() => setActive(step.key)}
                 >
@@ -666,23 +797,32 @@ const Dashboard = () => {
           </ul>
         </nav>
       </aside>
-
-      <main style={{ flex: 1, padding: 48, maxWidth: 900, margin: '0 auto', position: 'relative' }}>
+      
+      <main style={{ flex: 1, padding: 48, maxWidth: 900, margin: "0 auto", position: "relative" }}>
         {renderContent()}
 
         <button
           style={{
-            position: 'fixed', left: 300, bottom: 40,
-            background: 'linear-gradient(to right, #5624d0, #7c3aed)', color: 'white',
-            padding: '16px 38px', fontSize: '1.2rem', border: 'none', borderRadius: 10, cursor: 'pointer',
-            fontWeight: 700, boxShadow: '0 4px 16px rgba(124,58,237,0.13)', zIndex: 100
+            position: "fixed",
+            left: 300,
+            bottom: 40,
+            background: "linear-gradient(to right, #5624d0, #7c3aed)",
+            color: "white",
+            padding: "16px 38px",
+            fontSize: "1.2rem",
+            border: "none",
+            borderRadius: 10,
+            cursor: "pointer",
+            fontWeight: 700,
+            boxShadow: "0 4px 16px rgba(124,58,237,0.13)",
+            zIndex: 100,
           }}
           onClick={handleSubmitForReview}
         >
           Submit for Review
         </button>
 
-        {submitError && <div style={{ color: 'red', fontWeight: 600, marginTop: 18, textAlign: 'center' }}>{submitError}</div>}
+        {submitError && <div style={{ color: "red", fontWeight: 600, marginTop: 18, textAlign: "center" }}>{submitError}</div>}
       </main>
     </div>
   );

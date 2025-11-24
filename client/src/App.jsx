@@ -33,8 +33,6 @@ import QuizPage from "./Pages/QuizPage";
 import CreateQuiz from "./Pages/CreateQuiz";
 import LectureVideo from "./Pages/LectureVideo";
 import ResourceView from "./Pages/ResourceView";
-import UploadLecture from "./Pages/UploadLecture";
-import Messages from "./Pages/Messages";
 
 // Cart context setup
 export const CartContext = createContext();
@@ -123,7 +121,7 @@ function App() {
               <Route path="/create" element={<Create />} />
               <Route path="/dashboard/:pendingCourseId" element={<Dashboard />} /> {/* ✅ ADD THIS ROUTE */}
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/pending-course/:id" element={<PendingCourseDetails />} />
+              <Route path="/admin/pending-course/:pendingCourseId" element={<PendingCourseDetails />} />
               <Route path="/admin/instructors" element={<AdminInstructors />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/subpage" element={<SubPages />} />
@@ -154,7 +152,6 @@ function App() {
               <Route path="/createQuiz" element={<CreateQuiz/>} />
               <Route path="/play-video/:videoId" element={<LectureVideo/>} />
               <Route path="/resource/:id" element={<ResourceView />} />
-              <Route path="/instructor/:courseId/upload-video" element={<UploadLecture />} />
             </Routes>
           </div>
           <Footer />

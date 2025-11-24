@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp .htaccess dist/",
+    "build": "vite build && powershell Copy-Item .htaccess dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },

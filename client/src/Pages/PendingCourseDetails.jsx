@@ -2,23 +2,32 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const PendingCourseDetails = () => {
-  const { id } = useParams();
+  const { pendingCourseId } = useParams();
+  const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
   const token = localStorage.getItem("token");
+  const API_BASE = "http://localhost:5001";
 
   useEffect(() => {
     const fetchCourse = async () => {
       setLoading(true);
       setError("");
+
       try {
-        const res = await fetch(`https://lms-backend-5s5x.onrender.com/api/pending-courses/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${API_BASE}/api/pending-courses/${pendingCourseId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to fetch course");
+
         setCourse(data);
       } catch (err) {
         setError(err.message);
@@ -26,44 +35,240 @@ const PendingCourseDetails = () => {
         setLoading(false);
       }
     };
-    fetchCourse();
-  }, [id, token]);
 
-  if (loading) return <div style={{ textAlign: 'center', marginTop: 60 }}>Loading...</div>;
-  if (error) return <div style={{ color: 'red', textAlign: 'center', marginTop: 60 }}>{error}</div>;
+    fetchCourse();
+  }, [pendingCourseId, token]);
+
+  if (loading)
+    return (
+      <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>
+    );
+  if (error)
+    return (
+      <div style={{ color: "red", textAlign: "center", marginTop: 60 }}>
+        {error}
+      </div>
+    );
   if (!course) return null;
 
   return (
-    <div style={{ maxWidth: 800, margin: '40px auto', padding: 32, background: '#fff', borderRadius: 12, boxShadow: '0 4px 24px #e5e7eb' }}>
-      <button onClick={() => navigate(-1)} style={{ marginBottom: 24, background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 24px', fontWeight: 700, cursor: 'pointer' }}>Back</button>
-      <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 24 }}>Pending Course Details</h2>
-      {/* Thumbnail or image if available */}
-      {course.thumbnailUrl && (
-        <div style={{ marginBottom: 24 }}>
-          <img src={course.thumbnailUrl} alt="Course Thumbnail" style={{ width: 220, height: 140, objectFit: 'cover', borderRadius: 10, boxShadow: '0 2px 8px #e5e7eb' }} />
-        </div>
-      )}
-      <div style={{ fontSize: 16, color: '#232323', lineHeight: 1.7 }}>
-        <strong>Title:</strong> {course.landingTitle}<br/>
-        <strong>Subtitle:</strong> {course.landingSubtitle}<br/>
-        <strong>Description:</strong> {course.landingDesc}<br/>
-        <strong>Objectives:</strong> <ul>{course.learningObjectives?.map((o,i) => <li key={i}>{o}</li>)}</ul>
-        <strong>Requirements:</strong> <ul>{course.requirements?.map((r,i) => <li key={i}>{r}</li>)}</ul>
-        <strong>Structure:</strong> {course.structure}<br/>
-        <strong>Curriculum:</strong> {course.curriculum}<br/>
-        <strong>Captions:</strong> {course.captions}<br/>
-        <strong>Accessibility:</strong> {course.accessibility}<br/>
-        <strong>Price:</strong> {course.price}<br/>
-        <strong>Promo Code:</strong> {course.promoCode}<br/>
-        <strong>Promo Desc:</strong> {course.promoDesc}<br/>
-        <strong>Welcome Msg:</strong> {course.welcomeMsg}<br/>
-        <strong>Congrats Msg:</strong> {course.congratsMsg}<br/>
-        <strong>Instructor:</strong> {course.instructor?.name} ({course.instructor?.email})<br/>
-        <strong>Status:</strong> {course.status}<br/>
-        <strong>Submitted:</strong> {new Date(course.createdAt).toLocaleString()}<br/>
+    <div
+      style={{
+        maxWidth: 900,
+        margin: "40px auto",
+        padding: 32,
+        background: "#ffffff",
+        borderRadius: 16,
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.06)",
+      }}
+    >
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          marginBottom: 24,
+          background: "#6d28d9",
+          color: "#fff",
+          border: "none",
+          borderRadius: 8,
+          padding: "10px 28px",
+          fontWeight: 600,
+          cursor: "pointer",
+        }}
+      >
+        ← Back
+      </button>
+
+      <h2
+        style={{
+          fontWeight: 800,
+          fontSize: 30,
+          marginBottom: 24,
+          color: "#1f2937",
+        }}
+      >
+        Pending Course Preview
+      </h2>
+
+      {/* Thumbnail */}
+      <div style={{ marginBottom: 32 }}>
+        <img
+          src={course.thumbnailUrl}
+          alt="Course Thumbnail"
+          style={{
+            width: "100%",
+            maxHeight: 260,
+            objectFit: "cover",
+            borderRadius: 12,
+            boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
+          }}
+        />
+      </div>
+
+      {/* DETAILS SECTION */}
+      <div style={{ lineHeight: 1.8, fontSize: 17, color: "#333" }}>
+        <Detail label="Title" value={course.landingTitle} />
+
+        <Detail label="Subtitle" value={course.landingSubtitle} />
+
+        <Detail label="Description" value={course.landingDesc} />
+
+        <DetailList
+          label="Learning Objectives"
+          items={course.learningObjectives}
+        />
+
+        <DetailList label="Requirements" items={course.requirements} />
+
+        <Detail label="Structure" value={course.structure} />
+
+        {/* CURRICULUM */}
+    <div style={{ marginBottom: 28 }}>
+  <h3 style={sectionTitleStyle}>Curriculum</h3>
+
+  {course.curriculum && course.curriculum.length > 0 ? (
+    course.curriculum.map((section, i) => (
+      <div
+        key={i}
+        style={{
+          padding: 16,
+          marginBottom: 16,
+          background: "#f9fafb",
+          borderRadius: 10,
+          border: "1px solid #e5e7eb",
+        }}
+      >
+        {/* Section Title */}
+        <h4
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            marginBottom: 12,
+            color: "#4b5563",
+          }}
+        >
+          {section.sectionTitle}
+        </h4>
+
+        {/* Lectures inside section */}
+        {section.items?.map((item, idx) => (
+          <div
+            key={idx}
+            style={{
+              marginBottom: 12,
+              padding: "12px 14px",
+              background: "#ffffff",
+              borderRadius: 8,
+              boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+              border: "1px solid #f3f4f6",
+            }}
+          >
+            {/* Lecture Title */}
+            <strong style={{ fontSize: 16 }}>{item.title}</strong>
+
+            {/* Video Link */}
+            {item.videoUrl ? (
+              <div style={{ marginTop: 6 }}>
+                <a
+                  href={item.videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: "#2563eb",
+                    textDecoration: "underline",
+                    fontWeight: 500,
+                  }}
+                >
+                  ▶ Watch Video
+                </a>
+              </div>
+            ) : (
+              <p style={{ color: "#9ca3af", marginTop: 4 }}>No video uploaded</p>
+            )}
+
+            {/* Documents */}
+            {item.documents && item.documents.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <strong>Documents:</strong>
+                <ul style={{ paddingLeft: 16, marginTop: 4 }}>
+                  {item.documents.map((doc, d) => (
+                    <li key={d}>
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: "#2563eb", fontWeight: 500 }}
+                      >
+                        {doc.fileName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ))
+  ) : (
+    <p style={{ color: "#6b7280" }}>No curriculum added.</p>
+  )}
+</div>
+
+
+        {/* OTHER FIELDS */}
+        <Detail label="Captions" value={course.captions} />
+        <Detail label="Accessibility" value={course.accessibility} />
+        <Detail label="Price" value={course.price} />
+        <Detail label="Promo Code" value={course.promoCode} />
+        <Detail label="Promo Description" value={course.promoDesc} />
+        <Detail label="Welcome Message" value={course.welcomeMsg} />
+        <Detail label="Congrats Message" value={course.congratsMsg} />
+
+        <Detail
+          label="Instructor"
+          value={`${course.instructor?.name} (${course.instructor?.email})`}
+        />
+
+        <Detail label="Status" value={course.status} />
+
+        <Detail
+          label="Submitted On"
+          value={new Date(course.createdAt).toLocaleString()}
+        />
       </div>
     </div>
   );
 };
 
-export default PendingCourseDetails; 
+/* ---------- REUSABLE COMPONENTS ---------- */
+
+const Detail = ({ label, value }) => (
+  <p style={{ marginBottom: 10 }}>
+    <strong>{label}: </strong> {value || "—"}
+  </p>
+);
+
+const DetailList = ({ label, items }) => (
+  <div style={{ marginBottom: 12 }}>
+    <strong>{label}:</strong>
+    {items && items.length > 0 ? (
+      <ul style={{ paddingLeft: 20 }}>
+        {items.map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
+      </ul>
+    ) : (
+      <p style={{ color: "#6b7280", marginTop: 4 }}>No {label.toLowerCase()} added.</p>
+    )}
+  </div>
+);
+
+const sectionTitleStyle = {
+  fontSize: 20,
+  fontWeight: 800,
+  marginBottom: 16,
+  color: "#1f2937",
+};
+
+export default PendingCourseDetails;

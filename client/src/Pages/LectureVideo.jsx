@@ -20,6 +20,7 @@ const LectureVideo = () => {
   const { videoId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
   const courseId =
     location.state?.courseId?.id ||
@@ -72,7 +73,7 @@ const LectureVideo = () => {
     // 📄 Fetch all uploaded documents from backend
     const fetchDocuments = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/document/all`);
+        const res = await fetch(`${API_BASE}:5001/api/document/all`);
         const data = await res.json();
         if (data.success) setDocuments(data.documents);
       } catch (err) {
