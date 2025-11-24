@@ -33,6 +33,7 @@ import QuizPage from "./Pages/QuizPage";
 import CreateQuiz from "./Pages/CreateQuiz";
 import LectureVideo from "./Pages/LectureVideo";
 import ResourceView from "./Pages/ResourceView";
+import Messages from "./Pages/Messages";
 
 // Cart context setup
 export const CartContext = createContext();

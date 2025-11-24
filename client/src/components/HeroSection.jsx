@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import img1 from "../assets/img1.png";
-import img2 from "../assets/img2.png";
+import img3 from "../assets/img2.png";
 import img4 from "../assets/img4.png";
 
 // App.css is automatically applied if imported in App.js
@@ -13,7 +13,7 @@ const HeroSection = () => {
   const containerRef = useRef(null);
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const slides = [img1, img2, img4];
+  const slides = [img1, img3, img4];
   const AUTOPLAY_MS = 3000;
   const TRANSITION_MS = 600;
 

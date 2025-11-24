@@ -1,5 +1,6 @@
 import React from "react";
 import HeroSection from "../components/HeroSection";
+import { motion } from "framer-motion"; 
 import img1 from "../assets/img1.png";
 import img2 from "../assets/img2.png";
 import img4 from "../assets/img3.png";
@@ -80,9 +81,17 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Partners Section */}
+      {/* Partners Section with Repeat Animation */}
       <div className="partners-section">
-        <h2>Explore Our Certification Courses</h2>
+        <motion.h2
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: false }} // ✅ CHANGE: Har baar scroll karne par chalega
+        >
+          Explore Our Certification Courses
+        </motion.h2>
+
         <div className="partners-grid">
           {[
             { name: "IBM Certifications", icon: <FaUserTie size={40} color="#1f3c88" /> },
@@ -96,16 +105,24 @@ const Home = () => {
             { name: "Unity Certified", icon: <SiUnity size={40} color="#000" /> },
             { name: "Cisco Certified", icon: <SiCisco size={40} color="#006db3" /> },
           ].map((course, index) => (
-            <div
+            <motion.div
               className="partner-card"
               key={index}
               onClick={() => navigate("/subpage")}
               style={{ cursor: "pointer" }}
+              
+              initial={{ opacity: 0, y: 100 }} // Gayab aur neeche
+              whileInView={{ opacity: 1, y: 0 }} // Dikhna aur upar aana
+              viewport={{ once: false }} // ✅ CHANGE: Har baar animation repeat hoga
+              transition={{ 
+                duration: 0.5, 
+                delay: index * 0.1 
+              }}
             >
               <div className="icon-wrap">{course.icon}</div>
               <h3>{course.name}</h3>
               <p>Specialized certifications to enhance your professional edge.</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
