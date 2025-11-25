@@ -1,6 +1,7 @@
 const PendingCourse = require('../models/PendingCourse');
 const Course = require('../models/Course');
 
+const mongoose = require("mongoose");
 
 // POST /api/pending-courses/apply
 exports.apply = async (req, res) => {
@@ -61,14 +62,32 @@ exports.getAll = async (req, res) => {
 // GET /api/pending-courses/:id
 exports.getById = async (req, res) => {
   try {
-
     const course = await PendingCourse.findById(req.params.id);
-    if (!course) return res.status(404).json({ message: 'Course not found' });
-    res.json(course);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+
+    const formatted = {
+      ...course._doc,
+      curriculum: course.curriculum.map(sec => ({
+        id: sec._id,
+        title: sec.title || "New Section",
+        published: sec.published,
+        items: sec.items.map(it => ({
+          id: it._id,
+          type: it.type,
+          title: it.title,
+          videoUrl: it.videoUrl,
+          documents: it.documents
+        }))
+      }))
+    };
+
+    res.json(formatted);
+
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch course', error: err.message });
+    res.status(500).json({ message: "Failed to fetch course", error: err.message });
   }
 };
+
 
 // /api/pending-courses/my-courses
 exports.getMyCourses = async (req, res) => {
@@ -101,7 +120,8 @@ exports.createPendingCourse = async (req, res) => {
       courseType: req.body.courseType,
       category: req.body.category,
       timeCommitment: req.body.timeCommitment,
-      instructor: req.user._id
+      instructor: req.user._id,
+      isNew: true,
     });
 
     res.status(201).json({
@@ -112,31 +132,56 @@ exports.createPendingCourse = async (req, res) => {
   }
 };
 
-
+// /api/pending-course/update/:pendingCourseId
 exports.editCourse = async (req, res) => {
   try {
-    const id = req.params.id;
-    const instructorId = req.user.id;
+    const courseId = req.params.id;
+    const instructorId = req.user.id;  // ← FIXED
 
-    const updated = await PendingCourse.findOneAndUpdate(
-      { _id: id, instructorId },
-      { ...req.body, updatedAt: new Date() },
-      { new: true }
-    );
+    const course = await PendingCourse.findOne({
+      _id: courseId,
+      $or: [
+        { instructor: instructorId },      // stored as string
+        { "instructor._id": instructorId } // stored as object
+      ]
+    });
 
-    if (!updated) {
+    if (!course) {
       return res.status(404).json({ message: "Course not found or unauthorized" });
     }
 
+    Object.assign(course, req.body);
+    course.isNew = false;
+
+    if (req.body.curriculum) {
+      course.curriculum = req.body.curriculum.map(sec => ({
+        _id: sec.id || new mongoose.Types.ObjectId(),
+        title: sec.title,
+        published: sec.published || false,
+        items: sec.items.map(it => ({
+          _id: it.id || new mongoose.Types.ObjectId(),
+          type: it.type,
+          title: it.title,
+          videoUrl: it.videoUrl || "",
+          documents: it.documents || []
+        }))
+      }));
+    }
+
+    course.updatedAt = new Date();
+    await course.save();
+
     res.json({
-      message: "Pending course updated successfully",
-      course: updated,
+      message: "Course updated successfully",
+      course
     });
+
   } catch (error) {
-    console.error("Update Error:", error);
     res.status(500).json({ message: "Failed to update course", error: error.message });
   }
-}
+};
+
+
 
 
 // PUT /api/pending-courses/:id/approve

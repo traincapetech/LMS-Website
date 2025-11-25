@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import "./Dashboard.css";
 import axios from "axios";
 import "./UploadLecture.css";
-import { useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 
+import { useNavigate } from "react-router-dom";
 import initialData from "./initialData";
 import useSections from "../Pages/hooks/useSection";
 import useUploads from "../Pages/hooks/useUpload";
@@ -59,7 +60,8 @@ const Dashboard = () => {
   const [touched, setTouched] = useState({});
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-
+  const [isNew, setIsNew] = useState(true);
+  const navigate = useNavigate();
   // ---------- Section hooks (must come BEFORE loading) ----------
   const {
     sections,
@@ -133,6 +135,7 @@ const Dashboard = () => {
       .get(url)
       .then((res) => {
         const data = res.data || {};
+        setIsNew(res.data.isNew);
         setSections(data.curriculum || []);
         setLearningObjectives(data.learningObjectives || ["", "", "", ""]);
         setRequirements(data.requirements || [""]);
@@ -339,9 +342,11 @@ const Dashboard = () => {
           },
         });
       }
+      setIsNew(false);
 
 
       alert("Course submitted for admin review!");
+      navigate('/instructor-dashboard')
     } catch (err) {
       console.error("Submit failed:", err);
       alert("Submit failed — check console for details.");

@@ -6,17 +6,19 @@ const DocumentSchema = new mongoose.Schema({
 }, { _id: false });
 
 const ItemSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
   type: String,
   title: String,
   videoUrl: String,
-  documents: [DocumentSchema],
-  quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }
-}, { _id: false });
+  documents: [],
+  quizId: { type: mongoose.Schema.Types.ObjectId, default: null }
+});
 
 const SectionSchema = new mongoose.Schema({
-  sectionTitle: String,
+  _id: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+  title: String, // 👈 renamed from sectionTitle
   items: [ItemSchema]
-}, { _id: false });
+});
 
 const pendingCourseSchema = new mongoose.Schema({
   learningObjectives: [String],
@@ -48,6 +50,11 @@ const pendingCourseSchema = new mongoose.Schema({
     type: String,
     enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
+  },
+
+  isNew: {                         // this add to check the course it new or going to edit
+    type: Boolean, 
+    default: true 
   },
 
   adminMessage: String

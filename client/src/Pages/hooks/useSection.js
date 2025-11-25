@@ -8,7 +8,7 @@ export default function useSections(initial) {
   function addSection() {
     setSections((prev) => [
       ...prev,
-      { id: makeId("section"), title: "New Section", published: false, items: [] },
+      { id: null, title: "New Section", published: false, items: [] },
     ]);
   }
 
@@ -28,7 +28,7 @@ export default function useSections(initial) {
 
   function addItem(sectionId, kind) {
     const newItem = {
-      id: makeId(kind),
+      id:null,
       type: kind,
       title: kind === "lecture" ? "New Lecture" : "New Quiz",
       expanded: false,

@@ -3,7 +3,6 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const r2 = require("../config/r2");
 const Video = require("../models/Video");
-const PendingCourse = require('../models/PendingCourse');
 const router = express.Router();
 
 
@@ -40,8 +39,7 @@ const upload = multer({
 // Post /api/video/upload/:pendingCourseId
 router.post("/upload/:pendingCourseId", upload.single("video"), async (req, res) => {
   try {
-    const pendingCourseId = req.params.pendingCourseId;
-    const { title, duration, sectionId, itemId } = req.body;
+    const { title, duration } = req.body;
     if (!req.file) {
       return res.status(400).json({ message: "No video file uploaded" });
     }
@@ -58,26 +56,6 @@ router.post("/upload/:pendingCourseId", upload.single("video"), async (req, res)
       duration,
     });
     await newVideo.save();
-
-    const course = await PendingCourse.findById(pendingCourseId);
-    if (!course) return res.status(404).json({ message: "Course not found" });
-    // Find section by ID
-    const section = course.curriculum.find((sec) => sec.id === sectionId);
-    if (!section) {
-      return res.status(400).json({ message: "Invalid sectionId" });
-    }
-
-    // Find item by ID
-    const item = section.items.find((it) => it.id === itemId);
-    if (!item) {
-      return res.status(400).json({ message: "Invalid itemId" });
-    }
-
-    // Update videoUrl
-    item.videoUrl = videoUrl;
-
-    // Save updated course
-    await course.save();
 
     res.status(201).json({
       success: true,
