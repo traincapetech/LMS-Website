@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import UserProfileDropdown from "./UserProfileDropdown";
+// Note: Ensure this import path is correct for your project structure
 import { getAllCourses, searchCourses } from "../Pages/CourseData";
 
 const Navbar = ({ cartCount = 0 }) => {
@@ -24,31 +25,29 @@ const Navbar = ({ cartCount = 0 }) => {
   const [loginHover, setLoginHover] = useState(false);
   const [isSearchHover, setIsSearchHover] = useState(false);
 
-
+  // ✅ CHANGED: Text color to White (#FFFFFF)
   const navLinkBaseStyle = {
     textDecoration: "none",
-    color: "#111",
+    color: "#FFFFFF", 
     padding: "6px 12px",
-    borderRadius: "6px", // reactangle shape
+    borderRadius: "6px",
     transition: "background-color 0.2s ease, color 0.2s ease",
   };
 
+  // ✅ CHANGED: MouseLeave color back to White
   const handleNavHover = (e, isHover) => {
     e.target.style.backgroundColor = isHover
-      ? "rgba(86, 36, 208, 0.08)"
+      ? "rgba(255, 255, 255, 0.1)" // Light transparent white on hover
       : "transparent";
-    e.target.style.color = isHover ? "#5624d0" : "#111";
+    e.target.style.color = "#FFFFFF"; 
   };
 
-  // Check screen size on mount and resize
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
-
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
@@ -57,7 +56,6 @@ const Navbar = ({ cartCount = 0 }) => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    // Fetch latest profile from backend
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -87,7 +85,6 @@ const Navbar = ({ cartCount = 0 }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Fetch if instructor has published courses
   useEffect(() => {
     const fetchInstructorCourses = async () => {
       if (user && user.role === "instructor") {
@@ -114,7 +111,6 @@ const Navbar = ({ cartCount = 0 }) => {
     fetchInstructorCourses();
   }, [user]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -155,7 +151,6 @@ const Navbar = ({ cartCount = 0 }) => {
     }
   };
 
-  // Helper to get user initial
   const getInitials = (name = "") => {
     return name
       .split(" ")
@@ -172,9 +167,8 @@ const Navbar = ({ cartCount = 0 }) => {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "12px 20px",
-          borderBottom: "1px solid #ccc",
-          backgroundColor: "rgba(86, 36, 208, 0.1)",
-
+          borderBottom: "1px solid #222", // Darker border
+          backgroundColor: "#050505",     // ✅ Black Background
           fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
           position: "relative",
           height: "70px",
@@ -182,12 +176,12 @@ const Navbar = ({ cartCount = 0 }) => {
       >
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Link to="/" style={{ textDecoration: "none", color: "#111" }}>
+          <Link to="/" style={{ textDecoration: "none", color: "#FFFFFF" }}> {/* ✅ White Logo */}
             <h1
               style={{
                 fontSize: "30px",
                 fontWeight: "800",
-                color: "#111",
+                color: "#FFFFFF", // ✅ White Text
                 cursor: "pointer",
               }}
             >
@@ -210,16 +204,15 @@ const Navbar = ({ cartCount = 0 }) => {
             style={{
               display: "flex",
               alignItems: "center",
-              backgroundColor: isSearchHover ? "#f3f4f6" : "#ffffff",
+              backgroundColor: "#ffffff", // Keep White for search bar as per image
               borderRadius: "8px",
-              padding: "0 16px", // sirf left-right padding
+              padding: "0 16px",
               width: "100%",
-              border: isSearchFocused ? "2px solid #400303" : "1px solid #ddd",
+              border: isSearchFocused ? "2px solid #a67cff" : "1px solid #ddd",
               boxShadow: isSearchFocused
                 ? "0 0 0 2px rgba(86, 36, 208, 0.15)"
                 : "none",
               transition: "all 0s ease",
-              
             }}
             onMouseEnter={() => setIsSearchHover(true)}
             onMouseLeave={() => setIsSearchHover(false)}
@@ -237,9 +230,9 @@ const Navbar = ({ cartCount = 0 }) => {
                   border: "none",
                   outline: "none",
                   backgroundColor: "transparent",
-                  color: "#111",
+                  color: "#111", // Black text inside white search bar
                   fontSize: "16px",
-                  padding: "12px 0", // equal top & bottom padding
+                  padding: "12px 0",
                   boxSizing: "border-box",
                   boxShadow: "none",
                   marginBottom: "0px",
@@ -314,14 +307,14 @@ const Navbar = ({ cartCount = 0 }) => {
                 style={{
                   textDecoration: "none",
                   fontWeight: "bold",
-                  color: "#dc2626",
+                  color: "#dc2626", // Red for admin remains
                 }}
               >
                 Admin
               </a>
               <Link
                 to="/admin/instructors"
-                style={{ textDecoration: "none", color: "#111" }}
+                style={{ textDecoration: "none", color: "#FFFFFF" }}
               >
                 Instructors
               </Link>
@@ -334,56 +327,55 @@ const Navbar = ({ cartCount = 0 }) => {
             hasPublishedCourses && (
               <Link
                 to="/instructor-dashboard"
-                style={{ textDecoration: "none", color: "#111" }}
+                style={{ textDecoration: "none", color: "#FFFFFF" }}
               >
                 Instructor Dashboard
               </Link>
             )}
 
           {/* Cart */}
-<div style={{ position: "relative" }}>
-  <Link
-    to="/cart"
-    style={{
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      border: "1px solid #000",      // black outline
-      backgroundColor: "#ffffff",
-      textDecoration: "none",
-    }}
-  >
-    <FiShoppingCart
-      style={{
-        fontSize: "20px",
-        cursor: "pointer",
-        color: "#000",
-      }}
-    />
+          <div style={{ position: "relative" }}>
+            <Link
+              to="/cart"
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "6px 10px",
+                borderRadius: "6px",
+                border: "1px solid #FFFFFF", // ✅ White outline
+                backgroundColor: "transparent",
+                textDecoration: "none",
+              }}
+            >
+              <FiShoppingCart
+                style={{
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  color: "#FFFFFF", // ✅ White Icon
+                }}
+              />
 
-    {cartCount > 0 && (
-      <span
-        style={{
-          position: "absolute",
-          top: -6,
-          right: -6,
-          background: "red",
-          color: "white",
-          borderRadius: "50%",
-          padding: "2px 6px",
-          fontSize: 12,
-          fontWeight: "bold",
-        }}
-      >
-        {cartCount}
-      </span>
-    )}
-  </Link>
-</div>
-
+              {cartCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    background: "red",
+                    color: "white",
+                    borderRadius: "50%",
+                    padding: "2px 6px",
+                    fontSize: 12,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
 
           {/* User Authentication */}
           {!user ? (
@@ -393,15 +385,17 @@ const Navbar = ({ cartCount = 0 }) => {
                 onMouseEnter={() => setLoginHover(true)}
                 onMouseLeave={() => setLoginHover(false)}
                 style={{
-                  border: "1px solid #444",
-                  backgroundColor: loginHover? "rgba(86, 36, 208, 0.7)": "rgba(86, 36, 208, 0.3)",
+                  border: "1px solid #FFFFFF", // ✅ White border
+                  backgroundColor: loginHover
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "transparent",
                   padding: "7px 14px",
                   cursor: "pointer",
-                  color: "#111",
+                  color: "#FFFFFF", // ✅ White text
                   textDecoration: "none",
-                  transition: "background-color 0.3s ease", // Smooth color change
+                  transition: "background-color 0.3s ease",
                   fontWeight: "bold",
-                  borderRadius: "6px", 
+                  borderRadius: "6px",
                 }}
               >
                 Log in
@@ -409,13 +403,14 @@ const Navbar = ({ cartCount = 0 }) => {
               <Link
                 to="/signup"
                 style={{
-                  backgroundColor: "black",
-                  color: "white",
+                  backgroundColor: "#FFFFFF", // ✅ White background
+                  color: "#000000",           // ✅ Black text
                   padding: "7px 14px",
                   border: "none",
                   cursor: "pointer",
                   textDecoration: "none",
                   borderRadius: "6px",
+                  fontWeight: "bold",
                 }}
               >
                 Sign up
@@ -432,11 +427,12 @@ const Navbar = ({ cartCount = 0 }) => {
                   width: 36,
                   height: 36,
                   borderRadius: "50%",
-                  background: "#222",
+                  background: "#333",
                   color: "white",
                   fontWeight: 700,
                   fontSize: 18,
                   overflow: "hidden",
+                  border: "1px solid #fff", // White border around profile
                 }}
                 onClick={() => setDropdownOpen((open) => !open)}
                 title="Account"
@@ -482,7 +478,7 @@ const Navbar = ({ cartCount = 0 }) => {
           {/* Mobile Search Icon */}
           <div style={{ display: isMobile ? "block" : "none" }}>
             <FiSearch
-              style={{ fontSize: "22px", cursor: "pointer" }}
+              style={{ fontSize: "22px", cursor: "pointer", color: "#FFF" }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             />
           </div>
@@ -490,7 +486,7 @@ const Navbar = ({ cartCount = 0 }) => {
           {/* Mobile Cart */}
           <div style={{ position: "relative" }}>
             <Link to="/cart">
-              <FiShoppingCart style={{ fontSize: "22px", cursor: "pointer" }} />
+              <FiShoppingCart style={{ fontSize: "22px", cursor: "pointer", color: "#FFF" }} />
               {cartCount > 0 && (
                 <span
                   style={{
@@ -515,7 +511,7 @@ const Navbar = ({ cartCount = 0 }) => {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             style={{
-              color: "#111",
+              color: "#FFFFFF", // ✅ White Menu Icon
               cursor: "pointer",
               border: "none",
               background: "none",
@@ -535,8 +531,8 @@ const Navbar = ({ cartCount = 0 }) => {
         <div
           style={{
             display: isMobile ? "block" : "none",
-            borderTop: "1px solid #ccc",
-            backgroundColor: "#f9fafb",
+            borderTop: "1px solid #333",
+            backgroundColor: "#111", // Dark for mobile menu
             padding: "12px 20px",
           }}
         >
@@ -549,7 +545,9 @@ const Navbar = ({ cartCount = 0 }) => {
               style={{
                 flex: 1,
                 padding: "8px 12px",
-                border: "1px solid #d1d5db",
+                border: "1px solid #444",
+                backgroundColor: "#222",
+                color: "#fff",
                 borderTopLeftRadius: "8px",
                 borderBottomLeftRadius: "8px",
                 outline: "none",
@@ -579,8 +577,8 @@ const Navbar = ({ cartCount = 0 }) => {
           ref={mobileMenuRef}
           style={{
             display: isMobile ? "block" : "none",
-            backgroundColor: "white",
-            borderBottom: "1px solid #ccc",
+            backgroundColor: "#050505", // Dark BG
+            borderBottom: "1px solid #333",
             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
             position: "fixed",
             top: 0,
@@ -599,15 +597,15 @@ const Navbar = ({ cartCount = 0 }) => {
               justifyContent: "space-between",
               alignItems: "center",
               padding: "16px 20px",
-              borderBottom: "1px solid #e5e7eb",
-              backgroundColor: "#f8f9fa",
+              borderBottom: "1px solid #333",
+              backgroundColor: "#111",
             }}
           >
             <h2
               style={{
                 fontSize: "20px",
                 fontWeight: "700",
-                color: "#111",
+                color: "#FFF",
                 margin: 0,
               }}
             >
@@ -620,7 +618,7 @@ const Navbar = ({ cartCount = 0 }) => {
                 border: "none",
                 fontSize: "24px",
                 cursor: "pointer",
-                color: "#111",
+                color: "#FFF",
                 padding: "4px",
               }}
             >
@@ -642,22 +640,14 @@ const Navbar = ({ cartCount = 0 }) => {
                 style={{
                   display: "block",
                   padding: "16px 12px",
-                  color: "#111",
+                  color: "#FFF", // White Text
                   textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
+                  borderBottom: "1px solid #333",
                   fontSize: "16px",
                   fontWeight: "500",
-                  borderRadius: "8px",
                   marginBottom: "4px",
-                  transition: "background-color 0.2s",
                 }}
                 onClick={() => setMobileMenuOpen(false)}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f8f9fa")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
               >
                 💰 Plans & Pricing
               </Link>
@@ -666,297 +656,90 @@ const Navbar = ({ cartCount = 0 }) => {
                 style={{
                   display: "block",
                   padding: "16px 12px",
-                  color: "#111",
+                  color: "#FFF",
                   textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
+                  borderBottom: "1px solid #333",
                   fontSize: "16px",
                   fontWeight: "500",
-                  borderRadius: "8px",
                   marginBottom: "4px",
-                  transition: "background-color 0.2s",
                 }}
                 onClick={() => setMobileMenuOpen(false)}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f8f9fa")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
               >
                 📚 Courses
               </Link>
-              <a
-                href="https://traincapetech.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "block",
-                  padding: "16px 12px",
-                  color: "#111",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  borderRadius: "8px",
-                  marginBottom: "4px",
-                  transition: "background-color 0.2s",
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f8f9fa")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
-              >
-                🏢 Business
-              </a>
               <Link
                 to="/teach"
                 style={{
                   display: "block",
                   padding: "16px 12px",
-                  color: "#111",
+                  color: "#FFF",
                   textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
+                  borderBottom: "1px solid #333",
                   fontSize: "16px",
                   fontWeight: "500",
-                  borderRadius: "8px",
                   marginBottom: "4px",
-                  transition: "background-color 0.2s",
                 }}
                 onClick={() => setMobileMenuOpen(false)}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f8f9fa")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
               >
                 👨‍🏫 Teach
               </Link>
 
-              {/* Admin Mobile Links */}
-              {user && user.role === "admin" && (
-                <>
-                  <Link
-                    to="/admin"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#dc2626",
-                      fontWeight: "bold",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "#fef2f2")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "transparent")
-                    }
-                  >
-                    ⚙️ Admin
-                  </Link>
-                  <Link
-                    to="/admin/instructors"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#111",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "#f8f9fa")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "transparent")
-                    }
-                  >
-                    👥 Instructors
-                  </Link>
-                </>
-              )}
-
-              {/* Instructor Dashboard Mobile */}
-              {user &&
-                (user.role === "instructor" || user.role === "admin") &&
-                hasPublishedCourses && (
-                  <Link
-                    to="/instructor-dashboard"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#111",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "#f8f9fa")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "transparent")
-                    }
-                  >
-                    📊 Instructor Dashboard
-                  </Link>
-                )}
-            </div>
-
-            {/* User Authentication Mobile */}
-            {!user ? (
-              <div
-                style={{
-                  paddingTop: "16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <Link
-                  to="/login"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "14px 16px",
-                    border: "2px solid #e5e7eb",
-                    backgroundColor: "transparent",
-                    color: "#111",
-                    fontWeight: "600",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    transition: "all 0.2s",
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#f8f9fa";
-                    e.target.style.borderColor = "#d1d5db";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.borderColor = "#e5e7eb";
-                  }}
-                >
-                  🔐 Log in
-                </Link>
-                <Link
-                  to="/signup"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "14px 16px",
-                    backgroundColor: "#111",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    transition: "all 0.2s",
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#374151")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "#111")
-                  }
-                >
-                  ✨ Sign up
-                </Link>
-              </div>
-            ) : (
-              <div
-                style={{
-                  paddingTop: "16px",
-                  borderTop: "2px solid #e5e7eb",
-                  marginTop: "8px",
-                }}
-              >
+              {/* User Authentication Mobile */}
+              {!user ? (
                 <div
                   style={{
+                    paddingTop: "16px",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "16px 12px",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: "8px",
+                    flexDirection: "column",
+                    gap: "12px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "50%",
-                        backgroundColor: "#374151",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: "12px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {user.photoUrl ? (
-                        <img
-                          src={user.photoUrl}
-                          alt="Profile"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        getInitials(user.name)
-                      )}
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: "600",
-                          color: "#111",
-                          fontSize: "16px",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        {user.name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          color: "#6b7280",
-                          textTransform: "capitalize",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {user.role}
-                      </div>
-                    </div>
-                  </div>
+                  <Link
+                    to="/login"
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "center",
+                      padding: "14px 16px",
+                      border: "2px solid #444",
+                      backgroundColor: "transparent",
+                      color: "#FFF",
+                      fontWeight: "600",
+                      textDecoration: "none",
+                      borderRadius: "8px",
+                      fontSize: "16px",
+                    }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    🔐 Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "center",
+                      padding: "14px 16px",
+                      backgroundColor: "#FFF",
+                      color: "black",
+                      textDecoration: "none",
+                      borderRadius: "8px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                    }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    ✨ Sign up
+                  </Link>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    paddingTop: "16px",
+                    borderTop: "2px solid #333",
+                    marginTop: "8px",
+                  }}
+                >
                   <button
                     onClick={handleLogout}
                     style={{
@@ -965,23 +748,17 @@ const Navbar = ({ cartCount = 0 }) => {
                       border: "none",
                       background: "none",
                       cursor: "pointer",
-                      fontSize: "14px",
+                      fontSize: "16px",
                       padding: "8px 12px",
-                      borderRadius: "6px",
-                      transition: "background-color 0.2s",
+                      width: "100%",
+                      textAlign: "left"
                     }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "#fef2f2")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "transparent")
-                    }
                   >
                     🚪 Logout
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
