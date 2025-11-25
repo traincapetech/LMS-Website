@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   FiSearch,
   FiShoppingCart,
-  FiGlobe,
   FiUser,
   FiMenu,
   FiX,
@@ -215,7 +214,6 @@ const Navbar = ({ cartCount = 0 }) => {
               borderRadius: "8px",
               padding: "0 16px", // sirf left-right padding
               width: "100%",
-              border: "1px solid #ddd",
               border: isSearchFocused ? "2px solid #400303" : "1px solid #ddd",
               boxShadow: isSearchFocused
                 ? "0 0 0 2px rgba(86, 36, 208, 0.15)"
@@ -471,7 +469,6 @@ const Navbar = ({ cartCount = 0 }) => {
               )}
             </div>
           )}
-          <FiGlobe style={{ fontSize: "22px", cursor: "pointer" }} />
         </div>
 
         {/* Mobile menu button */}
