@@ -9,7 +9,8 @@ import useSections from "../Pages/hooks/useSection";
 import useQuiz from "../Pages/hooks/useQuiz";
 import useUpload from "../Pages/hooks/useUpload";
 
-const API_BASE = "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
 
 const steps = [
   { key: "intended", label: "Intended learners" },
