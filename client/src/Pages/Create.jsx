@@ -8,6 +8,7 @@ const categories = [
   "Lifestyle", "Photography & Video", "Health & Fitness", "Music",
   "Teaching & Academics", "I don't know yet"
 ];
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
 const Create = () => {
   const [step, setStep] = useState(1);
@@ -40,7 +41,7 @@ const Create = () => {
     // 🚀 Create Pending Course API Call
     // -----------------------------------------
     try {
-      const res = await fetch("http://localhost:5001/api/pending-courses/create", {
+      const res = await fetch(`${API_BASE}/api/pending-courses/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
