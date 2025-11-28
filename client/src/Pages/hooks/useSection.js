@@ -1,86 +1,57 @@
-// components/UploadLecture/hooks/useSections.js
+// useSection.js
 import { useState } from "react";
-import { makeId } from "../../utils/makeId";
 
-export default function useSections(initial) {
+export default function useSections(initial = []) {
   const [sections, setSections] = useState(initial);
 
+  function makeId(prefix = "") {
+    return `${prefix}${Date.now().toString(36)}${Math.floor(Math.random()*1000).toString(36)}`;
+  }
+
   function addSection() {
-    setSections((prev) => [
+    setSections(prev => [
       ...prev,
-      { id: null, title: "New Section", published: false, items: [] },
+      { id: makeId("sec_"), title: "New Section", published: false, items: [] }
     ]);
   }
 
   function editSection(id, title) {
-    setSections((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
+    setSections(prev => prev.map(s => s.id === id ? { ...s, title } : s));
   }
 
   function deleteSection(id) {
-    setSections((prev) => prev.filter((s) => s.id !== id));
-  }
-
-  function toggleSectionPublish(id) {
-    setSections((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, published: !s.published } : s))
-    );
+    setSections(prev => prev.filter(s => s.id !== id));
   }
 
   function addItem(sectionId, kind) {
     const newItem = {
-      id:null,
+      id: makeId("it_"),
       type: kind,
       title: kind === "lecture" ? "New Lecture" : "New Quiz",
-      expanded: false,
-      contents: [],
+      expanded: true,
+      // local-only
+      videoFile: null,
+      documents: [],
       questions: [],
+      quizId: null
     };
-
-    setSections((prev) =>
-      prev.map((s) =>
-        s.id === sectionId ? { ...s, items: [...s.items, newItem] } : s
-      )
-    );
+    setSections(prev => prev.map(s => s.id === sectionId ? { ...s, items: [...s.items, newItem] } : s));
   }
 
   function editItem(sectionId, itemId, title) {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.id !== sectionId
-          ? s
-          : {
-              ...s,
-              items: s.items.map((i) =>
-                i.id === itemId ? { ...i, title } : i
-              ),
-            }
-      )
-    );
+    setSections(prev => prev.map(s => s.id !== sectionId ? s : {
+      ...s, items: s.items.map(i => i.id === itemId ? { ...i, title } : i)
+    }));
   }
 
   function deleteItem(sectionId, itemId) {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.id !== sectionId
-          ? s
-          : { ...s, items: s.items.filter((i) => i.id !== itemId) }
-      )
-    );
+    setSections(prev => prev.map(s => s.id !== sectionId ? s : { ...s, items: s.items.filter(i => i.id !== itemId) }));
   }
 
   function toggleExpand(sectionId, itemId) {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.id !== sectionId
-          ? s
-          : {
-              ...s,
-              items: s.items.map((i) =>
-                i.id === itemId ? { ...i, expanded: !i.expanded } : i
-              ),
-            }
-      )
-    );
+    setSections(prev => prev.map(s => s.id !== sectionId ? s : {
+      ...s, items: s.items.map(i => i.id === itemId ? { ...i, expanded: !i.expanded } : i)
+    }));
   }
 
   return {
@@ -88,11 +59,10 @@ export default function useSections(initial) {
     addSection,
     editSection,
     deleteSection,
-    toggleSectionPublish,
     addItem,
     editItem,
     deleteItem,
     toggleExpand,
-    setSections,
+    setSections
   };
 }

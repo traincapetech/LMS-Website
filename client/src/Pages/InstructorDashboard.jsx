@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 export default function InstructorDashboard() {
-  const API_BASE = "http://localhost:5001";
+  const API_BASE ="http://localhost:5001";
 
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
@@ -193,6 +193,36 @@ function CourseList({ courses }) {
   const handlePreview = (id) => {
     navigate(`/admin/pending-course/${id}`);
   }
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this course?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `http://localhost:5001/api/pending-courses/delete/${id}`,{
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Course deleted successfully!");
+        // Remove course from UI instantly
+        window.location.reload();
+      } else {
+        alert(data.message || "Failed to delete course");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Something went wrong");
+    }
+  };
+
 
   return (
     <div className="ic-course-list">
@@ -249,6 +279,13 @@ function CourseList({ courses }) {
                 <button className="ic-link-btn" onClick={() => handlePreview(course._id)}>Preview</button>
                 <button className="ic-link-btn">Promotions</button>
                 <button className="ic-link-btn">More ▾</button>
+                <button
+                  className="ic-link-btn danger"
+                  onClick={() => handleDelete(course._id)}
+                  style={{ color: "red" }}
+                >
+                  Delete
+                </button>
               </div>
 
               <div className="ic-course-price">

@@ -8,10 +8,14 @@ const PendingCourseDetails = () => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [videos, setVideos] = useState([]);
 
   const token = localStorage.getItem("token");
   const API_BASE = "http://localhost:5001";
 
+  /* -------------------------------------------
+     1️⃣  Fetch Pending Course Details
+  ------------------------------------------- */
   useEffect(() => {
     const fetchCourse = async () => {
       setLoading(true);
@@ -39,18 +43,53 @@ const PendingCourseDetails = () => {
     fetchCourse();
   }, [pendingCourseId, token]);
 
+
+  /* -------------------------------------------
+     2️⃣  Fetch Videos for This Course
+  ------------------------------------------- */
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/upload/check/${pendingCourseId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.success) {
+          setVideos(data.uploadedVideos); // List of uploaded videos
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchVideos();
+  }, [pendingCourseId]);
+
+
+  /* -------------------------------------------
+           LOADING + ERROR HANDLING
+  ------------------------------------------- */
   if (loading)
-    return (
-      <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>
-    );
+    return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
+
   if (error)
     return (
       <div style={{ color: "red", textAlign: "center", marginTop: 60 }}>
         {error}
       </div>
     );
+
   if (!course) return null;
 
+
+  /* -------------------------------------------
+                  RENDER DATA
+  ------------------------------------------- */
   return (
     <div
       style={{
@@ -108,113 +147,118 @@ const PendingCourseDetails = () => {
       {/* DETAILS SECTION */}
       <div style={{ lineHeight: 1.8, fontSize: 17, color: "#333" }}>
         <Detail label="Title" value={course.landingTitle} />
-
         <Detail label="Subtitle" value={course.landingSubtitle} />
-
         <Detail label="Description" value={course.landingDesc} />
 
-        <DetailList
-          label="Learning Objectives"
-          items={course.learningObjectives}
-        />
-
+        <DetailList label="Learning Objectives" items={course.learningObjectives} />
         <DetailList label="Requirements" items={course.requirements} />
 
         <Detail label="Structure" value={course.structure} />
 
-        {/* CURRICULUM */}
-    <div style={{ marginBottom: 28 }}>
-  <h3 style={sectionTitleStyle}>Curriculum</h3>
+        {/* -----------------------------------------
+                   CURRICULUM SECTION
+        ------------------------------------------ */}
+        <div style={{ marginBottom: 28 }}>
+          <h3 style={sectionTitleStyle}>Curriculum</h3>
 
-  {course.curriculum && course.curriculum.length > 0 ? (
-    course.curriculum.map((section, i) => (
-      <div
-        key={i}
-        style={{
-          padding: 16,
-          marginBottom: 16,
-          background: "#f9fafb",
-          borderRadius: 10,
-          border: "1px solid #e5e7eb",
-        }}
-      >
-        {/* Section Title */}
-        <h4
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            marginBottom: 12,
-            color: "#4b5563",
-          }}
-        >
-          {section.sectionTitle}
-        </h4>
-
-        {/* Lectures inside section */}
-        {section.items?.map((item, idx) => (
-          <div
-            key={idx}
-            style={{
-              marginBottom: 12,
-              padding: "12px 14px",
-              background: "#ffffff",
-              borderRadius: 8,
-              boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
-              border: "1px solid #f3f4f6",
-            }}
-          >
-            {/* Lecture Title */}
-            <strong style={{ fontSize: 16 }}>{item.title}</strong>
-
-            {/* Video Link */}
-            {item.videoUrl ? (
-              <div style={{ marginTop: 6 }}>
-                <a
-                  href={item.videoUrl}
-                  target="_blank"
-                  rel="noreferrer"
+          {course.curriculum && course.curriculum.length > 0 ? (
+            course.curriculum.map((section, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: 16,
+                  marginBottom: 16,
+                  background: "#f9fafb",
+                  borderRadius: 10,
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                {/* Section Title */}
+                <h4
                   style={{
-                    color: "#2563eb",
-                    textDecoration: "underline",
-                    fontWeight: 500,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    marginBottom: 12,
+                    color: "#4b5563",
                   }}
                 >
-                  ▶ Watch Video
-                </a>
-              </div>
-            ) : (
-              <p style={{ color: "#9ca3af", marginTop: 4 }}>No video uploaded</p>
-            )}
+                  {section.title}
+                </h4>
 
-            {/* Documents */}
-            {item.documents && item.documents.length > 0 && (
-              <div style={{ marginTop: 10 }}>
-                <strong>Documents:</strong>
-                <ul style={{ paddingLeft: 16, marginTop: 4 }}>
-                  {item.documents.map((doc, d) => (
-                    <li key={d}>
-                      <a
-                        href={doc.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{ color: "#2563eb", fontWeight: 500 }}
-                      >
-                        {doc.fileName}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    ))
-  ) : (
-    <p style={{ color: "#6b7280" }}>No curriculum added.</p>
-  )}
-</div>
+                {/* Lectures inside the Section */}
+                {section.items?.map((item, idx) => {
+                  const matchedVideo = videos.find(
+                    (v) => v._id === item.videoId
+                  );
 
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        marginBottom: 12,
+                        padding: "12px 14px",
+                        background: "#ffffff",
+                        borderRadius: 8,
+                        boxShadow: "0 1px 6px rgba(0,0,0,0.05)",
+                        border: "1px solid #f3f4f6",
+                      }}
+                    >
+                      {/* Lecture Title */}
+                      <strong style={{ fontSize: 16 }}>{item.title}</strong>
+
+                      {/* Video Link */}
+                      {matchedVideo ? (
+                        <div style={{ marginTop: 6 }}>
+                          <video
+                            controls
+                            style={{
+                              marginTop: 10,
+                              width: "100%",
+                              maxHeight: "300px",
+                              borderRadius: 8,
+                              background: "#000"
+                            }}
+                          >
+                            <source src={matchedVideo.url} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+
+                        </div>
+                      ) : (
+                        <p style={{ color: "#9ca3af", marginTop: 4 }}>
+                          No video uploaded
+                        </p>
+                      )}
+
+                      {/* Documents */}
+                      {item.documents?.length > 0 && (
+                        <div style={{ marginTop: 10 }}>
+                          <strong>Documents:</strong>
+                          <ul style={{ paddingLeft: 16, marginTop: 4 }}>
+                            {item.documents.map((doc, d) => (
+                              <li key={d}>
+                                <a
+                                  href={doc.fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{ color: "#2563eb", fontWeight: 500 }}
+                                >
+                                  {doc.fileName}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))
+          ) : (
+            <p style={{ color: "#6b7280" }}>No curriculum added.</p>
+          )}
+        </div>
 
         {/* OTHER FIELDS */}
         <Detail label="Captions" value={course.captions} />
@@ -231,7 +275,6 @@ const PendingCourseDetails = () => {
         />
 
         <Detail label="Status" value={course.status} />
-
         <Detail
           label="Submitted On"
           value={new Date(course.createdAt).toLocaleString()}
@@ -259,7 +302,9 @@ const DetailList = ({ label, items }) => (
         ))}
       </ul>
     ) : (
-      <p style={{ color: "#6b7280", marginTop: 4 }}>No {label.toLowerCase()} added.</p>
+      <p style={{ color: "#6b7280", marginTop: 4 }}>
+        No {label.toLowerCase()} added.
+      </p>
     )}
   </div>
 );
