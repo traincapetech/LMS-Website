@@ -1,113 +1,66 @@
-
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCourseById } from "./CourseData";
-import { CartContext } from "../App";
 import axios from "axios";
+import { CartContext } from "../App";
 
+const API_BASE = "http://localhost:5001"
 const CourseDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [videos, setVideos] = useState([]);
+
   const { addToCart } = useContext(CartContext);
-  const navigate = useNavigate();
 
-  const handleAddToCart = async () => {
-    // Store course information in localStorage to pass to cart page
-    const courseToAdd = {
-      id: course.id,
-      title: course.title,
-      description: course.subtitle,
-      price: course.price,
-      thumbnailUrl: course.thumbnailUrl,
-      isApiCourse: course.id && course.id.length > 20 // MongoDB ObjectId length
-    };
+  // Expand/Collapse
+  const [expanded, setExpanded] = useState({});
+  const [expandedAll, setExpandedAll] = useState(false);
 
-    // Store the course info temporarily for the cart page
-    localStorage.setItem('courseToAdd', JSON.stringify(courseToAdd));
-
-    // Redirect to cart page
-    navigate('/cart');
+  const toggleSection = (i) => {
+    setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
   };
 
-  const handleBuyNow = () => {
-    // First add to cart, then redirect to cart
-    handleAddToCart().then(() => {
-      window.location.href = '/cart';
-    });
-  };
-
-  const handleApplyCoupon = () => {
-    // Redirect to cart where they can apply coupons
-    window.location.href = '/cart';
-  };
-
+  // ⭐ Fetch course details (FULLY dynamic)
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
 
     const fetchCourse = async () => {
       try {
         setLoading(true);
-        setError(null);
 
-        // First try to get from API
-        try {
-          const response = await axios.get(`https://lms-backend-5s5x.onrender.com/api/courses/${id}`);
-          const apiCourse = response.data;
+        const res = await axios.get(`${API_BASE}/api/courses/${id}`);
+        const c = res.data;
 
-          // Transform API data to match the expected format
-          const transformedCourse = {
-            id: apiCourse._id,
-            title: apiCourse.title,
-            subtitle: apiCourse.subtitle || apiCourse.description,
-            instructor: {
-              name: apiCourse.instructor?.name || "Instructor",
-              role: "Instructor",
-              avatar: "https://img-c.udemycdn.com/user/200_H/437533_72a6_2.jpg"
-            },
-            rating: apiCourse.rating || 4.5,
-            ratingsCount: apiCourse.ratingsCount || 100,
-            learners: apiCourse.learners || 1000,
-            lastUpdated: "1/2025",
-            language: apiCourse.language || "English",
-            autoLanguages: ["Spanish", "French"],
-            bestseller: false,
-            price: apiCourse.price || 99.99,
-            originalPrice: (apiCourse.price || 99.99) * 1.5,
-            discount: 33,
-            thumbnailUrl: apiCourse.thumbnailUrl || "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg",
-            whatYouWillLearn: apiCourse.learningObjectives || [
-              "Learn the fundamentals",
-              "Build real-world projects",
-              "Master the concepts"
-            ],
-            requirements: [
-              "Basic computer knowledge",
-              "A computer with internet access",
-              "Willingness to learn"
-            ],
-            description: apiCourse.description,
-            courseContent: { totalSections: 10, totalLectures: 50, totalLength: "5h 30m" },
-            includes: ["5.5 hours on-demand video", "10 articles", "50 downloadable resources", "Access on mobile and TV", "Certificate of completion", "Full lifetime access"]
-          };
+        setCourse({
+          id: c._id,
+          title: c.title,
+          subtitle: c.subtitle || c.description,
+          instructor: c.instructor || { name: "Instructor" },
 
-          setCourse(transformedCourse);
-        } catch (apiError) {
-          // If API fails, fallback to static data
-          console.log("API failed, using static data:", apiError);
-          const staticCourse = getCourseById(id);
-          if (staticCourse) {
-            setCourse(staticCourse);
-          } else {
-            setError("Course not found");
-          }
-        }
+          thumbnailUrl: c.thumbnailUrl || "",
+          price: c.price || 0,
+          originalPrice: (c.price || 0) * 1.5,
+          discount: 33,
+
+          rating: c.rating || 0,
+          ratingsCount: c.ratingsCount || 0,
+          learners: c.learners || 0,
+
+          language: c.language || "English",
+          lastUpdated: c.updatedAt?.split("T")[0] || "2025",
+
+          description: c.description || "",
+          whatYouWillLearn: c.learningObjectives || [],
+          requirements: c.requirements || [],
+          includes: ["Full lifetime access", "Certificate of completion"],
+
+          curriculum: c.curriculum || [],
+        });
       } catch (err) {
-        console.error("Error fetching course:", err);
-        setError("Failed to load course details");
+        console.log(err);
+        setError("Failed to load course");
       } finally {
         setLoading(false);
       }
@@ -116,49 +69,67 @@ const CourseDetails = () => {
     fetchCourse();
   }, [id]);
 
+  // ⭐ Add to cart
+  const handleAddToCart = () => {
+    localStorage.setItem(
+      "courseToAdd",
+      JSON.stringify({
+        id: course.id,
+        title: course.title,
+        description: course.subtitle,
+        price: course.price,
+        thumbnailUrl: course.thumbnailUrl,
+        isApiCourse: true,
+      })
+    );
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        if (!id) return;
-        const res = await fetch(`http://localhost:5001/api/videos/${id}`);
+    navigate("/cart");
+  };
 
-        const videodata = await res.json();
+  const handleBuyNow = () => {
+    handleAddToCart();
+    navigate("/cart");
+  };
 
-        if (videodata.success && videodata.videos) {
-          setVideos(videodata.videos); // ensure correct data structure
-        } else {
-          console.log("No videos found for this course");
-        }
-      } catch (err) {
-        console.error("Error fetching videos:", err);
-      }
-    };
+  const handleApplyCoupon = () => navigate("/cart");
 
-    fetchVideos();
-  }, [id]);
-
-
+  // ⭐ LOADING UI
   if (loading) {
     return (
-      <div style={{ background: '#181821', minHeight: '100vh', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '1.5rem', color: '#f4c150', marginBottom: '16px' }}>Loading course...</div>
-          <div style={{ color: '#b1b1b1' }}>Please wait while we fetch the course details.</div>
+      <div
+        style={{
+          background: "#181821",
+          minHeight: "100vh",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 24, color: "#f4c150" }}>Loading course...</div>
+          <div style={{ color: "#b1b1b1" }}>Please wait.</div>
         </div>
       </div>
     );
   }
 
+  // ⭐ ERROR UI
   if (error || !course) {
     return (
-      <div style={{ background: '#181821', minHeight: '100vh', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '1.5rem', color: '#f4c150', marginBottom: '16px' }}>
+      <div
+        style={{
+          background: "#181821",
+          minHeight: "100vh",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 24, color: "#f4c150" }}>
             {error || "Course not found"}
-          </div>
-          <div style={{ color: '#b1b1b1' }}>
-            The course you're looking for doesn't exist or has been removed.
           </div>
         </div>
       </div>
@@ -166,40 +137,52 @@ const CourseDetails = () => {
   }
 
   return (
-    <div style={{ background: '#181821', minHeight: '100vh', color: '#fff', padding: 0 }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 0 24px', display: 'flex', gap: 32 }}>
-        {/* Main Content */}
+    <div style={{ background: "#181821", minHeight: "100vh", color: "#fff", padding: 0 }}>
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "40px 24px 0 24px",
+          display: "flex",
+          gap: 32,
+        }}
+      >
+        {/* MAIN CONTENT */}
         <div style={{ flex: 2 }}>
+          {/* Title */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 32, fontWeight: 700 }}>{course.title}</div>
-            <div style={{ fontSize: 20, color: '#d1d7dc', margin: '12px 0 18px 0' }}>{course.subtitle}</div>
-            {course.bestseller && (
-              <span style={{ background: '#eceb98', color: '#6a6f09', fontWeight: 700, borderRadius: 4, padding: '2px 10px', fontSize: 14, marginRight: 8 }}>Bestseller</span>
-            )}
-            <div style={{ fontSize: 15, color: '#b1b1b1', margin: '10px 0' }}>
-              Created by <span style={{ color: '#fff', fontWeight: 600 }}>{course.instructor.name}</span>, {course.instructor.role}
+            <div style={{ fontSize: 20, color: "#d1d7dc", margin: "12px 0 18px 0" }}>
+              {course.subtitle}
             </div>
-            <div style={{ fontSize: 14, color: '#b1b1b1', margin: '6px 0' }}>
-              <span>Last updated {course.lastUpdated}</span> · <span>{course.language}</span>
-              {course.autoLanguages && course.autoLanguages.length > 0 && (
-                <> · <span>Auto: {course.autoLanguages.join(", ")}</span></>
-              )}
+
+            <div style={{ fontSize: 15, color: "#b1b1b1", margin: "10px 0" }}>
+              Created by{" "}
+              <span style={{ color: "#fff", fontWeight: 600 }}>
+                {course.instructor.name}
+              </span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0' }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: '#f4c150', marginRight: 6 }}>{course.rating}</span>
-              <span style={{ color: '#b1b1b1', fontSize: 15 }}>★</span>
-              <span style={{ color: '#b1b1b1', fontSize: 15, marginLeft: 8 }}>{course.ratingsCount.toLocaleString()} ratings</span>
-              <span style={{ color: '#b1b1b1', fontSize: 15, marginLeft: 8 }}>{course.learners.toLocaleString()} learners</span>
+
+            <div style={{ fontSize: 14, color: "#b1b1b1", margin: "6px 0" }}>
+              <span>Last updated {course.lastUpdated}</span> ·{" "}
+              <span>{course.language}</span>
             </div>
           </div>
 
           {/* What you'll learn */}
-          <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>What you'll learn</div>
-            <ul style={{ listStyle: 'none', padding: 0, color: '#fff' }}>
+          <div style={{ background: "#22223b", borderRadius: 8, padding: 24, marginBottom: 32 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
+              What you'll learn
+            </div>
+            <ul style={{ listStyle: "none", padding: 0 }}>
               {course.whatYouWillLearn.map((item, idx) => (
-                <li key={idx} style={{ marginBottom: 8, fontSize: 16, display: 'flex', alignItems: 'flex-start' }}>
-                  <span style={{ marginRight: 12, color: '#f4c150', fontSize: 18 }}>✓</span>
+                <li
+                  key={idx}
+                  style={{ marginBottom: 8, fontSize: 16, display: "flex" }}
+                >
+                  <span style={{ marginRight: 12, color: "#f4c150", fontSize: 18 }}>
+                    ✓
+                  </span>
                   {item}
                 </li>
               ))}
@@ -207,12 +190,19 @@ const CourseDetails = () => {
           </div>
 
           {/* Requirements */}
-          <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Requirements</div>
-            <ul style={{ listStyle: 'none', padding: 0, color: '#fff' }}>
+          <div style={{ background: "#22223b", borderRadius: 8, padding: 24, marginBottom: 32 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
+              Requirements
+            </div>
+            <ul style={{ listStyle: "none", padding: 0 }}>
               {course.requirements.map((item, idx) => (
-                <li key={idx} style={{ marginBottom: 8, fontSize: 16, display: 'flex', alignItems: 'flex-start' }}>
-                  <span style={{ marginRight: 12, color: '#f4c150', fontSize: 18 }}>•</span>
+                <li
+                  key={idx}
+                  style={{ marginBottom: 8, fontSize: 16, display: "flex" }}
+                >
+                  <span style={{ marginRight: 12, color: "#f4c150", fontSize: 18 }}>
+                    •
+                  </span>
                   {item}
                 </li>
               ))}
@@ -220,139 +210,249 @@ const CourseDetails = () => {
           </div>
 
           {/* Description */}
-          <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Description</div>
-            <div style={{ fontSize: 16, lineHeight: 1.6, color: '#fff' }}>
-              {course.description}
+          <div style={{ background: "#22223b", borderRadius: 8, padding: 24, marginBottom: 32 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
+              Description
             </div>
+            <div style={{ fontSize: 16, lineHeight: 1.6 }}>{course.description}</div>
           </div>
 
-          {/* Course Content */}
-          <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Course content</div>
-            <div style={{ fontSize: 16, color: '#b1b1b1', marginBottom: 16 }}>
-              {course.courseContent.totalSections} sections • {course.courseContent.totalLectures} lectures • {course.courseContent.totalLength} total length
+          {/* ⭐ Course Content (Dynamic) */}
+          {/* ⭐ Improved Course Content UI */}
+          <div
+            style={{
+              background: "#1f1f2e",
+              borderRadius: 10,
+              padding: 24,
+              marginBottom: 32,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
+              Course content
             </div>
-            <div style={{ fontSize: 14, color: '#f4c150', cursor: 'pointer' }}>Expand all sections</div>
 
-            <div>
-              <h2 style={{ color: "#f4c150", marginBottom: "15px" }}>Course Videos</h2>
+            <div style={{ fontSize: 15, color: "#c7c7c7", marginBottom: 18 }}>
+              {course.curriculum.length} sections •{" "}
+              {course.curriculum.reduce((n, s) => n + s.items.length, 0)} lectures
+            </div>
 
-              {videos.length > 0 ? (
-                videos.map((video, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      marginBottom: "10px",
-                      padding: "12px 16px",
-                      background: "#2a2a3b",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      transition: "background 0.3s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#3b3b4a")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a3b")}
-                    onClick={() =>
-                      navigate(`/play-video/${video._id}`, {
-                        state: {
-                          video,        // current clicked video
-                          videos,       // all videos in this course ✅
-                          courseId: {id},
-                        },
-                      })
-                    }
+            <div
+              style={{
+                fontSize: 14,
+                color: "#a778ff",
+                marginBottom: 20,
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+              onClick={() => setExpandedAll((prev) => !prev)}
+            >
+              {expandedAll ? "Collapse all" : "Expand all"}
+            </div>
 
-                  >
-
-                    <span style={{ color: "#fff", fontSize: "16px", fontWeight: "500" }}>
-                      🎬 {video.title} 
+            {course.curriculum.map((section, sIdx) => (
+              <div
+                key={sIdx}
+                style={{
+                  background: "#2a2a3b",
+                  padding: "16px 18px",
+                  borderRadius: 8,
+                  marginBottom: 14,
+                  transition: "0.2s ease",
+                }}
+              >
+                {/* HEADER */}
+                <div
+                  onClick={() => toggleSection(sIdx)}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span
+                      style={{
+                        fontSize: 20,
+                        color: "#a778ff",
+                        transform: expanded[sIdx] || expandedAll ? "rotate(90deg)" : "rotate(0)",
+                        transition: "0.3s",
+                      }}
+                    >
+                      ▶
+                    </span>
+                    <span style={{ fontSize: 18, fontWeight: 600 }}>
+                      {section.title}
                     </span>
                   </div>
-                ))
-              ) : (
-                <p style={{ color: "#b1b1b1" }}>No videos available for this course.</p>
-              )}
-            </div>
 
-            {course.courseContent.sections && course.courseContent.sections.slice(0, 3).map((section, idx) => (
-              <div key={idx} style={{ marginTop: 16, padding: '12px 0', borderBottom: '1px solid #333' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 16, color: '#fff' }}>{section.title}</span>
-                  <span style={{ fontSize: 14, color: '#b1b1b1' }}>{section.lectures} lectures • {section.duration}</span>
+                  <span style={{ fontSize: 14, color: "#b1b1b1" }}>
+                    {section.items.length} lectures
+                  </span>
                 </div>
+
+                {/* ITEMS */}
+                {(expandedAll || expanded[sIdx]) && (
+                  <div style={{ marginTop: 14 }}>
+                    {section.items.map((item, iIdx) => (
+                      <div
+                        key={iIdx}
+                        onClick={() =>
+                          navigate(`/play-video/${item.videoId}`, {
+                            state: {
+                              videoId: item.videoId,
+                              title: item.title,
+                              videos: course.curriculum.flatMap((s) => s.items),
+                              courseId: course.id,
+                            },
+                          })
+                        }
+                        style={{
+                          padding: "10px 14px",
+                          background: "#343449",
+                          borderRadius: 6,
+                          marginBottom: 10,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 12,
+                          transition: "0.2s",
+                          border: "1px solid transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#3d3d55";
+                          e.currentTarget.style.border = "1px solid #5b5b79";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#343449";
+                          e.currentTarget.style.border = "1px solid transparent";
+                        }}
+                      >
+                        <span style={{ fontSize: 18 }}>🎬</span>
+                        <span style={{ fontSize: 16 }}>{item.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
-            {!course.courseContent.sections && (
-              <div style={{ marginTop: 16, padding: '12px 0', color: '#b1b1b1', fontSize: 14 }}>
-                Course sections will be available after enrollment
-              </div>
-            )}
           </div>
 
 
-          {/* This course includes */}
-          <div style={{ background: '#22223b', borderRadius: 8, padding: 24, marginBottom: 32 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>This course includes:</div>
-            <ul style={{ listStyle: 'none', padding: 0, color: '#fff' }}>
+          {/* Includes */}
+          <div style={{ background: "#22223b", borderRadius: 8, padding: 24 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
+              This course includes:
+            </div>
+            <ul style={{ listStyle: "none", padding: 0 }}>
               {course.includes.map((item, idx) => (
-                <li key={idx} style={{ marginBottom: 8, fontSize: 16, display: 'flex', alignItems: 'flex-start' }}>
-                  <span style={{ marginRight: 12, color: '#f4c150', fontSize: 18 }}>✓</span>
+                <li
+                  key={idx}
+                  style={{ marginBottom: 8, fontSize: 16, display: "flex" }}
+                >
+                  <span style={{ marginRight: 12, color: "#f4c150", fontSize: 18 }}>
+                    ✓
+                  </span>
                   {item}
                 </li>
               ))}
             </ul>
-
-
           </div>
-
         </div>
 
-        {/* Sidebar */}
+        {/* SIDEBAR */}
         <div style={{ flex: 1, minWidth: 320 }}>
-          <div style={{ background: '#23272f', borderRadius: 8, padding: 20, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+          <div
+            style={{
+              background: "#23272f",
+              borderRadius: 8,
+              padding: 20,
+            }}
+          >
             <img
               src={course.thumbnailUrl}
-              alt="Course Preview"
-              style={{ width: '100%', borderRadius: 8, marginBottom: 16 }}
+              alt="Course Thumbnail"
+              style={{ width: "100%", borderRadius: 8, marginBottom: 16 }}
               onError={(e) => {
-                // Fallback to default image if the uploaded image fails to load
-                e.target.src = "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg";
+                e.target.src =
+                  "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg";
               }}
             />
 
-            {/* Pricing */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 32, fontWeight: 700, color: '#fff' }}>${course.price}</span>
-                <span style={{ fontSize: 18, color: '#b1b1b1', textDecoration: 'line-through', marginLeft: 12 }}>${course.originalPrice}</span>
-                <span style={{ fontSize: 14, color: '#f4c150', marginLeft: 8 }}>{course.discount}% off</span>
-              </div>
-              <div style={{ fontSize: 14, color: '#f4c150', marginBottom: 16 }}>
-                ⏰ 1 day left at this price!
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <span style={{ fontSize: 32, fontWeight: 700, color: "#fff" }}>
+                  ${course.price}
+                </span>
+                <span
+                  style={{
+                    fontSize: 18,
+                    color: "#b1b1b1",
+                    textDecoration: "line-through",
+                    marginLeft: 12,
+                  }}
+                >
+                  ${course.originalPrice}
+                </span>
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: "#f4c150",
+                    marginLeft: 8,
+                  }}
+                >
+                  {course.discount}% off
+                </span>
               </div>
             </div>
 
-            {/* Buttons */}
-            <button style={{ width: '100%', background: '#a435f0', color: '#fff', fontWeight: 700, fontSize: 18, border: 'none', borderRadius: 6, padding: '14px 0', marginBottom: 12, cursor: 'pointer' }} onClick={handleAddToCart}>
+            <button
+              onClick={handleAddToCart}
+              style={{
+                width: "100%",
+                background: "#a435f0",
+                color: "#fff",
+                padding: "14px 0",
+                fontWeight: 700,
+                borderRadius: 6,
+                marginBottom: 12,
+                cursor: "pointer",
+              }}
+            >
               Add to cart
             </button>
-            <button style={{ width: '100%', background: 'transparent', color: '#a435f0', fontWeight: 700, fontSize: 18, border: '2px solid #a435f0', borderRadius: 6, padding: '12px 0', marginBottom: 12, cursor: 'pointer' }} onClick={handleBuyNow}>
+
+            <button
+              onClick={handleBuyNow}
+              style={{
+                width: "100%",
+                background: "transparent",
+                color: "#a435f0",
+                padding: "12px 0",
+                fontWeight: 700,
+                border: "2px solid #a435f0",
+                borderRadius: 6,
+                marginBottom: 12,
+              }}
+            >
               Buy now
             </button>
 
-            {/* Guarantees */}
-            <div style={{ color: '#b1b1b1', fontSize: 15, textAlign: 'center', marginBottom: 16 }}>
-              30-Day Money-Back Guarantee
-            </div>
-            <div style={{ color: '#b1b1b1', fontSize: 15, textAlign: 'center', marginBottom: 16 }}>
+            <div style={{ color: "#b1b1b1", textAlign: "center" }}>
               Full Lifetime Access
             </div>
 
-            {/* Share and Gift */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#a435f0', marginTop: 16 }}>
-              <span style={{ cursor: 'pointer' }}>Share</span>
-              <span style={{ cursor: 'pointer' }}>Gift this course</span>
-              <span style={{ cursor: 'pointer' }} onClick={handleApplyCoupon}>Apply Coupon</span>
+            <div
+              onClick={handleApplyCoupon}
+              style={{
+                marginTop: 16,
+                color: "#a435f0",
+                textAlign: "center",
+                cursor: "pointer",
+              }}
+            >
+              Apply Coupon
             </div>
           </div>
         </div>
@@ -361,4 +461,4 @@ const CourseDetails = () => {
   );
 };
 
-export default CourseDetails; 
+export default CourseDetails;

@@ -9,6 +9,44 @@ const AdminInstructors = () => {
   const [error, setError] = useState("");
   const { addToCart } = useContext(CartContext);
 
+  // ADMIN PROTECTION
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return (
+      <div style={{ textAlign: "center", marginTop: 60 }}>
+        <h2>Access denied. Admins only.</h2>
+        <button
+  style={{
+    marginTop: 20,
+    padding: "12px 32px",
+    background: "#7c3aed",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    fontWeight: 700,
+    fontSize: "1.1rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    boxShadow: "0 4px 10px rgba(124, 58, 237, 0.3)",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.background = "#6d28d9";
+    e.currentTarget.style.transform = "translateY(-2px)";
+    e.currentTarget.style.boxShadow = "0 8px 20px rgba(109, 40, 217, 0.35)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.background = "#7c3aed";
+    e.currentTarget.style.transform = "translateY(0px)";
+    e.currentTarget.style.boxShadow = "0 4px 10px rgba(124, 58, 237, 0.3)";
+  }}
+  onClick={() => navigate("/login")}
+>
+  Go to Login
+</button>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);

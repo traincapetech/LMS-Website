@@ -291,14 +291,12 @@ export default function Dashboard() {
           }
           // documents (multiple)
           (item.documents || []).forEach((doc, dIndex) => {
-            // doc may be local File (object) or existing uploaded meta (fileUrl)
-            // Only append new File objects that have a .name property
+           
             if (doc && doc.file && typeof doc.file.name === "string") {
               form.append(`curriculum[${sIndex}][items][${iIndex}][documents][${dIndex}]`, doc.file);
             }
           });
 
-          // metadata fields so server sees title + type per item (useful if server reads req.body fallback)
           form.append(`curriculum[${sIndex}][items][${iIndex}][type]`, item.type);
           form.append(`curriculum[${sIndex}][items][${iIndex}][title]`, item.title || "");
           if (item.id) form.append(`curriculum[${sIndex}][items][${iIndex}][id]`, item.id);
@@ -417,7 +415,7 @@ export default function Dashboard() {
         );
       }
 
-      case "setup": {
+      case "setup (optional)": {
         return (
           <div>
             <h2 className="dash-heading">Setup & test video</h2>
@@ -430,7 +428,7 @@ export default function Dashboard() {
         );
       }
 
-      case "film": {
+      case "film(optional)": {
         return (
           <div>
             <h2 className="dash-heading">Film & edit</h2>
@@ -644,11 +642,11 @@ export default function Dashboard() {
       }
 
 
-      case "captions": {
+      case "captions(optional)": {
         return <div><h2 className="dash-heading">Captions (optional)</h2><textarea className="input-box" rows={3} value={captions} onChange={(e) => setCaptions(e.target.value)} /></div>;
       }
 
-      case "accessibility": {
+      case "accessibility(optional)": {
         return <div><h2 className="dash-heading">Accessibility (optional)</h2><textarea className="input-box" rows={3} value={accessibility} onChange={(e) => setAccessibility(e.target.value)} /></div>;
       }
 

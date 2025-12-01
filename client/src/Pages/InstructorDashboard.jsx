@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 export default function InstructorDashboard() {
-  const API_BASE ="http://localhost:5001";
+  const API_BASE = "http://localhost:5001";
 
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
@@ -24,10 +24,26 @@ export default function InstructorDashboard() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (user.role !== "instructor" && user.role !== "admin") {
+      navigate("/");
+    }
+  }, []);
+
+
+
   // Fetch courses from backend
   useEffect(() => {
     async function fetchCourses() {
       try {
+        const user = JSON.parse(localStorage.getItem("user"));
         const token = localStorage.getItem("token");
         if (!token) {
           console.error("No token found!");
@@ -35,7 +51,18 @@ export default function InstructorDashboard() {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/api/pending-courses/my-courses`, {
+        let url = "";
+
+        // ⭐ If user is admin → fetch ALL pending courses
+        if (user?.role === "admin") {
+          url = `${API_BASE}/api/pending-courses`;
+        }
+        // ⭐ Otherwise instructor → fetch ONLY his courses
+        else {
+          url = `${API_BASE}/api/pending-courses/my-courses`;
+        }
+
+        const res = await fetch(url, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -188,7 +215,8 @@ export default function InstructorDashboard() {
 // 🔥 FIXED Course Card for your backend fields
 function CourseList({ courses }) {
   const navigate = useNavigate();
-
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
   const { pendingCourseId } = useParams();
   const handlePreview = (id) => {
     navigate(`/admin/pending-course/${id}`);
@@ -198,15 +226,15 @@ function CourseList({ courses }) {
 
     try {
       const token = localStorage.getItem("token");
-
+      const user = JSON.parse(localStorage.getItem("user"));
       const res = await fetch(
-        `http://localhost:5001/api/pending-courses/delete/${id}`,{
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `http://localhost:5001/api/pending-courses/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
       );
 
       const data = await res.json();
@@ -223,6 +251,48 @@ function CourseList({ courses }) {
     }
   };
 
+  // APPROVE handler
+  const handleApprove = async (id) => {
+    if (!confirm("Approve this course?")) return;
+
+    const res = await fetch(
+      `http://localhost:5001/api/pending-courses/${id}/approve`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adminMessage: "Approved by admin" }),
+      }
+    );
+
+    const data = await res.json();
+    alert(data.message || "Approved!");
+    window.location.reload();
+  };
+
+  // REJECT handler
+  const handleReject = async (id) => {
+    const msg = prompt("Enter rejection reason (optional):");
+    if (!confirm("Reject this course?")) return;
+
+    const res = await fetch(
+      `http://localhost:5001/api/pending-courses/${id}/reject`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adminMessage: msg }),
+      }
+    );
+
+    const data = await res.json();
+    alert(data.message || "Rejected");
+    window.location.reload();
+  };
 
   return (
     <div className="ic-course-list">
@@ -278,14 +348,38 @@ function CourseList({ courses }) {
                 </button>
                 <button className="ic-link-btn" onClick={() => handlePreview(course._id)}>Preview</button>
                 <button className="ic-link-btn">Promotions</button>
-                <button className="ic-link-btn">More ▾</button>
-                <button
-                  className="ic-link-btn danger"
-                  onClick={() => handleDelete(course._id)}
-                  style={{ color: "red" }}
-                >
-                  Delete
-                </button>
+
+                {/* Delete only if status is NOT approved OR user is admin */}
+                {(course.status !== "approved" || user?.role === "admin") && (
+                  <button
+                    className="ic-link-btn danger"
+                    onClick={() => handleDelete(course._id)}
+                    style={{ color: "red" }}
+                  >
+                    Delete
+                  </button>
+                )}
+
+                {/* ⭐ ONLY ADMINS SEE THIS SECTION ⭐ */}
+                {user?.role === "admin" && (
+                  <div className="admin-approve-actions">
+                    <button
+                      className="ic-btn-primary"
+                      style={{ marginLeft: "10px", background: "green" }}
+                      onClick={() => handleApprove(course._id)}
+                    >
+                      Approve
+                    </button>
+
+                    <button
+                      className="ic-btn-primary"
+                      style={{ marginLeft: "10px", background: "red" }}
+                      onClick={() => handleReject(course._id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="ic-course-price">

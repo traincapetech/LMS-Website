@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                         {req.requirements?.slice(0,2).join(", ")}{req.requirements?.length > 2 ? '...' : ''}
                       </td>
                       <td style={{ padding: "10px 6px", border: "1px solid #eee", wordBreak: "break-word", maxWidth: "120px", fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)" }}>{req.structure}</td>
-                      <td style={{ padding: "10px 6px", border: "1px solid #eee", wordBreak: "break-word", maxWidth: "120px", fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)" }}>{req.curriculum}</td>
+                      <td style={{ padding: "10px 6px", border: "1px solid #eee", wordBreak: "break-word", maxWidth: "120px", fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)" }}> {req.curriculum?.map(s => s.title).join(", ")}</td>
                       <td style={{ padding: "10px 6px", border: "1px solid #eee", wordBreak: "break-word", maxWidth: "120px", fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)" }}>
                         {req.instructor?.name} ({req.instructor?.email})
                       </td>
