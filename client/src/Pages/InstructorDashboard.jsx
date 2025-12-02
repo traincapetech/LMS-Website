@@ -413,7 +413,7 @@ function EmptyCourses({ activeTab }) {
       <div className="ic-empty-icon">📚</div>
       <h3 className="ic-empty-title">{label}</h3>
       <p className="ic-empty-text">{desc}</p>
-      <button className="ic-btn-primary">+ New course</button>
+      <button className="ic-btn-primary" onClick={handleCreateCourse}>+ New course</button>
     </div>
   );
 }

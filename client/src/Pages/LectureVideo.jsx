@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { getCourseById } from "./CourseData";
 import {
   FaChevronDown,
   FaChevronUp,
   FaPlayCircle,
-  FaCheckCircle,
   FaClock,
   FaListAlt,
   FaQuestionCircle,
@@ -14,125 +12,157 @@ import {
   FaTrophy,
   FaShareAlt,
   FaEllipsisV,
+  FaFilePdf,
+  FaFileAlt
 } from "react-icons/fa";
 
 const LectureVideo = () => {
   const { videoId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
+  const API_BASE = "http://localhost:5001";
+
+  const searchParams = new URLSearchParams(location.search);
   const courseId =
+    location.state?.courseId ||
     location.state?.courseId?.id ||
-    location.pathname.split("/")[2]?.toLowerCase();
+    searchParams.get("courseId");
 
   const [course, setCourse] = useState(null);
-  const allVideos = location.state?.videos || [];
-  const initialVideo = location.state?.video;
-  const [currentVideo, setCurrentVideo] = useState(initialVideo || null);
-  const [openSections, setOpenSections] = useState({ 0: true });
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const [openSections, setOpenSections] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
-  const [documents, setDocuments] = useState([]); // 📄 Store uploaded docs
 
-  // 🎓 Demo fallback
-  const demoCourse = [
-    {
-      sectionTitle: "Introduction to React (3 Lectures)",
-      videos: [
-        { _id: "v1", title: "Welcome to the Course", duration: "4:12", completed: true },
-        { _id: "v2", title: "What is React?", duration: "6:45", completed: true },
-        { _id: "v3", title: "React Project Setup", duration: "8:10", completed: false },
-      ],
-    },
-    {
-      sectionTitle: "Components & Props (3 Lectures)",
-      videos: [
-        { _id: "v4", title: "Functional Components", duration: "10:20", completed: false },
-        { _id: "v5", title: "Class Components", duration: "7:55", completed: true },
-        { _id: "v6", title: "Props in React", duration: "6:05", completed: false },
-      ],
-    },
-  ];
+  const findLectureById = (courseData, itemId) => {
+    if (!courseData?.curriculum) return null;
+    for (const sec of courseData.curriculum) {
+      for (const item of sec.items) {
+        if (item._id?.toString() === itemId?.toString()) {
+          return item;
+        }
+      }
+    }
+    return null;
+  };
 
-  // 🔹 Fetch course data + documents
+  // -------------------------------------------------------------------
+  // FETCH COURSE + VIDEO DETAILS
+  // -------------------------------------------------------------------
   useEffect(() => {
-    if (courseId) {
-      const fetchedCourse = getCourseById(courseId);
-      setCourse(fetchedCourse);
-    }
+    if (!courseId) return;
 
-    if (!initialVideo && allVideos.length > 0) {
-      const found = allVideos.find((v) => v._id === videoId);
-      setCurrentVideo(found || allVideos[0]);
-    }
-
-    if (!currentVideo) {
-      setCurrentVideo(demoCourse[0].videos[0]);
-    }
-
-    // 📄 Fetch all uploaded documents from backend
-    const fetchDocuments = async () => {
+    const fetchCourseAndVideos = async () => {
       try {
-        const res = await fetch(`${API_BASE}:5001/api/document/all`);
-        const data = await res.json();
-        if (data.success) setDocuments(data.documents);
+        const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
+        const rawCourse = await courseRes.json();
+
+        if (!rawCourse.curriculum) return;
+
+        // Collect video IDs
+        const videoIds = [
+          ...new Set(
+            rawCourse.curriculum.flatMap((sec) =>
+              (sec.items || [])
+                .filter((i) => i.videoId)
+                .map((i) => i.videoId.toString())
+            )
+          ),
+        ];
+
+        // Fetch video metadata
+        const videoMap = new Map();
+        await Promise.all(
+          videoIds.map(async (id) => {
+            const vRes = await fetch(`${API_BASE}/api/upload/check/${id}`);
+            if (!vRes.ok) return;
+            const data = await vRes.json();
+            if (data.video) videoMap.set(id, data.video);
+          })
+        );
+
+        // Attach videoUrl + duration to each item
+        const populatedCurriculum = rawCourse.curriculum.map((sec) => ({
+          ...sec,
+          items: (sec.items || []).map((item) => {
+            if (!item.videoId) return item;
+            const meta = videoMap.get(item.videoId.toString());
+            return {
+              ...item,
+              videoUrl: meta?.url || item.videoUrl || "",
+              duration: meta?.duration || item.duration,
+              videoTitle: meta?.title || item.title,
+            };
+          }),
+        }));
+
+        const fullCourse = { ...rawCourse, curriculum: populatedCurriculum };
+        setCourse(fullCourse);
+
+        // Open first section
+        if (populatedCurriculum.length > 0) {
+          setOpenSections({
+            [populatedCurriculum[0]._id ||
+            populatedCurriculum[0].sectionId]: true
+          });
+        }
+
+        // Set current video
+        let selected = null;
+        if (location.state?.video?._id)
+          selected = findLectureById(fullCourse, location.state.video._id);
+        if (!selected && videoId)
+          selected = findLectureById(fullCourse, videoId);
+
+        if (!selected) {
+          // fallback → first lecture
+          for (const sec of populatedCurriculum) {
+            const first = sec.items.find((i) => i.type === "lecture");
+            if (first) {
+              selected = first;
+              break;
+            }
+          }
+        }
+
+        setCurrentVideo(selected);
       } catch (err) {
-        console.error("Error fetching documents:", err);
+        console.error("Fetch error:", err);
       }
     };
-    fetchDocuments();
-  }, [videoId, courseId, allVideos, initialVideo]);
 
-  const toggleSection = (index) =>
-    setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
+    fetchCourseAndVideos();
+  }, [courseId, videoId, location.state]);
 
-  // 🧮 Calculate progress
-  const totalLectures = demoCourse.reduce(
-    (sum, sec) => sum + sec.videos.length,
-    0
-  );
-  const completedLectures = demoCourse.reduce(
-    (sum, sec) => sum + sec.videos.filter((v) => v.completed).length,
-    0
-  );
-  const progressPercent = Math.round((completedLectures / totalLectures) * 100);
+  const toggleSection = (id) =>
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // ✅ Overview Tab
+  // -------------------------------------------------------------------
+  // OVERVIEW TAB
+  // -------------------------------------------------------------------
   const renderOverviewTab = () => {
-    if (!course) return <p>Loading course overview...</p>;
-
+    if (!course) return <p>Loading...</p>;
     return (
-      <div style={{ padding: "10px 20px", color: "#4b5563" }}>
-        <h3 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "10px" }}>
-          {course.title}
+      <div style={{ padding: "10px 20px" }}>
+        <h3 style={{ fontSize: "20px", fontWeight: "700" }}>
+          {course.landingTitle || course.title}
         </h3>
-        <p style={{ marginBottom: "12px" }}>{course.description}</p>
 
-        <h4 style={{ fontWeight: "600", marginTop: "16px" }}>🎯 What You’ll Learn</h4>
+        <p style={{ marginBottom: "10px" }}>{course.landingSubtitle}</p>
+
+        <h4 style={{ fontWeight: "600" }}>🎯 What You’ll Learn</h4>
         <ul style={{ marginLeft: "20px" }}>
-          {course.whatYouWillLearn.map((item, i) => (
+          {course.learningObjectives?.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ul>
 
         <h4 style={{ fontWeight: "600", marginTop: "16px" }}>🧩 Requirements</h4>
         <ul style={{ marginLeft: "20px" }}>
-          {course.requirements.map((req, i) => (
+          {course.requirements?.map((req, i) => (
             <li key={i}>{req}</li>
           ))}
         </ul>
-
-        <h4 style={{ fontWeight: "600", marginTop: "16px" }}>📦 Includes</h4>
-        <ul style={{ marginLeft: "20px" }}>
-          {course.includes.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-
-        <p style={{ marginTop: "16px", fontSize: "14px", color: "#6b7280" }}>
-          🕒 Total Duration: {course.courseContent.totalLength} | 📚{" "}
-          {course.courseContent.totalLectures} Lectures
-        </p>
       </div>
     );
   };
@@ -142,216 +172,132 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
       case "overview":
         return renderOverviewTab();
       case "notes":
-        return <p>📝 Add personal notes for this lecture here.</p>;
+        return <p>📝 Notes (coming soon)</p>;
       case "qna":
-        return <p>❓ Ask and answer questions related to this lecture.</p>;
+        return <p>❓ Q&A (coming soon)</p>;
       case "reviews":
-        return <p>⭐ Average course rating: {course?.rating || "4.6"} / 5</p>;
+        return <p>⭐ Reviews (coming soon)</p>;
       default:
         return null;
     }
   };
 
-  // 🎨 Styles
-  const styles = {
-    header: {
-      backgroundColor: "#111",
-      color: "#fff",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "20px",
-      borderBottom: "1px solid #333",
-      position: "sticky",
-      top: 0,
-      zIndex: 1000,
-    },
-    progressBarContainer: {
-      width: "120px",
-      height: "8px",
-      backgroundColor: "#333",
-      borderRadius: "4px",
-      overflow: "hidden",
-    },
-    progressFill: {
-      height: "100%",
-      width: `${progressPercent}%`,
-      backgroundColor: "#a855f7",
-      transition: "width 0.4s ease",
-    },
-    progressText: {
-      fontSize: "13px",
-      color: "#d1d5db",
-    },
-    logo: {
-      fontSize: "22px",
-      fontWeight: "700",
-      color: "#a855f7",
-      letterSpacing: "0.5px",
-    },
-    courseTitle: {
-      fontSize: "16px",
-      color: "#e5e7eb",
-      fontWeight: "500",
-      whiteSpace: "nowrap",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      maxWidth: "600px",
-    },
-    container: {
-      display: "flex",
-      minHeight: "100vh",
-      backgroundColor: "#f4f6f9",
-      color: "#1f2937",
-    },
-    videoSection: {
-      flex: 1,
-      maxWidth: "calc(100% - 300px)",
-    },
-    videoPlayer: {
-      position: "relative",
-      backgroundColor: "#000",
-      overflow: "hidden",
-      aspectRatio: "16/9",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-    },
-    sidebar: {
-      width: "400px",
-      backgroundColor: "#fff",
-      overflowY: "auto",
-      boxShadow: "-4px 0 10px rgba(0,0,0,0.05)",
-      flexShrink: 0,
-    },
-    sectionHeader: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: "#f8f9fb",
-      padding: "14px 20px",
-      fontWeight: "600",
-      cursor: "pointer",
-      borderBottom: "1px solid #e5e7eb",
-      color: "#1f2937",
-    },
-    videoItem: (isActive, isCompleted) => ({
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "12px 20px",
-      borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
-      backgroundColor: isActive ? "#f3e8ff" : "#fff",
-      color: isActive ? "#7e22ce" : isCompleted ? "#6b7280" : "#1f2937",
-      fontWeight: isActive ? "600" : "400",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      fontSize: "14px",
-    }),
-  };
-
-  // 📘 Each video row with resource link
-  const VideoListItem = ({ vid, isActive, onClick }) => {
-    const statusIcon = vid.completed ? (
-      <FaCheckCircle style={{ color: isActive ? "#7e22ce" : "#10b981" }} />
-    ) : (
-      <FaPlayCircle style={{ color: "#7e22ce" }} />
-    );
-
+  // -------------------------------------------------------------------
+  // SIDEBAR LECTURE ROW + DOCUMENTS
+  // -------------------------------------------------------------------
+  const VideoListItem = ({ vid, isActive }) => {
     return (
-      <div style={styles.videoItem(isActive, vid.completed)} onClick={onClick}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          {statusIcon}
-          <span style={{ marginLeft: "10px" }}>{vid.title}</span>
-        </div>
-        <span style={{ fontSize: "12px", color: isActive ? "#7e22ce" : "#6b7280" }}>
-          {/* 🔗 Resource link opens uploaded doc */}
-          {documents.length > 0 && (
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/resource/${documents[0]._id}`, { state: { fileUrl: documents[0].fileUrl } });
-              }}
-              style={{
-                fontSize: "13px",
-                color: "#7e22ce",
-                cursor: "pointer",
-                marginLeft: "28px",
-              }}
-            >
-              📘 View Resource
-            </span>
-          )}
+      <div style={{ borderBottom: "1px solid #eee" }}>
+        {/* VIDEO ROW */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "12px 20px",
+            cursor: "pointer",
+            backgroundColor: isActive ? "#f3e8ff" : "#fff",
+          }}
+          onClick={() => {
+            setCurrentVideo(vid);
+            navigate(`/lecture/${vid._id}?courseId=${courseId}`, {
+              state: { courseId, video: vid },
+            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <FaPlayCircle style={{ color: "#7e22ce" }} />
+            <span style={{ marginLeft: "10px" }}>{vid.title}</span>
+          </div>
 
-          <FaClock style={{ marginRight: "4px" }} />
-          {vid.duration}
-        </span>
+          <span style={{ fontSize: "12px", color: "#6b7280" }}>
+            {vid.duration
+              ? `${Math.floor(vid.duration / 60)}:${String(
+                  Math.floor(vid.duration % 60)
+                ).padStart(2, "0")}`
+              : "5:00"}
+          </span>
+        </div>
+
+        {/* DOCUMENTS LIST UNDER LECTURE */}
+        {vid.documents?.length > 0 && (
+          <div style={{ paddingLeft: "55px", paddingRight: "20px", paddingBottom: "12px" }}>
+            {vid.documents.map((doc, i) => (
+              <div key={i} style={{ marginTop: "8px" }}>
+                <a
+                  href={doc.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: "#7e22ce",
+                    fontSize: "14px",
+                    textDecoration: "underline",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <FaFileAlt /> {doc.fileName}
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
 
+  // -------------------------------------------------------------------
+  // MAIN RENDER
+  // -------------------------------------------------------------------
   return (
     <>
-      {/* 🧭 Header */}
-      <header style={styles.header}>
+      {/* HEADER */}
+      <header
+        style={{
+          backgroundColor: "#111",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "20px",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={styles.logo}>TrainCapeTechLMS</span>
-          <span style={{ color: "#67696bff", fontSize: "18px" }}>|</span>
-          <span style={styles.courseTitle}>
-            {course?.title || "Data Engineering Essentials using SQL, Python, and PySpark"}
+          <span style={{ fontSize: "22px", color: "#a855f7" }}>
+            TrainCapeTechLMS
           </span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {/* 🏆 Progress */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaTrophy style={{ color: "#a855f7", fontSize: "18px" }} />
-            <div>
-              <div style={styles.progressBarContainer}>
-                <div style={styles.progressFill}></div>
-              </div>
-              <span style={styles.progressText}>
-                {completedLectures}/{totalLectures} lectures ({progressPercent}%)
-              </span>
-            </div>
-          </div>
-
-          <button
-            style={{
-              border: "1px solid #d1d5db",
-              color: "#fff",
-              background: "transparent",
-              borderRadius: "4px",
-              padding: "6px 12px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            <FaShareAlt style={{ marginRight: "6px" }} />
-            Share
-          </button>
-          <FaEllipsisV style={{ color: "#d1d5db", cursor: "pointer", fontSize: "18px" }} />
+          <span style={{ color: "#67696b" }}>|</span>
+          <span>{course?.landingTitle || "Course"}</span>
         </div>
       </header>
 
-      {/* 🎬 Layout */}
-      <div style={styles.container}>
-        <div style={styles.videoSection}>
-          <div style={styles.videoPlayer}>
-            {currentVideo && (
-              <video
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                controls
-                autoPlay
-              >
-                <source src={currentVideo.videoUrl || ""} type="video/mp4" />
+      {/* MAIN LAYOUT */}
+      <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4f6f9" }}>
+        {/* LEFT: VIDEO PLAYER */}
+        <div style={{ flex: 1, padding: "20px" }}>
+          <div
+            style={{
+              backgroundColor: "#000",
+              aspectRatio: "16/9",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+            }}
+          >
+            {currentVideo?.videoUrl ? (
+              <video controls autoPlay style={{ width: "100%", height: "100%" }}>
+                <source src={currentVideo.videoUrl} type="video/mp4" />
               </video>
+            ) : (
+              <div style={{ color: "white", padding: "20px", textAlign: "center" }}>
+                No video uploaded.
+              </div>
             )}
           </div>
 
           <h2 style={{ marginTop: "24px", fontSize: "24px", fontWeight: "700" }}>
-            {currentVideo?.title || "Welcome to the Course"}
+            {currentVideo?.title}
           </h2>
 
-          {/* Tabs */}
+          {/* TABS */}
           <div style={{ display: "flex", borderBottom: "1px solid #ddd", marginTop: "20px" }}>
             <div
               style={{
@@ -402,31 +348,62 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
           {renderTabContent()}
         </div>
 
-        {/* 📚 Sidebar */}
-        <div style={styles.sidebar}>
-          <div style={{ fontWeight: "700", padding: "16px 20px", borderBottom: "1px solid #ddd" }}>
+        {/* RIGHT SIDEBAR (Course Content) */}
+        <div
+          style={{
+            width: "400px",
+            backgroundColor: "#fff",
+            borderLeft: "1px solid #ddd",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: "700",
+              padding: "16px 20px",
+              borderBottom: "1px solid #ddd",
+            }}
+          >
             📚 Course Content
           </div>
-          {demoCourse.map((section, index) => (
-            <div key={index}>
-              <div style={styles.sectionHeader} onClick={() => toggleSection(index)}>
-                <span>{section.sectionTitle}</span>
-                {openSections[index] ? <FaChevronUp /> : <FaChevronDown />}
-              </div>
-              {openSections[index] && (
-                <div>
-                  {section.videos.map((vid) => (
-                    <VideoListItem
-                      key={vid._id}
-                      vid={vid}
-                      isActive={currentVideo?._id === vid._id}
-                      onClick={() => setCurrentVideo(vid)}
-                    />
-                  ))}
+
+          {course?.curriculum?.map((section) => {
+            const key = section._id || section.sectionId;
+
+            return (
+              <div key={key}>
+                {/* Section Header */}
+                <div
+                  style={{
+                    padding: "14px 20px",
+                    backgroundColor: "#f8f9fb",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => toggleSection(key)}
+                >
+                  <span>{section.title}</span>
+                  {openSections[key] ? <FaChevronUp /> : <FaChevronDown />}
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Section Items (lectures + docs) */}
+                {openSections[key] && (
+                  <div>
+                    {(section.items || [])
+                      .filter((i) => i.type === "lecture")
+                      .map((vid) => (
+                        <VideoListItem
+                          key={vid._id || vid.itemId}
+                          vid={vid}
+                          isActive={currentVideo?._id === vid._id}
+                        />
+                      ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </>
