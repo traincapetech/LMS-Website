@@ -90,14 +90,8 @@ export default function InstructorDashboard() {
   }, [API_BASE]);
 
   const handleCreateCourse = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-    if (user.role === "Admin") {
-      alert("!!! Only Instructor Can create Courses")
-    } else {
-      navigate(`/create`);
-    }
-  };
+         navigate(`/create`);
+     };
 
   // Filters & sorting
   const filteredCourses = useMemo(() => {
