@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 export default function InstructorDashboard() {
-  const API_BASE = "http://localhost:5001";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
@@ -90,7 +90,13 @@ export default function InstructorDashboard() {
   }, [API_BASE]);
 
   const handleCreateCourse = () => {
-    navigate(`/create`);
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
+    if (user.role === "Admin") {
+      alert("!!! Only Instructor Can create Courses")
+    } else {
+      navigate(`/create`);
+    }
   };
 
   // Filters & sorting
@@ -219,7 +225,7 @@ function CourseList({ courses }) {
   const token = localStorage.getItem("token");
   const { pendingCourseId } = useParams();
   const handlePreview = (id) => {
-    navigate(`/admin/pending-course/${id}`);
+    navigate(`/preview/pending-course/${id}`);
   }
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
@@ -413,7 +419,7 @@ function EmptyCourses({ activeTab }) {
       <div className="ic-empty-icon">📚</div>
       <h3 className="ic-empty-title">{label}</h3>
       <p className="ic-empty-text">{desc}</p>
-      <button className="ic-btn-primary" onClick={handleCreateCourse}>+ New course</button>
+      <button className="ic-btn-primary" onClick={handleCreateCourse} >+ New course</button>
     </div>
   );
 }

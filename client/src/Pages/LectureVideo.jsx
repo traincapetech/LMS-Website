@@ -13,7 +13,8 @@ import {
   FaShareAlt,
   FaEllipsisV,
   FaFilePdf,
-  FaFileAlt
+  FaFileAlt,
+  FaSpinner
 } from "react-icons/fa";
 
 const LectureVideo = () => {
@@ -21,7 +22,7 @@ const LectureVideo = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const API_BASE = "http://localhost:5001";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
   const searchParams = new URLSearchParams(location.search);
   const courseId =
@@ -33,6 +34,8 @@ const LectureVideo = () => {
   const [currentVideo, setCurrentVideo] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
+  const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
+  const [loading, setLoading] = useState(true); // Loading state
 
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
@@ -46,18 +49,34 @@ const LectureVideo = () => {
     return null;
   };
 
-  // -------------------------------------------------------------------
+  // Add this helper function to find lecture by video ID
+  const findLectureByVideoId = (courseData, videoId) => {
+    if (!courseData?.curriculum) return null;
+    for (const sec of courseData.curriculum) {
+      for (const item of sec.items) {
+        if (item.videoId?.toString() === videoId?.toString()) {
+          return item;
+        }
+      }
+    }
+    return null;
+  };
+
   // FETCH COURSE + VIDEO DETAILS
-  // -------------------------------------------------------------------
   useEffect(() => {
     if (!courseId) return;
 
     const fetchCourseAndVideos = async () => {
       try {
+        setLoading(true); // Start loading
+        
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
         const rawCourse = await courseRes.json();
 
         if (!rawCourse.curriculum) return;
+
+        // Extract pendingCourseId from the course data
+        const pendingCourseId = rawCourse.pendingCourseId;
 
         // Collect video IDs
         const videoIds = [
@@ -72,14 +91,20 @@ const LectureVideo = () => {
 
         // Fetch video metadata
         const videoMap = new Map();
-        await Promise.all(
-          videoIds.map(async (id) => {
-            const vRes = await fetch(`${API_BASE}/api/upload/check/${id}`);
-            if (!vRes.ok) return;
+        try {
+          const vRes = await fetch(`${API_BASE}/api/upload/check/${pendingCourseId}`);
+          if (vRes.ok) {
             const data = await vRes.json();
-            if (data.video) videoMap.set(id, data.video);
-          })
-        );
+
+            if (data.uploadedVideos && Array.isArray(data.uploadedVideos)) {
+              data.uploadedVideos.forEach(video => {
+                videoMap.set(video._id.toString(), video);
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching videos:", error);
+        }
 
         // Attach videoUrl + duration to each item
         const populatedCurriculum = rawCourse.curriculum.map((sec) => ({
@@ -89,8 +114,8 @@ const LectureVideo = () => {
             const meta = videoMap.get(item.videoId.toString());
             return {
               ...item,
-              videoUrl: meta?.url || item.videoUrl || "",
-              duration: meta?.duration || item.duration,
+              videoUrl: meta?.url || "",
+              duration: meta?.duration || 0,
               videoTitle: meta?.title || item.title,
             };
           }),
@@ -102,20 +127,35 @@ const LectureVideo = () => {
         // Open first section
         if (populatedCurriculum.length > 0) {
           setOpenSections({
-            [populatedCurriculum[0]._id ||
-            populatedCurriculum[0].sectionId]: true
+            [populatedCurriculum[0]._id || populatedCurriculum[0].sectionId]: true,
           });
         }
 
-        // Set current video
+        // Set current video - prioritize the lecture ID from URL
         let selected = null;
-        if (location.state?.video?._id)
-          selected = findLectureById(fullCourse, location.state.video._id);
-        if (!selected && videoId)
-          selected = findLectureById(fullCourse, videoId);
 
+        // First try to find by lecture ID from URL
+        if (videoId) {
+          selected = findLectureById(fullCourse, videoId);
+          
+          // If not found by lecture ID, try to find by video ID
+          if (!selected) {
+            selected = findLectureByVideoId(fullCourse, videoId);
+          }
+        }
+
+        // If not found, try to find by lecture ID from state
+        if (!selected && location.state?.lectureId) {
+          selected = findLectureById(fullCourse, location.state.lectureId);
+        }
+
+        // If still not found, try to find by video ID from state
+        if (!selected && location.state?.videoId) {
+          selected = findLectureByVideoId(fullCourse, location.state.videoId);
+        }
+
+        // Final fallback to the first available video
         if (!selected) {
-          // fallback → first lecture
           for (const sec of populatedCurriculum) {
             const first = sec.items.find((i) => i.type === "lecture");
             if (first) {
@@ -128,6 +168,8 @@ const LectureVideo = () => {
         setCurrentVideo(selected);
       } catch (err) {
         console.error("Fetch error:", err);
+      } finally {
+        setLoading(false); // Stop loading regardless of success or error
       }
     };
 
@@ -136,6 +178,21 @@ const LectureVideo = () => {
 
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // Calculate total lectures correctly
+  const totalLectures = course ?
+    course.curriculum.reduce((sum, sec) =>
+      sum + (sec.items || []).filter(item => item.type === "lecture").length, 0
+    ) : 0;
+
+  // Calculate progress percentage
+  const progressPercent = totalLectures > 0 ?
+    Math.round((completedLectures.size / totalLectures) * 100) : 0;
+
+  // Mark lecture as completed
+  const markAsCompleted = (lectureId) => {
+    setCompletedLectures(prev => new Set(prev).add(lectureId));
+  };
 
   // -------------------------------------------------------------------
   // OVERVIEW TAB
@@ -150,7 +207,7 @@ const LectureVideo = () => {
 
         <p style={{ marginBottom: "10px" }}>{course.landingSubtitle}</p>
 
-        <h4 style={{ fontWeight: "600" }}>🎯 What You’ll Learn</h4>
+        <h4 style={{ fontWeight: "600" }}>🎯 What You'll Learn</h4>
         <ul style={{ marginLeft: "20px" }}>
           {course.learningObjectives?.map((item, i) => (
             <li key={i}>{item}</li>
@@ -186,6 +243,23 @@ const LectureVideo = () => {
   // SIDEBAR LECTURE ROW + DOCUMENTS
   // -------------------------------------------------------------------
   const VideoListItem = ({ vid, isActive }) => {
+    // Make sure we have correct ID for navigation
+    const lectureId = vid._id || vid.itemId;
+    const videoId = vid.videoId;
+    const isCompleted = completedLectures.has(lectureId);
+
+    // Function to handle document click
+    const handleDocumentClick = (doc) => {
+      navigate(`/resource/${doc.fileName}`, {
+        state: {
+          fileUrl: doc.fileUrl,
+          fileName: doc.fileName,
+          courseId: courseId,
+          lectureId: lectureId
+        }
+      });
+    };
+
     return (
       <div style={{ borderBottom: "1px solid #eee" }}>
         {/* VIDEO ROW */}
@@ -196,16 +270,44 @@ const LectureVideo = () => {
             padding: "12px 20px",
             cursor: "pointer",
             backgroundColor: isActive ? "#f3e8ff" : "#fff",
+            borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
           }}
           onClick={() => {
-            setCurrentVideo(vid);
-            navigate(`/lecture/${vid._id}?courseId=${courseId}`, {
-              state: { courseId, video: vid },
+            // Use lecture ID for navigation
+            navigate(`/lecture/${lectureId}?courseId=${courseId}`, {
+              state: {
+                lectureId: lectureId,
+                videoId: videoId,
+                courseId: courseId,
+                pendingCourseId: course?.pendingCourseId,
+                video: vid
+              },
             });
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                border: isCompleted ? "none" : "2px solid #d1d5db",
+                backgroundColor: isCompleted ? "#7e22ce" : "transparent",
+                marginRight: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: isCompleted ? "white" : "transparent",
+                fontSize: 12
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                markAsCompleted(lectureId);
+              }}
+            >
+              {isCompleted && "✓"}
+            </div>
             <FaPlayCircle style={{ color: "#7e22ce" }} />
             <span style={{ marginLeft: "10px" }}>{vid.title}</span>
           </div>
@@ -213,8 +315,8 @@ const LectureVideo = () => {
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {vid.duration
               ? `${Math.floor(vid.duration / 60)}:${String(
-                  Math.floor(vid.duration % 60)
-                ).padStart(2, "0")}`
+                Math.floor(vid.duration % 60)
+              ).padStart(2, "0")}`
               : "5:00"}
           </span>
         </div>
@@ -224,21 +326,20 @@ const LectureVideo = () => {
           <div style={{ paddingLeft: "55px", paddingRight: "20px", paddingBottom: "12px" }}>
             {vid.documents.map((doc, i) => (
               <div key={i} style={{ marginTop: "8px" }}>
-                <a
-                  href={doc.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <div
+                  onClick={() => handleDocumentClick(doc)}
                   style={{
                     color: "#7e22ce",
                     fontSize: "14px",
                     textDecoration: "underline",
                     display: "flex",
                     alignItems: "center",
-                    gap: "6px"
+                    gap: "6px",
+                    cursor: "pointer"
                   }}
                 >
                   <FaFileAlt /> {doc.fileName}
-                </a>
+                </div>
               </div>
             ))}
           </div>
@@ -246,6 +347,27 @@ const LectureVideo = () => {
       </div>
     );
   };
+
+  // Loading UI
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: "#181821",
+          minHeight: "100vh",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 24, color: "#f4c150" }}>Loading video...</div>
+          <div style={{ color: "#b1b1b1" }}>Please wait.</div>
+        </div>
+      </div>
+    );
+  }
 
   // -------------------------------------------------------------------
   // MAIN RENDER
@@ -267,7 +389,48 @@ const LectureVideo = () => {
             TrainCapeTechLMS
           </span>
           <span style={{ color: "#67696b" }}>|</span>
-          <span>{course?.landingTitle || "Course"}</span>
+          <span>{course?.title || "Course"}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* 🏆 Progress */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <FaTrophy style={{ color: "#a855f7", fontSize: "18px" }} />
+            <div>
+              <div style={{
+                width: "120px",
+                height: "8px",
+                backgroundColor: "#333",
+                borderRadius: "4px",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  height: "100%",
+                  width: `${progressPercent}%`,
+                  backgroundColor: "#a855f7",
+                  transition: "width 0.4s ease",
+                }}></div>
+              </div>
+              <span style={{ fontSize: "13px", color: "#d1d5db" }}>
+                {completedLectures.size}/{totalLectures} lectures ({progressPercent}%)
+              </span>
+            </div>
+          </div>
+
+          <button
+            style={{
+              border: "1px solid #d1d5db",
+              color: "#fff",
+              background: "transparent",
+              borderRadius: "4px",
+              padding: "6px 12px",
+              cursor: "pointer",
+              fontSize: "16px",
+            }}
+          >
+            <FaShareAlt style={{ marginRight: "6px" }} />
+            Share
+          </button>
+          <FaEllipsisV style={{ color: "#d1d5db", cursor: "pointer", fontSize: "18px" }} />
         </div>
       </header>
 
@@ -283,7 +446,7 @@ const LectureVideo = () => {
             }}
           >
             {currentVideo?.videoUrl ? (
-              <video controls autoPlay style={{ width: "100%", height: "100%" }}>
+              <video key={currentVideo._id} controls autoPlay style={{ width: "100%", height: "100%" }}>
                 <source src={currentVideo.videoUrl} type="video/mp4" />
               </video>
             ) : (
@@ -394,7 +557,7 @@ const LectureVideo = () => {
                       .filter((i) => i.type === "lecture")
                       .map((vid) => (
                         <VideoListItem
-                          key={vid._id || vid.itemId}
+                          key={vid._id || vid.itemId || vid.videoId}
                           vid={vid}
                           isActive={currentVideo?._id === vid._id}
                         />
@@ -406,6 +569,14 @@ const LectureVideo = () => {
           })}
         </div>
       </div>
+
+      {/* Add CSS for spinner animation */}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 };

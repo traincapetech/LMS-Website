@@ -122,7 +122,7 @@ function App() {
               <Route path="/create" element={<Create />} />
               <Route path="/dashboard/:pendingCourseId" element={<Dashboard />} /> {/* this route for course creation  */}
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/pending-course/:pendingCourseId" element={<PendingCourseDetails />} /> 
+              <Route path="/preview/pending-course/:pendingCourseId" element={<PendingCourseDetails />} /> 
               <Route path="/admin/instructors" element={<AdminInstructors />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/subpage" element={<SubPages />} />
@@ -153,8 +153,8 @@ function App() {
               <Route path="/public-profile" element={<PublicProfile />} />
               <Route path="/quiz" element={<QuizPage/>} />
               <Route path="/createQuiz" element={<CreateQuiz/>} />
-              <Route path="/play-video/:videoId" element={<LectureVideo/>} />
-              <Route path="/resource/:id" element={<ResourceView />} />
+              <Route path="/lecture/:lectureId" element={<LectureVideo/>} />
+              <Route path="/resource/:id" element={<ResourceView />} />\
             </Routes>
           </div>
           <Footer />

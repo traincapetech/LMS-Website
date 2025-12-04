@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CartContext } from "../App";
 
-const API_BASE = "http://localhost:5001"
+  const API_BASE = import.meta.env.VITE_API_BASE_URL||"http://localhost:5001";
 const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +57,7 @@ const CourseDetails = () => {
           includes: ["Full lifetime access", "Certificate of completion"],
 
           curriculum: c.curriculum || [],
+          pendingCourseId: c.pendingCourseId,
         });
       } catch (err) {
         console.log(err);
@@ -296,15 +297,17 @@ const CourseDetails = () => {
                 {(expandedAll || expanded[sIdx]) && (
                   <div style={{ marginTop: 14 }}>
                     {section.items.map((item, iIdx) => (
+
                       <div
                         key={iIdx}
                         onClick={() =>
-                          navigate(`/play-video/${item.videoId}`, {
+
+                        navigate(`/lecture/${item._id}?courseId=${course.id}`, {
                             state: {
+                              lectureId: item._id,
                               videoId: item.videoId,
-                              title: item.title,
-                              videos: course.curriculum.flatMap((s) => s.items),
                               courseId: course.id,
+                              pendingCourseId: course.pendingCourseId,
                             },
                           })
                         }

@@ -12,6 +12,10 @@ const ResourceView = () => {
   const navigate = useNavigate();
 
   const fileUrl = location.state?.fileUrl;
+  const fileName = location.state?.fileName;
+  const courseId = location.state?.courseId;
+  const lectureId = location.state?.lectureId;
+  
   const containerRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,33 +61,41 @@ const ResourceView = () => {
     }
   };
 
-  // Download PDF
- // Download PDF directly (no new tab)
-const handleDownload = async () => {
-  try {
-    const response = await fetch(fileUrl, { mode: "cors" });
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
+  // Download PDF directly (no new tab)
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(fileUrl, { mode: "cors" });
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = fileUrl.split("/").pop() || "document.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || "document.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    window.URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    console.error("Direct download failed:", error);
-  }
-};
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Direct download failed:", error);
+    }
+  };
+
+  // Go back to the lecture page
+  const handleGoBack = () => {
+    if (lectureId && courseId) {
+      navigate(`/lecture/${lectureId}?courseId=${courseId}`);
+    } else {
+      navigate(-1);
+    }
+  };
 
   if (!fileUrl) {
     return (
       <div style={{ padding: 40, textAlign: "center" }}>
         <h2>❌ File URL Missing</h2>
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleGoBack}
           style={{
             padding: "10px 20px",
             background: "#7e22ce",
@@ -123,10 +135,10 @@ const handleDownload = async () => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <FaArrowLeft
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             style={{ cursor: "pointer", fontSize: 18 }}
           />
-          <h3 style={{ margin: 0 }}>Resource</h3>
+          <h3 style={{ margin: 0 }}>{fileName || "Resource"}</h3>
         </div>
 
         <FaDownload
@@ -139,7 +151,7 @@ const handleDownload = async () => {
       {/* PDF Pages */}
       <div
         ref={containerRef}
-         className="pdf-scroll"
+        className="pdf-scroll"
         style={{
           flex: 1,
           overflowY: "auto",
