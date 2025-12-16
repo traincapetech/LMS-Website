@@ -1,347 +1,110 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "../index.css"; // Ensure this line exists in index.js or here if needed
-
+import { FaFacebook } from "react-icons/fa";
+import { BsInstagram } from "react-icons/bs";
+import { FaLinkedinIn } from "react-icons/fa";
 const Footer = () => {
   const handleCourseClick = () => {
     window.scrollTo(0, 0);
   };
 
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        {/* Top Section */}
-        <div className="footer-columns">
-          <div className="footer-col">
-            <h3>In-demand Careers</h3>
-            <ul>
-              <li>
-                <Link
-                  to="/course/data-scientist"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Data Scientist
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/full-stack-web-developer"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Full Stack Web Developer
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/cloud-engineer"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Cloud Engineer
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/project-management"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Project Manager
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/game-developer"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Game Developer
-                </Link>
-              </li>
-              <li className="highlight">
-                <Link
-                  to="/courses"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  See all Career Accelerators
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h3>Web Development</h3>
-            <ul>
-              <li>
-                <Link
-                  to="/course/web-development"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Web Development
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/javascript"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  JavaScript
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/react-js"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  React JS
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/angular"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Angular
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/java"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Java
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h3>IT Certifications</h3>
-            <ul>
-              <li>
-                <Link
-                  to="/course/aws-cloud-practitioner"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Amazon AWS
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/aws-cloud-practitioner"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  AWS Cloud Practitioner
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/azure-fundamentals"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  AZ-900: Azure Fundamentals
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/solutions-architect"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Solutions Architect
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/kubernetes"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Kubernetes
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h3>Leadership</h3>
-            <ul>
-              <li>
-                <Link
-                  to="/course/leadership"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Leadership
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/management-skills"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Management Skills
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/project-management"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Project Management
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/productivity"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Productivity
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/emotional-intelligence"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Emotional Intelligence
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h3>Certifications by Skill</h3>
-            <ul>
-              <li>
-                <Link
-                  to="/course/cybersecurity-certification"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Cybersecurity Certification
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/project-management"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Project Management Certification
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/cloud-certification"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Cloud Certification
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/data-analytics-certification"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  Data Analytics Certification
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/course/hr-certification"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  HR Certification
-                </Link>
-              </li>
-              <li className="highlight">
-                <Link
-                  to="/courses"
-                  style={{ textDecoration: "none", color: "inherit" }}
-                  onClick={handleCourseClick}
-                >
-                  See all Certifications
-                </Link>
-              </li>
-            </ul>
+    <footer className="w-full bg-[#0A0A0A] text-gray-300 py-14 font-poppins">
+      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10">
+        {/* BRAND AREA */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-white">TrainCape</h2>
+          <p className="text-sm leading-relaxed">
+            Empowering students and instructors with a modern learning
+            experience. Learn, teach, and grow with TrainCape LMS.
+          </p>
+          <div className="flex gap-4 pt-2">
+            <a href="#" className="hover:text-white transition">
+              <FaFacebook className="text-xl" />
+            </a>
+            <a href="#" className="hover:text-white transition">
+              <BsInstagram className="text-xl" />
+            </a>
+            <a href="#" className="hover:text-white transition">
+              <FaLinkedinIn className="text-xl" />
+            </a>
           </div>
         </div>
 
-        {/* Middle Section */}
-        <div className="footer-links">
-          <div className="footer-link-col">
-            <h4>About</h4>
-            <ul>
-              <li>About us</li>
-              <li>Careers</li>
-              <li>Contact us</li>
-              <li>Blog</li>
-              <li>Investors</li>
-            </ul>
-          </div>
-          <div className="footer-link-col">
-            <h4>Discover Traincape</h4>
-            <ul>
-              <li>Get the app</li>
-              <li>Teach on Traincape</li>
-              <li className="highlight">
-                <Link
-                  to="/plans"
-                  style={{ textDecoration: "none", color: "#5624d0" }}
-                  onClick={handleCourseClick}
-                  onMouseEnter={(e) => (e.target.style.color = "#3c1799")}
-                  onMouseLeave={(e) => (e.target.style.color = "#5624d0")}
-                >
-                  Plans and Pricing
-                </Link>
-              </li>
-
-              <li>Affiliate</li>
-              <li>Help and Support</li>
-            </ul>
-          </div>
-          <div className="footer-link-col">
-            <h4>Traincape for Business</h4>
-            <ul>
-              <li>Traincape Business</li>
-            </ul>
-          </div>
-          <div className="footer-link-col">
-            <h4>Legal & Accessibility</h4>
-            <ul>
-              <li>Accessibility statement</li>
-              <li>Privacy policy</li>
-              <li>Sitemap</li>
-              <li>Terms</li>
-            </ul>
-          </div>
+        {/* QUICK LINKS */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
+          <ul className="space-y-3 text-sm">
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Home
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Courses
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                About Us
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Contact
+              </a>
+            </li>
+          </ul>
         </div>
 
-        {/* Bottom Section */}
-        <div className="footer-bottom">
-          <div className="footer-logo">
-            <span className="logo">Traincape</span> © 2025 Traincape, Inc.
-          </div>
-          <div className="footer-settings">
-            <span className="link">Cookie settings</span>
-            <span className="link">🌐 English</span>
+        {/* SUPPORT */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Support</h3>
+          <ul className="space-y-3 text-sm">
+            <li>
+              <a href="#" className="hover:text-white transition">
+                FAQs
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Help Center
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white transition">
+                Terms & Conditions
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* NEWSLETTER */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4">Subscribe</h3>
+          <p className="text-sm mb-3">Get updates on new courses and offers.</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 rounded-md bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+              Join
+            </button>
           </div>
         </div>
+      </div>
+
+      {/* COPYRIGHT BAR */}
+      <div className="border-t border-gray-700 mt-12 pt-6 text-center text-sm text-gray-400">
+        © {new Date().getFullYear()} TrainCape LMS. All Rights Reserved.
       </div>
     </footer>
   );

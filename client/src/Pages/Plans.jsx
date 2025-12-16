@@ -110,68 +110,94 @@ const Plans = () => {
   ];
 
   return (
-    <div className="plans-page dark-mode">
+    <div className="plans-page dark-mode font-poppins mt-20">
       {/* Background Glows (Orange Effect) */}
       <div className="glow-effect glow-top"></div>
       <div className="glow-effect glow-bottom"></div>
 
       <div className="content-wrapper">
         {/* HEADER */}
-        <motion.div 
+        <motion.div
           className="plans-header"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <span className="brand-pill">Traincape Pricing</span>
-          <h1>Simple and Affordable Pricing Plans</h1>
-          <p>Start learning and improving your skills today.</p>
+          <span className="brand-pill bg-linear-to-r from-blue-600 to bg-purple-600  font-semibold">
+            Traincape Pricing
+          </span>
+          
+            <h1 className="text-5xl font-semibold bg-linear-to-r from-blue-600 to bg-purple-600  bg-clip-text text-transparent">
+              Simple and Affordable Pricing Plans
+            </h1>
+          
+          <p className="text-TextPrimary font-inter mt-5">
+            Start learning and improving your skills today.
+          </p>
 
           {/* Toggle */}
-          <div className="billing-toggle">
-            <span className={billingCycle === "monthly" ? "active" : ""}>Monthly</span>
-            <div 
+          <div className="billing-toggle mt-5">
+            <span className={billingCycle === "monthly" ? "text-blue-600" : ""}>
+              Monthly
+            </span>
+            <div
               className={`switch ${billingCycle === "yearly" ? "toggled" : ""}`}
-              onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
+              onClick={() =>
+                setBillingCycle(
+                  billingCycle === "monthly" ? "yearly" : "monthly"
+                )
+              }
             >
               <div className="slider"></div>
             </div>
-            <span className={billingCycle === "yearly" ? "active" : ""}>Yearly</span>
+            <span className={billingCycle === "yearly" ? "text-blue-600" : ""}>
+              Yearly
+            </span>
           </div>
         </motion.div>
 
         {/* CARDS */}
         <div className="cards-grid">
           {plans.map((plan, index) => (
-            <motion.div 
-              key={index} 
-              className={`pricing-card ${plan.isPopular ? "popular" : ""}`}
+            <motion.div
+              key={index}
+              className={`pricing-card border ${
+                plan.isPopular ? "popular" : ""
+              }`}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -10 }}
             >
-              {plan.isPopular && <div className="popular-badge">Most Popular</div>}
-              
-              <div className="card-header">
-                <h3>{plan.title}</h3>
-                <div className="price-block">
-                  <h2>{plan.price}</h2>
-                  <span>{plan.period}</span>
+              {plan.isPopular && (
+                <div className="popular-badge">Most Popular</div>
+              )}
+
+              <div className="text-TextPrimary">
+                <h3 className="font-semibold mb-5">{plan.title}</h3>
+                <div className="flex items-center gap-1">
+                  <h2 className="text-blue-600 text-5xl font-bold">
+                    {plan.price}
+                  </h2>
+                  <span className="text-TextPrimary">{plan.period}</span>
                 </div>
-                <p className="desc">{plan.tagline}</p>
+                <p className="desc mt-5">{plan.tagline}</p>
               </div>
 
-              <button className={`action-btn ${plan.isPopular ? "btn-orange" : "btn-dark"}`}>
+              <button
+                className={`text-TextPrimary  rounded-lg px-4 py-3 cursor-pointer ${
+                  plan.isPopular ? "btn-orange" : "border border-blue-600"
+                }`}
+              >
                 {plan.buttonText}
               </button>
 
               <div className="divider"></div>
 
-              <ul className="features">
+              <ul className="features text-TextPrimary">
                 {plan.features.map((feat, i) => (
                   <li key={i} className={!feat.included ? "disabled" : ""}>
-                    <div className="icon-box">
+                    <div className="bg-blue-600 rounded-full p-1 text-white">
                       {feat.included ? <FiCheck /> : <FiX />}
                     </div>
                     {feat.text}
@@ -183,25 +209,27 @@ const Plans = () => {
         </div>
 
         {/* TESTIMONIALS */}
-        <div className="section-title">
-          <h2>Success Stories</h2>
+        <div className="flex justify-center">
+          <h2 className="text-4xl font-semibold text-TextPrimary mb-10">
+            Success Stories
+          </h2>
         </div>
         <div className="testimonials-grid">
           {testimonials.map((t, i) => (
-            <motion.div 
-              key={i} 
-              className="testi-card"
+            <motion.div
+              key={i}
+              className="testi-card border shadow-md hover:shadow-lg hover:-translate-y-2.5 transition-all duration-300"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
               <div className="quote-mark">“</div>
-              <p>{t.quote}</p>
+              <p className="text-TextPrimary">{t.quote}</p>
               <div className="user">
                 <img src={t.img} alt={t.name} />
                 <div>
-                  <h5>{t.name}</h5>
-                  <span>{t.role}</span>
+                  <h5 className="text-TextPrimary">{t.name}</h5>
+                  <span className="text-TextPrimary">{t.role}</span>
                 </div>
               </div>
             </motion.div>
@@ -209,12 +237,16 @@ const Plans = () => {
         </div>
 
         {/* FAQ */}
-        <div className="section-title">
+        <div className="section-title text-TextPrimary">
           <h2>Frequently Asked Questions</h2>
         </div>
-        <div className="faq-wrapper">
+        <div className="faq-wrapper text-TextPrimary">
           {faqs.map((faq, i) => (
-            <div key={i} className={`faq-item ${openFaqIndex === i ? "open" : ""}`} onClick={() => toggleFaq(i)}>
+            <div
+              key={i}
+              className={`faq-item ${openFaqIndex === i ? "open" : ""}`}
+              onClick={() => toggleFaq(i)}
+            >
               <div className="faq-head">
                 {faq.question}
                 {openFaqIndex === i ? <FiChevronUp /> : <FiChevronDown />}

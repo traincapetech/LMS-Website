@@ -1,18 +1,18 @@
 /* --- GLOBAL RESET (CRITICAL FIX) --- */
-* {
+/* * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
+} */
 
 /* --- THEME VARIABLES --- */
 :root {
-  --bg-black: #050505;
-  --card-black: #111111;
+  /* --bg-black: #050505; */
+  /* --card-black: #111111; */
   --text-white: #ffffff;
   --text-gray: #9ca3af;
-  --accent-orange: #ff5722;
-  --accent-orange-grad: linear-gradient(90deg, #ff5722, #ff8a65);
+  --accent-orange: #2563eb;
+  --accent-orange-grad: linear-gradient(90deg, #2563eb, #6f5ce0);
   --border-dark: rgba(255, 255, 255, 0.1);
 }
 
@@ -35,7 +35,7 @@
   position: absolute;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(255,87,34,0.15) 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, #2564eb2c 0%, rgba(0,0,0,0) 70%);
   z-index: 0;
   pointer-events: none; /* Click through glowing orbs */
 }
@@ -58,8 +58,8 @@
 }
 
 .brand-pill {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* background: rgba(255, 255, 255, 0.1); */
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -69,7 +69,7 @@
   display: inline-block;
 }
 
-.plans-header h1 {
+/* .plans-header h1 {
   font-size: 3.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -82,7 +82,7 @@
 .plans-header p {
   color: var(--text-gray);
   font-size: 1.2rem;
-}
+} */
 
 /* Toggle Switch */
 .billing-toggle {
@@ -129,12 +129,12 @@
 /* FIX: Forced Dark Theme on Cards */
 .plans-page.dark-mode .pricing-card {
   background: var(--card-black) !important;
-  border: 1px solid var(--border-dark);
+  /* border: 1px solid var(--border-dark); */
   border-radius: 16px;
   padding: 2.5rem;
   position: relative;
   transition: 0.3s ease;
-  color: var(--text-white);
+  /* color: var(--text-white); */
   display: flex;
   flex-direction: column;
 }
@@ -147,7 +147,7 @@
 
 /* Popular Card Highlight */
 .plans-page.dark-mode .pricing-card.popular {
-  border-color: rgba(255, 87, 34, 0.5);
+  border-color: var(--accent-orange);
   background: linear-gradient(180deg, rgba(255,87,34,0.05) 0%, var(--card-black) 100%) !important;
 }
 
@@ -155,16 +155,16 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-orange);
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
-  color: #fff;
+  /* color: #fff; */
 }
 
 /* Text Colors inside cards */
-.pricing-card h3 { color: var(--text-white); font-size: 1.5rem; margin-bottom: 0.5rem; }
+/* .pricing-card h3 {  font-size: 1.5rem; margin-bottom: 0.5rem; } */
 
 .price-block {
   display: flex;
@@ -174,7 +174,7 @@
 
 .price-block h2 { font-size: 3rem; margin: 0; font-weight: 700; color: var(--text-white); }
 .price-block span { color: var(--text-gray); margin-left: 5px; }
-.desc { color: var(--text-gray); font-size: 0.9rem; margin-bottom: 2rem; min-height: 40px; }
+.desc { font-size: 0.9rem; margin-bottom: 2rem; min-height: 40px; }
 
 /* Buttons */
 .action-btn {
@@ -189,19 +189,19 @@
 }
 
 .btn-dark {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  /* background: rgba(255, 255, 255, 0.05);
+  color: white; */
   border: 1px solid var(--border-dark);
 }
 .btn-dark:hover { background: rgba(255, 255, 255, 0.1); }
 
 .btn-orange {
-  background: var(--accent-orange-grad);
-  color: white;
+  /* background: var(--accent-orange-grad);
+  color: white; */
   border: none;
-  box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+  box-shadow: 0 4px 15px var(--accent-orange);
 }
-.btn-orange:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5); }
+.btn-orange:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-orange); }
 
 .divider { height: 1px; background: var(--border-dark); margin: 2rem 0; }
 
@@ -212,7 +212,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 1rem;
-  color: var(--text-gray);
+  /* color: var(--text-gray); */
   font-size: 0.95rem;
 }
 .icon-box {
@@ -234,7 +234,7 @@
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 3rem;
-  color: var(--text-white);
+  /* color: var(--text-white); */
 }
 
 .testimonials-grid {
@@ -245,18 +245,18 @@
 }
 
 .testi-card {
-  background: #111;
+  /* background: #111; */
   padding: 2rem;
   border-radius: 12px;
-  border: 1px solid var(--border-dark);
+  /* border: 1px solid var(--border-dark); */
 }
 
 .quote-mark { font-size: 4rem; color: #333; line-height: 0; margin-bottom: 1.5rem; }
-.testi-card p { color: var(--text-gray); font-style: italic; margin-bottom: 1.5rem; }
+.testi-card p {  font-style: italic; margin-bottom: 1.5rem; }
 
 .user { display: flex; align-items: center; gap: 12px; }
 .user img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #333; }
-.user h5 { margin: 0; color: white; font-size: 1rem; }
+.user h5 { margin: 0; font-size: 1rem; }
 .user span { color: var(--text-gray); font-size: 0.85rem; }
 
 /* --- FAQ --- */
@@ -274,14 +274,14 @@
   justify-content: space-between;
   align-items: center;
   transition: 0.3s;
-  color: var(--text-white);
+  /* color: var(--text-white); */
 }
 .faq-head:hover { color: var(--accent-orange); }
 .faq-body {
   max-height: 0;
   overflow: hidden;
   transition: 0.3s ease;
-  color: var(--text-gray);
+  /* color: var(--text-gray); */
   line-height: 1.6;
 }
 .faq-item.open .faq-body { max-height: 150px; padding-bottom: 1.5rem; }

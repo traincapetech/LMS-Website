@@ -14,8 +14,9 @@ import {
   FaEllipsisV,
   FaFilePdf,
   FaFileAlt,
-  FaSpinner
+  FaSpinner,
 } from "react-icons/fa";
+import { useStore } from "../Store/store";
 
 const LectureVideo = () => {
   const { videoId } = useParams();
@@ -36,7 +37,7 @@ const LectureVideo = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
-
+// const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
@@ -69,9 +70,10 @@ const LectureVideo = () => {
     const fetchCourseAndVideos = async () => {
       try {
         setLoading(true); // Start loading
-        
+
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
-        const rawCourse = await courseRes.json();
+         const rawCourse = await courseRes.json();
+        //  fetchCoursesById(courseId);
 
         if (!rawCourse.curriculum) return;
 
@@ -92,12 +94,14 @@ const LectureVideo = () => {
         // Fetch video metadata
         const videoMap = new Map();
         try {
-          const vRes = await fetch(`${API_BASE}/api/upload/check/${pendingCourseId}`);
+          const vRes = await fetch(
+            `${API_BASE}/api/upload/check/${pendingCourseId}`
+          );
           if (vRes.ok) {
             const data = await vRes.json();
 
             if (data.uploadedVideos && Array.isArray(data.uploadedVideos)) {
-              data.uploadedVideos.forEach(video => {
+              data.uploadedVideos.forEach((video) => {
                 videoMap.set(video._id.toString(), video);
               });
             }
@@ -127,7 +131,8 @@ const LectureVideo = () => {
         // Open first section
         if (populatedCurriculum.length > 0) {
           setOpenSections({
-            [populatedCurriculum[0]._id || populatedCurriculum[0].sectionId]: true,
+            [populatedCurriculum[0]._id ||
+            populatedCurriculum[0].sectionId]: true,
           });
         }
 
@@ -137,7 +142,7 @@ const LectureVideo = () => {
         // First try to find by lecture ID from URL
         if (videoId) {
           selected = findLectureById(fullCourse, videoId);
-          
+
           // If not found by lecture ID, try to find by video ID
           if (!selected) {
             selected = findLectureByVideoId(fullCourse, videoId);
@@ -180,18 +185,24 @@ const LectureVideo = () => {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
   // Calculate total lectures correctly
-  const totalLectures = course ?
-    course.curriculum.reduce((sum, sec) =>
-      sum + (sec.items || []).filter(item => item.type === "lecture").length, 0
-    ) : 0;
+  const totalLectures = course
+    ? course.curriculum.reduce(
+        (sum, sec) =>
+          sum +
+          (sec.items || []).filter((item) => item.type === "lecture").length,
+        0
+      )
+    : 0;
 
   // Calculate progress percentage
-  const progressPercent = totalLectures > 0 ?
-    Math.round((completedLectures.size / totalLectures) * 100) : 0;
+  const progressPercent =
+    totalLectures > 0
+      ? Math.round((completedLectures.size / totalLectures) * 100)
+      : 0;
 
   // Mark lecture as completed
   const markAsCompleted = (lectureId) => {
-    setCompletedLectures(prev => new Set(prev).add(lectureId));
+    setCompletedLectures((prev) => new Set(prev).add(lectureId));
   };
 
   // -------------------------------------------------------------------
@@ -214,7 +225,9 @@ const LectureVideo = () => {
           ))}
         </ul>
 
-        <h4 style={{ fontWeight: "600", marginTop: "16px" }}>🧩 Requirements</h4>
+        <h4 style={{ fontWeight: "600", marginTop: "16px" }}>
+          🧩 Requirements
+        </h4>
         <ul style={{ marginLeft: "20px" }}>
           {course.requirements?.map((req, i) => (
             <li key={i}>{req}</li>
@@ -255,8 +268,8 @@ const LectureVideo = () => {
           fileUrl: doc.fileUrl,
           fileName: doc.fileName,
           courseId: courseId,
-          lectureId: lectureId
-        }
+          lectureId: lectureId,
+        },
       });
     };
 
@@ -270,7 +283,9 @@ const LectureVideo = () => {
             padding: "12px 20px",
             cursor: "pointer",
             backgroundColor: isActive ? "#f3e8ff" : "#fff",
-            borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
+            borderLeft: isActive
+              ? "4px solid #7e22ce"
+              : "4px solid transparent",
           }}
           onClick={() => {
             // Use lecture ID for navigation
@@ -280,7 +295,7 @@ const LectureVideo = () => {
                 videoId: videoId,
                 courseId: courseId,
                 pendingCourseId: course?.pendingCourseId,
-                video: vid
+                video: vid,
               },
             });
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -299,7 +314,7 @@ const LectureVideo = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 color: isCompleted ? "white" : "transparent",
-                fontSize: 12
+                fontSize: 12,
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -315,15 +330,21 @@ const LectureVideo = () => {
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {vid.duration
               ? `${Math.floor(vid.duration / 60)}:${String(
-                Math.floor(vid.duration % 60)
-              ).padStart(2, "0")}`
+                  Math.floor(vid.duration % 60)
+                ).padStart(2, "0")}`
               : "5:00"}
           </span>
         </div>
 
         {/* DOCUMENTS LIST UNDER LECTURE */}
         {vid.documents?.length > 0 && (
-          <div style={{ paddingLeft: "55px", paddingRight: "20px", paddingBottom: "12px" }}>
+          <div
+            style={{
+              paddingLeft: "55px",
+              paddingRight: "20px",
+              paddingBottom: "12px",
+            }}
+          >
             {vid.documents.map((doc, i) => (
               <div key={i} style={{ marginTop: "8px" }}>
                 <div
@@ -335,7 +356,7 @@ const LectureVideo = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                 >
                   <FaFileAlt /> {doc.fileName}
@@ -376,6 +397,7 @@ const LectureVideo = () => {
     <>
       {/* HEADER */}
       <header
+        className="mt-25 font-poppins"
         style={{
           backgroundColor: "#111",
           color: "#fff",
@@ -385,57 +407,57 @@ const LectureVideo = () => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "22px", color: "#a855f7" }}>
-            TrainCapeTechLMS
-          </span>
           <span style={{ color: "#67696b" }}>|</span>
-          <span>{course?.title || "Course"}</span>
+          <span className="text-sm md:text-base">{course?.title || "Course"}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {/* 🏆 Progress */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <FaTrophy style={{ color: "#a855f7", fontSize: "18px" }} />
             <div>
-              <div style={{
-                width: "120px",
-                height: "8px",
-                backgroundColor: "#333",
-                borderRadius: "4px",
-                overflow: "hidden",
-              }}>
-                <div style={{
-                  height: "100%",
-                  width: `${progressPercent}%`,
-                  backgroundColor: "#a855f7",
-                  transition: "width 0.4s ease",
-                }}></div>
+              <div
+                style={{
+                  width: "120px",
+                  height: "8px",
+                  backgroundColor: "#333",
+                  borderRadius: "4px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${progressPercent}%`,
+                    backgroundColor: "#a855f7",
+                    transition: "width 0.4s ease",
+                  }}
+                ></div>
               </div>
               <span style={{ fontSize: "13px", color: "#d1d5db" }}>
-                {completedLectures.size}/{totalLectures} lectures ({progressPercent}%)
+                {completedLectures.size}/{totalLectures} lectures (
+                {progressPercent}%)
               </span>
             </div>
           </div>
 
-          <button
-            style={{
-              border: "1px solid #d1d5db",
-              color: "#fff",
-              background: "transparent",
-              borderRadius: "4px",
-              padding: "6px 12px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
+          <button className="flex items-center gap-1 border rounded-sm px-2 py-2">
             <FaShareAlt style={{ marginRight: "6px" }} />
             Share
           </button>
-          <FaEllipsisV style={{ color: "#d1d5db", cursor: "pointer", fontSize: "18px" }} />
+          <FaEllipsisV
+            style={{ color: "#d1d5db", cursor: "pointer", fontSize: "18px" }}
+          />
         </div>
       </header>
 
       {/* MAIN LAYOUT */}
-      <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4f6f9" }}>
+      <div className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
+        // style={{
+        //   display: "flex",
+        //   minHeight: "100vh",
+        //   backgroundColor: "#f4f6f9",
+        // }}
+      >
         {/* LEFT: VIDEO PLAYER */}
         <div style={{ flex: 1, padding: "20px" }}>
           <div
@@ -446,27 +468,43 @@ const LectureVideo = () => {
             }}
           >
             {currentVideo?.videoUrl ? (
-              <video key={currentVideo._id} controls autoPlay style={{ width: "100%", height: "100%" }}>
+              <video
+                key={currentVideo._id}
+                controls
+                autoPlay
+                style={{ width: "100%", height: "100%" }}
+              >
                 <source src={currentVideo.videoUrl} type="video/mp4" />
               </video>
             ) : (
-              <div style={{ color: "white", padding: "20px", textAlign: "center" }}>
+              <div
+                style={{ color: "white", padding: "20px", textAlign: "center" }}
+              >
                 No video uploaded.
               </div>
             )}
           </div>
 
-          <h2 style={{ marginTop: "24px", fontSize: "24px", fontWeight: "700" }}>
+          <h2
+            style={{ marginTop: "24px", fontSize: "24px", fontWeight: "700" }}
+          >
             {currentVideo?.title}
           </h2>
 
           {/* TABS */}
-          <div style={{ display: "flex", borderBottom: "1px solid #ddd", marginTop: "20px" }}>
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid #ddd",
+              marginTop: "20px",
+            }}
+          >
             <div
               style={{
                 padding: "12px 18px",
                 cursor: "pointer",
-                borderBottom: activeTab === "overview" ? "3px solid #7e22ce" : "none",
+                borderBottom:
+                  activeTab === "overview" ? "3px solid #7e22ce" : "none",
                 color: activeTab === "overview" ? "#7e22ce" : "#4b5563",
               }}
               onClick={() => setActiveTab("overview")}
@@ -477,7 +515,8 @@ const LectureVideo = () => {
               style={{
                 padding: "12px 18px",
                 cursor: "pointer",
-                borderBottom: activeTab === "notes" ? "3px solid #7e22ce" : "none",
+                borderBottom:
+                  activeTab === "notes" ? "3px solid #7e22ce" : "none",
                 color: activeTab === "notes" ? "#7e22ce" : "#4b5563",
               }}
               onClick={() => setActiveTab("notes")}
@@ -488,7 +527,8 @@ const LectureVideo = () => {
               style={{
                 padding: "12px 18px",
                 cursor: "pointer",
-                borderBottom: activeTab === "qna" ? "3px solid #7e22ce" : "none",
+                borderBottom:
+                  activeTab === "qna" ? "3px solid #7e22ce" : "none",
                 color: activeTab === "qna" ? "#7e22ce" : "#4b5563",
               }}
               onClick={() => setActiveTab("qna")}
@@ -499,7 +539,8 @@ const LectureVideo = () => {
               style={{
                 padding: "12px 18px",
                 cursor: "pointer",
-                borderBottom: activeTab === "reviews" ? "3px solid #7e22ce" : "none",
+                borderBottom:
+                  activeTab === "reviews" ? "3px solid #7e22ce" : "none",
                 color: activeTab === "reviews" ? "#7e22ce" : "#4b5563",
               }}
               onClick={() => setActiveTab("reviews")}
@@ -519,15 +560,7 @@ const LectureVideo = () => {
             borderLeft: "1px solid #ddd",
           }}
         >
-          <div
-            style={{
-              fontWeight: "700",
-              padding: "16px 20px",
-              borderBottom: "1px solid #ddd",
-            }}
-          >
-            📚 Course Content
-          </div>
+          <h2 className="text-lg font-semibold px-3 py-3">Course Content</h2>
 
           {course?.curriculum?.map((section) => {
             const key = section._id || section.sectionId;
@@ -573,8 +606,12 @@ const LectureVideo = () => {
       {/* Add CSS for spinner animation */}
       <style jsx>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </>

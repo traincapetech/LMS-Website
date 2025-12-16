@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: 'https://lms-backend-5s5x.onrender.com/api',
+  baseURL: 'https://lms-backend-5s5x.onrender.com/api' || 'http://localhost:5001/api',
   timeout: 10000, // 10 second timeout
   headers: {
     'Content-Type': 'application/json',

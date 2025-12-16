@@ -60,11 +60,11 @@ const UserProfileDropdown = ({ user, cartCount = 0, onLogout, onProfilePhotoUplo
       {showEditModal && (
         <EditProfileModal
           user={user}
-          onSave={handleEditSave}
+          onSave={handleEditSave} 
           onCancel={() => setShowEditModal(false)}
         />
       )}
-      <div
+      <div className="h-[600px] overflow-y-auto"
         style={{
           position: 'absolute',
           right: 0,
@@ -76,7 +76,7 @@ const UserProfileDropdown = ({ user, cartCount = 0, onLogout, onProfilePhotoUplo
           minWidth: 270,
           zIndex: 1000,
           padding: 0,
-          overflow: 'hidden',
+          
         }}
       >
         <div style={{ padding: 20, borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, position: 'relative' }}>
@@ -126,7 +126,7 @@ const UserProfileDropdown = ({ user, cartCount = 0, onLogout, onProfilePhotoUplo
             <FiEdit2 /> Edit
           </button>
         </div>
-        <div style={{ padding: 0 }}>
+        <div className="h-full">
           <MenuItem icon={<FiUser />} label="My Learning" onClick={() => navigate('/my-learning')} />
           <MenuItem icon={<FiShoppingCart />} label="My Cart" badge={cartCount} onClick={() => navigate('/cart')} />
           <MenuItem icon={<FiUser />} label="Wishlist" onClick={() => navigate('/wishlist')} />

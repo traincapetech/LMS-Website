@@ -1,14 +1,14 @@
 /* src/Pages/Form.css */
 
-.form-container {
-  display: flex;
+ .form-container {
+  /* display: flex;
   align-items: flex-start;
   justify-content: center;
   flex-wrap: nowrap;
-  padding: 40px 30px;
-  gap: 30px; /* reduced from 50px */
-  background: linear-gradient(to right, #fefefe, #e8ebf0);
-}
+  padding: 40px 30px;  */
+  /* gap: 30px; reduced from 50px */
+  /* background: linear-gradient(to right, #fefefe, #e8ebf0); */
+} 
 
 .form-image {
   margin-top: 10px; /* optional slight top alignment */
@@ -35,22 +35,10 @@
   padding-top: 10px;
 }
 
-.form-content h2 {
-  font-size: 32px;
-  font-weight: 800;
-  color: #101828;
-  margin-bottom: 16px;
-}
-
-.form-content p {
-  font-size: 16px;
-  color: #374151;
-  margin-bottom: 24px;
-  line-height: 1.6;
-}
 
 form input[type="text"],
-form input[type="email"] {
+form input[type="email"],
+form input[type="password"] {
   width: 100%;
   padding: 14px 18px;
   margin-bottom: 18px;
@@ -62,11 +50,11 @@ form input[type="email"] {
   transition: border 0.25s ease, box-shadow 0.2s ease;
 }
 
-form input:focus {
+/* form input:focus {
   border-color: #7c3aed;
   outline: none;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
-}
+} */
 
 .form-checkbox {
   display: flex;

@@ -1,8 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Form.css";
 import instr from "../assets/instr.jpg";
 import { useNavigate } from "react-router-dom";
 import Otp from "./Otp";
+import { Button } from "@/components/ui/button";
 
 const Form = () => {
   const navigate = useNavigate();
@@ -11,6 +12,10 @@ const Form = () => {
   const [name, setName] = useState("");
   const [otpFromServer, setOtpFromServer] = useState("");
   const [loading, setLoading] = useState(false);
+
+useEffect(() => {
+  window.scrollTo(0, 0);
+}, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,20 +52,20 @@ const Form = () => {
   };
 
   return (
-    <div className="form-container">
+    <div className="w-full h-screen font-poppins flex flex-col md:flex-row items-center justify-center gap-10 px-5 pt-20 md:pt-0">
       <div className="form-image">
         <img src={instr} alt="Traincape Instructor" />
       </div>
       <div className="form-content">
-        <h2>Instructor Application</h2>
-        <p>Enter your name and email to begin the instructor application process.</p>
+        <h2 className="font-medium text-3xl mb-5">Instructor Application</h2>
+        <p className=" text-sm font-inter mb-5">Enter your name and email to begin the instructor application process.</p>
         {step === 1 && (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <input type="text" name="fullName" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} required />
             <input type="email" name="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-          <button type="submit" disabled={loading} style={{ marginTop: 10 }}>
+          <Button disabled={loading} style={{ marginTop: 10 }}>
               {loading ? "Sending OTP..." : "Send OTP"}
-          </button>
+          </Button>
         </form>
         )}
         {step === 2 && (

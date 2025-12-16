@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  FiSearch,
-  FiShoppingCart,
-  FiUser,
-  FiMenu,
-  FiX,
-} from "react-icons/fi";
+import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import UserProfileDropdown from "./UserProfileDropdown";
 import { getAllCourses, searchCourses } from "../Pages/CourseData";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const Navbar = ({ cartCount = 0 }) => {
   const [user, setUser] = useState(null);
@@ -23,7 +19,6 @@ const Navbar = ({ cartCount = 0 }) => {
   const navigate = useNavigate();
   const [loginHover, setLoginHover] = useState(false);
   const [isSearchHover, setIsSearchHover] = useState(false);
-
 
   const navLinkBaseStyle = {
     textDecoration: "none",
@@ -155,6 +150,16 @@ const Navbar = ({ cartCount = 0 }) => {
     }
   };
 
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      if (window.scrollY > 50) setScrolled(true);
+      else setScrolled(false);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // Helper to get user initial
   const getInitials = (name = "") => {
     return name
@@ -167,18 +172,11 @@ const Navbar = ({ cartCount = 0 }) => {
   return (
     <>
       <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "12px 20px",
-          borderBottom: "1px solid #ccc",
-          backgroundColor: "rgba(86, 36, 208, 0.1)",
-
-          fontFamily: "Segoe UI, Tahoma, Geneva, Verdana, sans-serif",
-          position: "relative",
-          height: "70px",
-        }}
+        className={`fixed left-0 top-0 w-full z-50 font-poppins flex items-center justify-between px-5 py-2 ${
+          scrolled
+            ? "bg-transparent backdrop-blur-2xl border-b border-textSecondary"
+            : ""
+        }`}
       >
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center" }}>
@@ -186,7 +184,7 @@ const Navbar = ({ cartCount = 0 }) => {
             <h1
               style={{
                 fontSize: "30px",
-                fontWeight: "800",
+                fontWeight: "500",
                 color: "#111",
                 cursor: "pointer",
               }}
@@ -197,64 +195,27 @@ const Navbar = ({ cartCount = 0 }) => {
         </div>
 
         {/* Desktop Search Bar */}
-        <div
-          style={{
-            display: !isMobile ? "flex" : "none",
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            margin: "0 20px",
-          }}
-        >
+        <div className="w-1/3 hidden md:hidden lg:block ">
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              backgroundColor: isSearchHover ? "#f3f4f6" : "#ffffff",
-              borderRadius: "8px",
-              padding: "0 16px", // sirf left-right padding
-              width: "100%",
-              border: isSearchFocused ? "2px solid #400303" : "1px solid #ddd",
-              boxShadow: isSearchFocused
-                ? "0 0 0 2px rgba(86, 36, 208, 0.15)"
-                : "none",
-              transition: "all 0s ease",
-              
-            }}
+            className="pt-4"
             onMouseEnter={() => setIsSearchHover(true)}
             onMouseLeave={() => setIsSearchHover(false)}
           >
-            <form onSubmit={handleSearch} style={{ flex: 1 }}>
-              <input
+            <form className="relative w-full" onSubmit={handleSearch}>
+              <Input
+                className="w-full pr-10 py-4"
                 type="text"
                 placeholder="Search for courses, skills, or instructors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                style={{
-                  width: "100%",
-                  border: "none",
-                  outline: "none",
-                  backgroundColor: "transparent",
-                  color: "#111",
-                  fontSize: "16px",
-                  padding: "12px 0", // equal top & bottom padding
-                  boxSizing: "border-box",
-                  boxShadow: "none",
-                  marginBottom: "0px",
-                }}
+              />
+              <FiSearch
+                className="absolute right-3 top-2 text-xl cursor-pointer text-TextSecondary"
+                onClick={handleSearch}
               />
             </form>
-            <FiSearch
-              style={{
-                marginLeft: "16px",
-                color: "#9ca3af",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
-              onClick={handleSearch}
-            />
           </div>
         </div>
 
@@ -264,8 +225,6 @@ const Navbar = ({ cartCount = 0 }) => {
             display: !isMobile ? "flex" : "none",
             alignItems: "center",
             gap: "16px",
-            fontSize: "18px",
-            fontWeight: "600",
           }}
         >
           <Link
@@ -341,85 +300,43 @@ const Navbar = ({ cartCount = 0 }) => {
             )}
 
           {/* Cart */}
-<div style={{ position: "relative" }}>
-  <Link
-    to="/cart"
-    style={{
-      position: "relative",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "6px 10px",
-      borderRadius: "6px",
-      border: "1px solid #000",      // black outline
-      backgroundColor: "#ffffff",
-      textDecoration: "none",
-    }}
-  >
-    <FiShoppingCart
-      style={{
-        fontSize: "20px",
-        cursor: "pointer",
-        color: "#000",
-      }}
-    />
+          <div style={{ position: "relative" }}>
+            <Link to="/cart">
+              <Button variant="outline">
+                <FiShoppingCart className="size-5"/>
+              </Button>
+            
 
-    {cartCount > 0 && (
-      <span
-        style={{
-          position: "absolute",
-          top: -6,
-          right: -6,
-          background: "red",
-          color: "white",
-          borderRadius: "50%",
-          padding: "2px 6px",
-          fontSize: 12,
-          fontWeight: "bold",
-        }}
-      >
-        {cartCount}
-      </span>
-    )}
-  </Link>
-</div>
-
+              {cartCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    background: "red",
+                    color: "white",
+                    borderRadius: "50%",
+                    padding: "1px 8px",
+                    fontSize: 12,
+                    
+                  }}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
 
           {/* User Authentication */}
           {!user ? (
             <>
               <Link
                 to="/login"
-                onMouseEnter={() => setLoginHover(true)}
-                onMouseLeave={() => setLoginHover(false)}
-                style={{
-                  border: "1px solid #444",
-                  backgroundColor: loginHover? "rgba(86, 36, 208, 0.7)": "rgba(86, 36, 208, 0.3)",
-                  padding: "7px 14px",
-                  cursor: "pointer",
-                  color: "#111",
-                  textDecoration: "none",
-                  transition: "background-color 0.3s ease", // Smooth color change
-                  fontWeight: "bold",
-                  borderRadius: "6px", 
-                }}
+                
               >
-                Log in
+                <Button>Log in</Button>
               </Link>
-              <Link
-                to="/signup"
-                style={{
-                  backgroundColor: "black",
-                  color: "white",
-                  padding: "7px 14px",
-                  border: "none",
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  borderRadius: "6px",
-                }}
-              >
-                Sign up
-              </Link>
+              
             </>
           ) : (
             <div style={{ position: "relative" }} ref={dropdownRef}>
@@ -479,14 +396,6 @@ const Navbar = ({ cartCount = 0 }) => {
             gap: "16px",
           }}
         >
-          {/* Mobile Search Icon */}
-          <div style={{ display: isMobile ? "block" : "none" }}>
-            <FiSearch
-              style={{ fontSize: "22px", cursor: "pointer" }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            />
-          </div>
-
           {/* Mobile Cart */}
           <div style={{ position: "relative" }}>
             <Link to="/cart">
@@ -530,127 +439,43 @@ const Navbar = ({ cartCount = 0 }) => {
         </div>
       </nav>
 
-      {/* Mobile Search Bar */}
+      {/* Mobile Search Bar
       {mobileMenuOpen && (
-        <div
-          style={{
-            display: isMobile ? "block" : "none",
-            borderTop: "1px solid #ccc",
-            backgroundColor: "#f9fafb",
-            padding: "12px 20px",
-          }}
-        >
-          <form onSubmit={handleSearch} style={{ display: "flex" }}>
-            <input
-              type="text"
-              placeholder="Search for courses..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                border: "1px solid #d1d5db",
-                borderTopLeftRadius: "8px",
-                borderBottomLeftRadius: "8px",
-                outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#7c3aed",
-                color: "white",
-                borderTopRightRadius: "8px",
-                borderBottomRightRadius: "8px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <FiSearch style={{ width: "20px", height: "20px" }} />
-            </button>
-          </form>
-        </div>
-      )}
+       
+      )} */}
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          style={{
-            display: isMobile ? "block" : "none",
-            backgroundColor: "white",
-            borderBottom: "1px solid #ccc",
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            maxHeight: "100vh",
-            overflowY: "auto",
-            animation: "slideDown 0.3s ease-out",
-          }}
+          className="lg:hidden fixed  top-0 left-0 right-0 z-50 h-screen bg-white rounded-lg px-5 w-full"
         >
           {/* Mobile Menu Header */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px 20px",
-              borderBottom: "1px solid #e5e7eb",
-              backgroundColor: "#f8f9fa",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: "700",
-                color: "#111",
-                margin: 0,
-              }}
-            >
-              Menu
-            </h2>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "24px",
-                cursor: "pointer",
-                color: "#111",
-                padding: "4px",
-              }}
-            >
-              <FiX />
+          <div className="flex justify-between items-center py-5 border-b border-textSecondary">
+            <h2 className="text-xl font-semibold">Traincape LMS</h2>
+            <button onClick={() => setMobileMenuOpen(false)}>
+              <FiX className="text-2xl cursor-pointer" />
             </button>
           </div>
 
-          <div style={{ padding: "8px 16px" }}>
+          <div className="my-5">
+            <form className="relative" onSubmit={handleSearch}>
+              <Input
+                className="w-full pr-10 py-4"
+                type="text"
+                placeholder="Search for Courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              <FiSearch className="absolute right-3 top-2 text-xl cursor-pointer text-TextSecondary" />
+            </form>
+          </div>
+          <div className="w-full ">
             {/* Navigation Links */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0",
-              }}
-            >
+            <div className="flex flex-col gap-10 px-4 w-full mt-10">
               <Link
                 to="/plans"
-                style={{
-                  display: "block",
-                  padding: "16px 12px",
-                  color: "#111",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  borderRadius: "8px",
-                  marginBottom: "4px",
-                  transition: "background-color 0.2s",
-                }}
                 onClick={() => setMobileMenuOpen(false)}
                 onMouseEnter={(e) =>
                   (e.target.style.backgroundColor = "#f8f9fa")
@@ -659,22 +484,10 @@ const Navbar = ({ cartCount = 0 }) => {
                   (e.target.style.backgroundColor = "transparent")
                 }
               >
-                💰 Plans & Pricing
+                Plans & Pricing
               </Link>
               <Link
                 to="/courses"
-                style={{
-                  display: "block",
-                  padding: "16px 12px",
-                  color: "#111",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  borderRadius: "8px",
-                  marginBottom: "4px",
-                  transition: "background-color 0.2s",
-                }}
                 onClick={() => setMobileMenuOpen(false)}
                 onMouseEnter={(e) =>
                   (e.target.style.backgroundColor = "#f8f9fa")
@@ -683,24 +496,12 @@ const Navbar = ({ cartCount = 0 }) => {
                   (e.target.style.backgroundColor = "transparent")
                 }
               >
-                📚 Courses
+                Courses
               </Link>
               <a
                 href="https://traincapetech.in/"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: "block",
-                  padding: "16px 12px",
-                  color: "#111",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  borderRadius: "8px",
-                  marginBottom: "4px",
-                  transition: "background-color 0.2s",
-                }}
                 onClick={() => setMobileMenuOpen(false)}
                 onMouseEnter={(e) =>
                   (e.target.style.backgroundColor = "#f8f9fa")
@@ -709,22 +510,10 @@ const Navbar = ({ cartCount = 0 }) => {
                   (e.target.style.backgroundColor = "transparent")
                 }
               >
-                🏢 Business
+                Business
               </a>
               <Link
                 to="/teach"
-                style={{
-                  display: "block",
-                  padding: "16px 12px",
-                  color: "#111",
-                  textDecoration: "none",
-                  borderBottom: "1px solid #f0f0f0",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  borderRadius: "8px",
-                  marginBottom: "4px",
-                  transition: "background-color 0.2s",
-                }}
                 onClick={() => setMobileMenuOpen(false)}
                 onMouseEnter={(e) =>
                   (e.target.style.backgroundColor = "#f8f9fa")
@@ -733,7 +522,7 @@ const Navbar = ({ cartCount = 0 }) => {
                   (e.target.style.backgroundColor = "transparent")
                 }
               >
-                👨‍🏫 Teach
+                Teach
               </Link>
 
               {/* Admin Mobile Links */}
@@ -741,18 +530,6 @@ const Navbar = ({ cartCount = 0 }) => {
                 <>
                   <Link
                     to="/admin"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#dc2626",
-                      fontWeight: "bold",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
                     onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) =>
                       (e.target.style.backgroundColor = "#fef2f2")
@@ -761,22 +538,10 @@ const Navbar = ({ cartCount = 0 }) => {
                       (e.target.style.backgroundColor = "transparent")
                     }
                   >
-                    ⚙️ Admin
+                    Admin
                   </Link>
                   <Link
                     to="/admin/instructors"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#111",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
                     onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) =>
                       (e.target.style.backgroundColor = "#f8f9fa")
@@ -785,7 +550,7 @@ const Navbar = ({ cartCount = 0 }) => {
                       (e.target.style.backgroundColor = "transparent")
                     }
                   >
-                    👥 Instructors
+                    Instructors
                   </Link>
                 </>
               )}
@@ -796,18 +561,6 @@ const Navbar = ({ cartCount = 0 }) => {
                 hasPublishedCourses && (
                   <Link
                     to="/instructor-dashboard"
-                    style={{
-                      display: "block",
-                      padding: "16px 12px",
-                      color: "#111",
-                      textDecoration: "none",
-                      borderBottom: "1px solid #f0f0f0",
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      borderRadius: "8px",
-                      marginBottom: "4px",
-                      transition: "background-color 0.2s",
-                    }}
                     onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) =>
                       (e.target.style.backgroundColor = "#f8f9fa")
@@ -816,172 +569,109 @@ const Navbar = ({ cartCount = 0 }) => {
                       (e.target.style.backgroundColor = "transparent")
                     }
                   >
-                    📊 Instructor Dashboard
+                    Instructor Dashboard
                   </Link>
                 )}
             </div>
 
             {/* User Authentication Mobile */}
-            {!user ? (
-              <div
-                style={{
-                  paddingTop: "16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <Link
-                  to="/login"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "14px 16px",
-                    border: "2px solid #e5e7eb",
-                    backgroundColor: "transparent",
-                    color: "#111",
-                    fontWeight: "600",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    transition: "all 0.2s",
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#f8f9fa";
-                    e.target.style.borderColor = "#d1d5db";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.borderColor = "#e5e7eb";
-                  }}
-                >
-                  🔐 Log in
-                </Link>
-                <Link
-                  to="/signup"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "center",
-                    padding: "14px 16px",
-                    backgroundColor: "#111",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    transition: "all 0.2s",
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#374151")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "#111")
-                  }
-                >
-                  ✨ Sign up
-                </Link>
-              </div>
-            ) : (
-              <div
-                style={{
-                  paddingTop: "16px",
-                  borderTop: "2px solid #e5e7eb",
-                  marginTop: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "16px 12px",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "48px",
-                        height: "48px",
-                        borderRadius: "50%",
-                        backgroundColor: "#374151",
-                        color: "white",
-                        fontWeight: "bold",
-                        fontSize: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: "12px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {user.photoUrl ? (
-                        <img
-                          src={user.photoUrl}
-                          alt="Profile"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        getInitials(user.name)
-                      )}
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontWeight: "600",
-                          color: "#111",
-                          fontSize: "16px",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        {user.name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "14px",
-                          color: "#6b7280",
-                          textTransform: "capitalize",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {user.role}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      color: "#dc2626",
-                      fontWeight: "600",
-                      border: "none",
-                      background: "none",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      padding: "8px 12px",
-                      borderRadius: "6px",
-                      transition: "background-color 0.2s",
+            <div className="absolute bottom-0 left-0 w-full px-5 py-5">
+              {!user ? (
+                <div className="flex flex-col gap-5">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#f8f9fa";
+                      e.target.style.borderColor = "#d1d5db";
                     }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "transparent";
+                      e.target.style.borderColor = "#e5e7eb";
+                    }}
+                  >
+                    <Button variant={"outline"} className="w-full">
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "#fef2f2")
+                      (e.target.style.backgroundColor = "#374151")
                     }
                     onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "transparent")
+                      (e.target.style.backgroundColor = "#111")
                     }
                   >
-                    🚪 Logout
-                  </button>
+                    <Button className="w-full">Sign up</Button>
+                  </Link>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div>
+                  <div
+                    className="bg-gray-100"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "16px 12px",
+                      // backgroundColor: "#f8f9fa",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <div
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          borderRadius: "50%",
+                          backgroundColor: "#374151",
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "20px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: "12px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {user.photoUrl ? (
+                          <img
+                            src={user.photoUrl}
+                            alt="Profile"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          getInitials(user.name)
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold">{user.name}</div>
+                        <div>{user.role}</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={handleLogout}
+                      onMouseEnter={(e) =>
+                        (e.target.style.backgroundColor = "#fef2f2")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.backgroundColor = "transparent")
+                      }
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                </div>
+              )}{" "}
+            </div>
           </div>
         </div>
       )}
