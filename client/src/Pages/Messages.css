@@ -1,9 +1,9 @@
 /* client/src/Pages/Messages.css */
 
 /* ✅ CRITICAL FIX: Ensures padding doesn't break widths */
-* {
+/* * {
   box-sizing: border-box;
-}
+} */
 
 .msg-container {
   max-width: 1340px;
