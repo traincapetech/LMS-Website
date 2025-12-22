@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { authAPI } from "@/utils/api";
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1: email, 2: OTP, 3: new password
@@ -17,14 +19,13 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessage("");
     try {
-      const res = await axios.post(
-        "https://lms-backend-5s5x.onrender.com/api/auth/forgot-password",
-        { email }
-      );
-      setMessage(res.data.message);
+      await authAPI.forgotPassword(email);
+      setMessage("OTP sent successfully");
+      toast.success("OTP sent successfully");
       setStep(2);
     } catch (err) {
       setMessage(err.response?.data?.message || "Failed to send OTP");
+      toast.error(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
@@ -35,14 +36,13 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessage("");
     try {
-      const res = await axios.post(
-        "https://lms-backend-5s5x.onrender.com/api/otp/verify-otp",
-        { email, otp }
-      );
-      setMessage(res.data.message);
+      await authAPI.verifyOtp({ email, otp });
+      setMessage("OTP verified successfully");
+      toast.success("OTP verified successfully");
       setStep(3);
     } catch (err) {
       setMessage(err.response?.data?.message || "Invalid OTP");
+      toast.error(err.response?.data?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
@@ -57,19 +57,15 @@ const ForgotPassword = () => {
     setLoading(true);
     setMessage("");
     try {
-      const res = await axios.post(
-        "https://lms-backend-5s5x.onrender.com/api/auth/reset-password",
-        {
-          email,
-          newPassword,
-        }
-      );
-      setMessage(res.data.message);
+      await authAPI.resetPassword({ email, newPassword });
+      setMessage("Password reset successfully");
+      toast.success("Password reset successfully");
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
     } catch (err) {
       setMessage(err.response?.data?.message || "Failed to reset password");
+      toast.error(err.response?.data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -163,29 +159,14 @@ const ForgotPassword = () => {
             </p>
             <div
               className="flex items-center"
-              style={{
-                background: "#f3f0ff",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                padding: "10px 14px",
-                transition: "border 0.3s ease",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.borderColor = "#7c3aed")
-              }
-              onMouseOut={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+             
             >
-              <i
-                className="fas fa-key"
-                style={{ color: "#7c3aed", fontSize: "1.1rem" }}
-              ></i>
               <input
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 placeholder="Enter 6-digit OTP"
-                className="flex-1 border-none outline-none bg-transparent"
-                style={{ fontSize: "1rem", color: "#333", marginLeft: "10px" }}
+                className="logininput"
                 maxLength="6"
                 required
               />
@@ -207,57 +188,28 @@ const ForgotPassword = () => {
             </p>
             <div
               className="flex items-center"
-              style={{
-                background: "#f3f0ff",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                padding: "10px 14px",
-                transition: "border 0.3s ease",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.borderColor = "#7c3aed")
-              }
-              onMouseOut={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+              
             >
-              <i
-                className="fas fa-lock"
-                style={{ color: "#7c3aed", fontSize: "1.1rem" }}
-              ></i>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="New Password"
-                className="flex-1 border-none outline-none bg-transparent"
-                style={{ fontSize: "1rem", color: "#333", marginLeft: "10px" }}
+                className="logininput"
                 required
               />
             </div>
             <div
               className="flex items-center"
-              style={{
-                background: "#f3f0ff",
-                border: "1px solid #ccc",
-                borderRadius: "10px",
-                padding: "10px 14px",
-                transition: "border 0.3s ease",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.borderColor = "#7c3aed")
-              }
-              onMouseOut={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+             
             >
-              <i
-                className="fas fa-lock"
-                style={{ color: "#7c3aed", fontSize: "1.1rem" }}
-              ></i>
+             
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm New Password"
-                className="flex-1 border-none outline-none bg-transparent"
-                style={{ fontSize: "1rem", color: "#333", marginLeft: "10px" }}
+                className="logininput"
                 required
               />
             </div>

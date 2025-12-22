@@ -2,11 +2,12 @@ import React, { useContext, useState, useEffect } from "react";
 import { CartContext } from "../App";
 import { FaHtml5, FaCuttlefish, FaCode } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Code, RefreshCcw } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useStore } from "../Store/store";
+import { toast } from "sonner";
 
 const courseIcons = {
   "ibm-html": <FaHtml5 size={40} color="#e44d26" />,
@@ -16,14 +17,23 @@ const courseIcons = {
 
 const Cart = () => {
   const { cart, setCart } = useContext(CartContext);
+  const {
+    backendCart,
+    fetchBackendCart,
+    fetchAvailableCoupons,
+    loading,
+    addToCart: addToCartAPI,
+    removeFromCart: removeFromCartAPI,
+    applyCoupon: applyCouponAPI,
+    removeCoupon: removeCouponAPI,
+    couponApplied,
+    couponMessage,
+    discountAmount,
+    setCouponMessage,
+  } = useStore();
+
   const [showPayment, setShowPayment] = useState(false);
   const [couponCode, setCouponCode] = useState("");
-  const [couponMessage, setCouponMessage] = useState("");
-  const [couponApplied, setCouponApplied] = useState(false);
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [backendCart, setBackendCart] = useState(null);
-  const [availableCoupons, setAvailableCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,77 +68,24 @@ const Cart = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const fetchBackendCart = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.get(
-        "https://lms-backend-5s5x.onrender.com/api/cart",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setBackendCart(response.data);
-    } catch (error) {
-      console.error("Failed to fetch cart:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAvailableCoupons = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const response = await axios.get(
-        "https://lms-backend-5s5x.onrender.com/api/coupons/available",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setAvailableCoupons(response.data);
-    } catch (error) {
-      console.error("Failed to fetch available coupons:", error);
-    }
-  };
-
   const handleAddCourseToCart = async (courseData) => {
     try {
       const token = localStorage.getItem("token");
 
       if (courseData.isApiCourse) {
         if (!token) {
-          alert("Please login to add API courses to cart");
+          toast.error("Please login to add API courses to cart");
           return;
         }
         try {
-          await axios.post(
-            "https://lms-backend-5s5x.onrender.com/api/cart/add",
-            {
-              courseId: courseData.id,
-            },
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
+          await addToCartAPI(courseData.id);
 
           const updatedCart = [...cart, courseData];
           setCart(updatedCart);
           localStorage.setItem("cart", JSON.stringify(updatedCart));
-          alert("Course added successfully!");
-          fetchBackendCart(); // Refresh backend cart
+          toast.success("Course added successfully!");
         } catch (error) {
-          alert("Error adding course");
+          toast.error("Error adding course");
         }
       } else {
         const updatedCart = [...cart, courseData];
@@ -149,13 +106,7 @@ const Cart = () => {
         backendCart &&
         backendCart.items.some((item) => item.course._id === courseId)
       ) {
-        await axios.delete(
-          `https://lms-backend-5s5x.onrender.com/api/cart/remove/${courseId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        await fetchBackendCart();
+        await removeFromCartAPI(courseId);
       }
 
       const updatedCart = cart.filter((item) => item.id !== courseId);
@@ -172,52 +123,19 @@ const Cart = () => {
       setCouponMessage("Please enter a coupon code");
       return;
     }
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setCouponMessage("Please login to apply coupons");
-        return;
-      }
-      const response = await axios.post(
-        "https://lms-backend-5s5x.onrender.com/api/cart/apply-coupon",
-        {
-          couponCode: couponCode.trim(),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setCouponApplied(true);
-      setCouponMessage("Coupon applied successfully!");
-      setDiscountAmount(response.data.discountAmount);
-      setBackendCart(response.data.cart);
-    } catch (error) {
-      setCouponMessage(
-        error.response?.data?.message || "Failed to apply coupon"
-      );
-      setCouponApplied(false);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setCouponMessage("Please login to apply coupons");
+      return;
     }
+    await applyCouponAPI(couponCode.trim());
   };
 
   const removeCoupon = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      await axios.delete(
-        "https://lms-backend-5s5x.onrender.com/api/cart/remove-coupon",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setCouponApplied(false);
-      setCouponCode("");
-      setCouponMessage("");
-      setDiscountAmount(0);
-      await fetchBackendCart();
-    } catch (error) {
-      console.error("Failed to remove coupon:", error);
-    }
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    await removeCouponAPI();
+    setCouponCode("");
   };
 
   const handlePayment = () => {
@@ -251,10 +169,7 @@ const Cart = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full font-poppins px-20">
-      <Card
-        className="mt-30 mb-10 px-10 py-10 w-[700px]"
-        
-      >
+      <Card className="mt-30 mb-10 px-10 py-10 w-[700px]">
         <div
           className="gap-10"
           style={{
@@ -350,8 +265,8 @@ const Cart = () => {
                         </div>
                         <div className="text-gray-600 text-sm font-inter">
                           {isSubscription
-                            ? course.description
-                            : course.description}
+                            ? course.description.slice(0, 200) + "..."
+                            : course.description.slice(0, 200) + "..."}
                         </div>
                       </div>
                     </div>

@@ -132,7 +132,7 @@ export default function InstructorDashboard() {
   return (
     <div className="ic-page">
       {/* Header */}
-      <div className="ic-header">
+      <div className="ic-header mt-20">
         <div>
           <h1 className="ic-title">Courses</h1>
           <p className="ic-subtitle">

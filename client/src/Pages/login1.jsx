@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useStore } from "../Store/store";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "@/utils/api";
+import { toast } from "sonner";
 
 const Login1 = () => {
   const { isRightPanelActive, setIsRightPanelActive } = useStore();
@@ -32,7 +33,8 @@ const Login1 = () => {
     setMessage("");
     try {
       const res = await authAPI.signup({ ...signupForm, role: "student" });
-      setMessage(res.data.message || "Signup successful!");
+      // setMessage(res.data.message || "Signup successful!");
+      toast.success(res.data.message || "Signup successful!");
       // Store token and user info as needed
       if (res.data.token && res.data.user) {
         localStorage.setItem("token", res.data.token);
@@ -65,7 +67,8 @@ const Login1 = () => {
       console.log("Token type:", typeof res.data.token);
       console.log("Token length:", res.data.token?.length);
 
-      setMessage("Login successful!");
+      // setMessage("Login successful!");
+      toast.success("Login successful!");
 
       // Store token and user info as needed
       if (res.data.token) {
@@ -90,7 +93,7 @@ const Login1 = () => {
           console.log("Token still exists:", !!storedToken);
         }, 1000);
       } else {
-        console.error("NO TOKEN IN RESPONSE!");
+        toast.error("NO TOKEN IN RESPONSE!");
         console.log("Response keys:", Object.keys(res.data));
         setMessage("Login failed - no token received");
         return;
@@ -103,7 +106,7 @@ const Login1 = () => {
     } catch (err) {
       console.error("Login error:", err);
       console.error("Error response:", err.response);
-      setMessage(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

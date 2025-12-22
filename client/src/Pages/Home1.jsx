@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, useState } from "react";
 const FeaturedCourses = React.lazy(() =>
   import("../components/FeaturedCourses")
 );
@@ -52,14 +52,50 @@ import {
   FaHandsHelping,
 } from "react-icons/fa";
 import { SiUnity, SiCisco } from "react-icons/si";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineThunderbolt } from "react-icons/ai";
 import { FaSuitcase } from "react-icons/fa6";
 import { FaTools } from "react-icons/fa";
 import { BsGlobe2 } from "react-icons/bs";
 import { Input } from "@/components/ui/input";
 import { useStore } from "@/Store/store";
+import { toast } from "sonner";
+import { newsletterAPI, publicAPI } from "@/utils/api";
 const Home1 = () => {
+  const [email, setEmail] = useState("");
+  const [homeStats, setHomeStats] = useState({
+    students: 0,
+    courses: 0,
+    instructors: 0,
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await publicAPI.getStats();
+        setHomeStats(res.data);
+      } catch (err) {
+        console.error("Failed to load home stats", err);
+      }
+    };
+    loadStats();
+  }, []);
+
+  const {
+    subscribe,
+    subscribing,
+    setSubscribing,
+    courses,
+    loading,
+    error,
+    fetchCourses,
+  } = useStore();
+
+  const handleSubscribe = async () => {
+    subscribe(email);
+    setEmail("");
+  };
+
   const course = [
     {
       title: "Full-Stack Web Development",
@@ -179,7 +215,6 @@ const Home1 = () => {
       rating: 4,
     },
   ];
-  const { courses, loading, error, fetchCourses } = useStore();
 
   // FETCH COURSES (DYNAMIC ONLY)
   useEffect(() => {
@@ -223,26 +258,36 @@ const Home1 = () => {
             </p>
 
             <div className="flex gap-4 mt-4">
-              <Button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow">
-                Explore Courses
-              </Button>
+              <Link to="/courses">
+                <Button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow">
+                  Explore Courses
+                </Button>
+              </Link>
 
-              <Button className="px-6 py-3 border bg-Background border-Primary text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer  transition">
-                Become an Instructor
-              </Button>
+              <Link to="/teach">
+                <Button className="px-6 py-3 border bg-Background border-Primary text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer  transition">
+                  Become an Instructor
+                </Button>
+              </Link>
             </div>
 
             <div className="flex gap-12 mt-10">
               <div>
-                <p className="text-2xl font-bold text-slate-900">1000+</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {homeStats.students}+
+                </p>
                 <p className="text-sm text-slate-600">Students</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">50+</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {homeStats.courses}+
+                </p>
                 <p className="text-sm text-slate-600">Courses</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">20+</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {homeStats.instructors}+
+                </p>
                 <p className="text-sm text-slate-600">Instructors</p>
               </div>
             </div>
@@ -554,10 +599,18 @@ const Home1 = () => {
                 <Input
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full bg-Background shadow-md"
+                  className="w-full bg-Background text-PrimaryDark shadow-md"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
 
-                <Button className="">Subscribe</Button>
+                <Button
+                  className=""
+                  onClick={handleSubscribe}
+                  disabled={subscribing}
+                >
+                  {subscribing ? "Subscribing..." : "Subscribe"}
+                </Button>
               </div>
 
               {/* Guarantee Text */}

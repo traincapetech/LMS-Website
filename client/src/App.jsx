@@ -24,6 +24,7 @@ import Courses from "./Pages/Courses";
 import InstructorDashboard from "./Pages/InstructorDashboard";
 import AdminInstructors from "./Pages/AdminInstructors";
 import AdminCoupons from "./Pages/AdminCoupons";
+import AdminNewsletter from "./Pages/AdminNewsletter";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import OtpVerification from "./Pages/OtpVerification";
@@ -38,7 +39,8 @@ import Home1 from "./Pages/Home1";
 import Login1 from "./Pages/login1";
 import Signup1 from "./Pages/signup1";
 import Teach1 from "./Pages/teach1";
-
+import Wishlist from "./Pages/Wishlist";
+import AdminNewsletterDetail from "./Pages/AdminNewsletter-detail";
 // Cart context setup
 export const CartContext = createContext();
 
@@ -47,7 +49,8 @@ export const CartContext = createContext();
 const MyLearning = () => (
   <div style={{ padding: "2rem" }}>My Learning Page</div>
 );
-const Wishlist = () => <div style={{ padding: "2rem" }}>Wishlist Page</div>;
+
+
 const Notifications = () => (
   <div style={{ padding: "2rem" }}>Notifications Page</div>
 );
@@ -129,7 +132,7 @@ function App() {
           <Navbar cartCount={cartCount} />
           <div className="">
             <Routes>
-              <Route path="/" element={<Home1/>} />
+              <Route path="/" element={<Home1 />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/teach" element={<Teach1 />} />
               {/* <Route path="/signup" element={<Signup1 />} /> */}
@@ -150,6 +153,8 @@ function App() {
               />
               <Route path="/admin/instructors" element={<AdminInstructors />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
+              <Route path="/admin/newsletter" element={<AdminNewsletter />} />
+              <Route path="/admin/newsletter-detail" element={<AdminNewsletterDetail />} />
               <Route path="/subpage" element={<SubPages />} />
               <Route path="/ibm" element={<IBMPages />} />
               <Route path="/html" element={<Html />} />

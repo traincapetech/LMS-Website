@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from "react-icons/fi";
+import {
+  FiSearch,
+  FiShoppingCart,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiHeart,
+} from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import UserProfileDropdown from "./UserProfileDropdown";
 import { getAllCourses, searchCourses } from "../Pages/CourseData";
@@ -299,13 +306,15 @@ const Navbar = ({ cartCount = 0 }) => {
               </Link>
             )}
 
+      
+         
+
           {/* Cart */}
           <div style={{ position: "relative" }}>
             <Link to="/cart">
               <Button variant="outline">
-                <FiShoppingCart className="size-5"/>
+                <FiShoppingCart className="size-5" />
               </Button>
-            
 
               {cartCount > 0 && (
                 <span
@@ -318,7 +327,6 @@ const Navbar = ({ cartCount = 0 }) => {
                     borderRadius: "50%",
                     padding: "1px 8px",
                     fontSize: 12,
-                    
                   }}
                 >
                   {cartCount}
@@ -330,13 +338,9 @@ const Navbar = ({ cartCount = 0 }) => {
           {/* User Authentication */}
           {!user ? (
             <>
-              <Link
-                to="/login"
-                
-              >
+              <Link to="/login">
                 <Button>Log in</Button>
               </Link>
-              
             </>
           ) : (
             <div style={{ position: "relative" }} ref={dropdownRef}>
@@ -396,6 +400,8 @@ const Navbar = ({ cartCount = 0 }) => {
             gap: "16px",
           }}
         >
+         
+
           {/* Mobile Cart */}
           <div style={{ position: "relative" }}>
             <Link to="/cart">

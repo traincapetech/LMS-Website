@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom"; // Add this import
 import { CartContext } from "../App";
 import axios from "axios";
+import { Spinner } from "@/components/ui/spinner";
 
 const AdminInstructors = () => {
   const [instructors, setInstructors] = useState([]);
@@ -120,16 +121,13 @@ const AdminInstructors = () => {
     });
   };
 
-  if (loading) return (
-    <div style={{
-      textAlign: 'center',
-      marginTop: 60,
-      fontSize: '18px',
-      color: '#666'
-    }}>
-      Loading instructors and courses...
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center w-full h-screen justify-center">
+        <Spinner className="text-blue-600 size-12" />
+      </div>
+    );
+  }
 
   if (error) return (
     <div style={{
@@ -143,7 +141,7 @@ const AdminInstructors = () => {
   );
 
   return (
-    <div style={{
+    <div className="font-poppins" style={{
       maxWidth: 1400,
       margin: '0 auto',
       padding: '40px 24px',
@@ -151,25 +149,11 @@ const AdminInstructors = () => {
       minHeight: '100vh'
     }}>
       {/* Header Section */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: '48px'
-      }}>
-        <h1 style={{
-          fontWeight: 800,
-          fontSize: '42px',
-          marginBottom: '16px',
-          color: '#1e293b',
-          letterSpacing: '-0.025em'
-        }}>
+      <div className="text-center my-20">
+        <h1 className="text-4xl text-TextPrimary font-semibold mb-4">
           Instructor Dashboard
         </h1>
-        <p style={{
-          fontSize: '18px',
-          color: '#64748b',
-          maxWidth: '600px',
-          margin: '0 auto'
-        }}>
+        <p className="text-TextSecondary font-inter mb-4">
           Manage and view all instructors and their published courses
         </p>
       </div>

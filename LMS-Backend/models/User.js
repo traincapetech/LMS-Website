@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     resetOtp: { type: String },
     resetOtpExpires: { type: Date },
     otpVerifiedForReset: { type: Boolean },

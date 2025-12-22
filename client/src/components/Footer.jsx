@@ -1,9 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebook } from "react-icons/fa";
 import { BsInstagram } from "react-icons/bs";
 import { FaLinkedinIn } from "react-icons/fa";
+import { useStore } from "@/Store/store";
+import { toast } from "sonner";
 const Footer = () => {
+
+  const [email, setEmail] = useState("");
+    
+    const {
+      subscribe,
+      subscribing,
+      setSubscribing,
+      courses,
+      loading,
+      error,
+      fetchCourses,
+    } = useStore();
+  
+    const handleSubscribe = async () => {
+      if (!email) {
+        toast.error("Please enter your email address.");
+        return;
+      }
+      // Basic validation
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+  
+      setSubscribing(true);
+      try {
+        subscribe(email);
+        toast.success("Subscribed successfully!");
+        setEmail("");
+      } catch (error) {
+        console.error(error);
+        toast.error(
+          error.response?.data?.message ||
+            "Subscription failed. Please try again."
+        );
+      } finally {
+        setSubscribing(false);
+      }
+    };
   const handleCourseClick = () => {
     window.scrollTo(0, 0);
   };
@@ -92,11 +133,17 @@ const Footer = () => {
           <div className="flex items-center gap-2">
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full px-4 py-2 rounded-md bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
-              Join
+            <button
+              onClick={handleSubscribe}
+              disabled={subscribing}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm"
+            >
+              {subscribing ? "Joining..." : "Join"}
             </button>
           </div>
         </div>
