@@ -79,6 +79,13 @@ export const coursesAPI = {
   deleteCourse: (id) => api.delete(`/courses/${id}`),
 };
 
+export const pendingCoursesAPI = {
+  getPendingCourses: () => api.get("/pending-courses"),
+  approvePendingCourse: (id) => api.put(`/pending-courses/${id}/approve`),
+  rejectPendingCourse: (id) => api.put(`/pending-courses/${id}/reject`),
+  createPendingCourse: (data) => api.post("/pending-courses/create", data),
+};
+
 export const cartAPI = {
   getCart: () => api.get("/cart"),
   addToCart: (courseId) => api.post("/cart/add", { courseId }),
@@ -106,13 +113,13 @@ export const adminAPI = {
 };
 
 export const otpAPI = {
-  sendOtp: (email) => api.post("/send-otp", { email }),
+  sendOtp: (data) => api.post("/send-otp", data),
   verifyOtp: (data) => api.post("/otp/verify-otp", data),
 };
 
 export const uploadAPI = {
-  uploadThumbnail: (formData) =>
-    api.post("/upload/thumbnail", formData, {
+  uploadThumbnail: (formData, id) =>
+    api.post(`/upload/thumbnail/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

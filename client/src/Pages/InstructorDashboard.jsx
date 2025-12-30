@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import "./InstructorDashboard.css";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 
 const TABS = [
@@ -36,8 +38,6 @@ export default function InstructorDashboard() {
       navigate("/");
     }
   }, []);
-
-
 
   // Fetch courses from backend
   useEffect(() => {
@@ -88,10 +88,11 @@ export default function InstructorDashboard() {
 
     fetchCourses();
   }, [API_BASE]);
+ 
 
   const handleCreateCourse = () => {
-         navigate(`/create`);
-     };
+    navigate(`/create`);
+  };
 
   // Filters & sorting
   const filteredCourses = useMemo(() => {
@@ -114,9 +115,7 @@ export default function InstructorDashboard() {
     // Search filter
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter((c) =>
-        c.landingTitle?.toLowerCase().includes(q)
-      );
+      list = list.filter((c) => c.landingTitle?.toLowerCase().includes(q));
     }
 
     // Sorting
@@ -127,7 +126,13 @@ export default function InstructorDashboard() {
     return list;
   }, [search, statusFilter, sortBy, activeTab, courses]);
 
-  if (loading) return <div className="ic-loading">Loading courses...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center w-full h-screen justify-center">
+        <Spinner className="text-blue-600 size-12" />
+      </div>
+    );
+  }
 
   return (
     <div className="ic-page">
@@ -142,7 +147,10 @@ export default function InstructorDashboard() {
 
         <div className="ic-header-actions">
           <button className="ic-btn-outline">Create bundle</button>
-          <button className="ic-btn-primary" onClick={handleCreateCourse}>
+          <button
+            className="ic-btn-primary"
+            onClick={() => handleCreateCourse()}
+          >
             + New course
           </button>
         </div>
@@ -239,11 +247,11 @@ function CourseList({ courses }) {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Course deleted successfully!");
+        toast.success("Course deleted successfully!");
         // Remove course from UI instantly
         window.location.reload();
       } else {
-        alert(data.message || "Failed to delete course");
+        toast.error(data.message || "Failed to delete course");
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -413,7 +421,9 @@ function EmptyCourses({ activeTab }) {
       <div className="ic-empty-icon">📚</div>
       <h3 className="ic-empty-title">{label}</h3>
       <p className="ic-empty-text">{desc}</p>
-      <button className="ic-btn-primary" onClick={handleCreateCourse} >+ New course</button>
+      <button className="ic-btn-primary" onClick={() => handleCreateCourse()}>
+        + New course
+      </button>
     </div>
   );
 }

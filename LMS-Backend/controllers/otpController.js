@@ -29,6 +29,7 @@ const sendOtp = async (req, res) => {
       { upsert: true, new: true }
     );
 
+    
     return res.status(200).json({ message: "OTP sent successfully to your email" });
   } catch (error) {
     console.error("❌ Error sending OTP:", error.message);

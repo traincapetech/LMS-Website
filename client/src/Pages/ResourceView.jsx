@@ -113,7 +113,7 @@ const ResourceView = () => {
   }
 
   return (
-    <div
+    <div className="mt-20"
       style={{
         width: "100%",
         height: "100vh",

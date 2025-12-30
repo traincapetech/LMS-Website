@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Create.css";
+import { pendingCoursesAPI } from "@/utils/api";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const categories = [
   "Development", "Business", "Finance & Accounting", "IT & Software",
@@ -32,7 +35,7 @@ const Create = () => {
     }
 
     if (!user || user.role !== "instructor") {
-      alert("Only instructors can create courses!");
+      toast.info("Only instructors can create courses!");
       return;
     }
 
@@ -40,27 +43,18 @@ const Create = () => {
     // 🚀 Create Pending Course API Call
     // -----------------------------------------
     try {
-      const res = await fetch("http://localhost:5001/api/pending-courses/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          courseType,
-          category,
-          timeCommitment
-        })
+      const res = await pendingCoursesAPI.createPendingCourse({
+        courseType,
+        category,
+        timeCommitment
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Course creation failed!");
+     
+      if (!res.data.success) {
+        alert(res.data.message || "Course creation failed!");
         return;
       }
 
-      if (!data.pendingCourseId) {
+      if (!res.data.pendingCourseId) {
         alert("Error: pendingCourseId missing from server response.");
         return;
       }
@@ -68,7 +62,7 @@ const Create = () => {
       // -----------------------------------------
       // 🎯 Redirect to dashboard/:id
       // -----------------------------------------
-      navigate(`/dashboard/${data.pendingCourseId}`);
+      navigate(`/dashboard/${res.data.pendingCourseId}`);
 
     } catch (err) {
       console.error("Create course error:", err);
@@ -83,27 +77,33 @@ const Create = () => {
   };
 
   return (
-    <div className="create-page">
-      <div className="create-wrapper">
+    <div className="create-page mt-10 font-poppins">
+      <Card className="create-wrapper">
         <div className="step-indicator">Step {step} of 4</div>
 
         {step === 1 && (
           <>
-            <h2 className="create-heading">What type of course are you creating?</h2>
+            <h2 className="create-heading">
+              What type of course are you creating?
+            </h2>
             <div className="card-grid">
               <div
                 className={`card ${courseType === "course" ? "active" : ""}`}
                 onClick={() => setCourseType("course")}
               >
-                <h3>🎥 Full Course</h3>
-                <p>Build a complete course with videos, quizzes, and materials.</p>
+                <h3 className="text-lg">🎥 Full Course</h3>
+                <p className="font-inter text-sm pt-2">
+                  Build a complete course with videos, quizzes, and materials.
+                </p>
               </div>
               <div
                 className={`card ${courseType === "practice" ? "active" : ""}`}
                 onClick={() => setCourseType("practice")}
               >
-                <h3>📝 Practice Test</h3>
-                <p>Help students prepare with mock tests and assessments.</p>
+                <h3 className="text-lg">📝 Practice Test</h3>
+                <p className="font-inter text-sm pt-2">
+                  Help students prepare with mock tests and assessments.
+                </p>
               </div>
             </div>
           </>
@@ -119,7 +119,9 @@ const Create = () => {
             >
               <option value="">Select a category</option>
               {categories.map((cat, index) => (
-                <option key={index} value={cat}>{cat}</option>
+                <option key={index} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
           </>
@@ -133,7 +135,7 @@ const Create = () => {
                 "I’m very busy right now (0–2 hours)",
                 "I’ll work on this on the side (2–4 hours)",
                 "I have lots of flexibility (5+ hours)",
-                "I haven’t yet decided if I have time"
+                "I haven’t yet decided if I have time",
               ].map((option, idx) => (
                 <label key={idx} className="radio-label">
                   <input
@@ -153,26 +155,27 @@ const Create = () => {
           <>
             <h2 className="create-heading">You're ready to begin!</h2>
             <p className="create-subtext">
-              Let’s head to your course dashboard and start creating your content.
+              Let’s head to your course dashboard and start creating your
+              content.
             </p>
           </>
         )}
 
         <div className="btn-group">
           {step > 1 && (
-            <button className="btn back-btn" onClick={handleBack}>
+            <Button className="px-5 py-5 bg-blue-600" onClick={handleBack}>
               ⬅ Back
-            </button>
+            </Button>
           )}
-          <button
-            className="btn primary-btn"
+          <Button
+            className="px-5 py-5 bg-blue-600"
             onClick={handleContinue}
             disabled={step === 1 && !courseType}
           >
             {step === 4 ? "Launch Dashboard 🚀" : "Continue ➡"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

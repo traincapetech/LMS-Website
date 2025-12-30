@@ -4,6 +4,7 @@ import instr from "../assets/instr.jpg";
 import { useNavigate } from "react-router-dom";
 import Otp from "./Otp";
 import { Button } from "@/components/ui/button";
+import { otpAPI } from "@/utils/api";
 
 const Form = () => {
   const navigate = useNavigate();
@@ -13,9 +14,9 @@ const Form = () => {
   const [otpFromServer, setOtpFromServer] = useState("");
   const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, [])
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,21 +27,18 @@ useEffect(() => {
     setLoading(true);
     try {
       // Call backend to generate/send OTP
-              const res = await fetch("https://lms-backend-5s5x.onrender.com/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName: name, email }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message || "Failed to send OTP");
-        setLoading(false);
-        return;
-      }
-      setOtpFromServer(data.otp); // For demo, assume backend returns OTP
+      const res = await otpAPI.sendOtp({ email, fullName: name });
+
+      // Axios automatically throws on error, so if we're here, it succeeded
+      alert(res.data.message || "OTP sent successfully!");
+      setOtpFromServer(res.data.otp); // For demo, if backend returns OTP
       setStep(2);
     } catch (error) {
-      alert("Something went wrong. Please try again later.");
+      console.error("OTP Error:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Something went wrong. Please try again later.";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -58,18 +56,41 @@ useEffect(() => {
       </div>
       <div className="form-content">
         <h2 className="font-medium text-3xl mb-5">Instructor Application</h2>
-        <p className=" text-sm font-inter mb-5">Enter your name and email to begin the instructor application process.</p>
+        <p className=" text-sm font-inter mb-5">
+          Enter your name and email to begin the instructor application process.
+        </p>
         {step === 1 && (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <input type="text" name="fullName" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} required />
-            <input type="email" name="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-          <Button disabled={loading} style={{ marginTop: 10 }}>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 18 }}
+          >
+            <input
+              type="text"
+              name="fullName"
+              placeholder="Full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Button disabled={loading} style={{ marginTop: 10 }}>
               {loading ? "Sending OTP..." : "Send OTP"}
-          </Button>
-        </form>
+            </Button>
+          </form>
         )}
         {step === 2 && (
-          <Otp email={email} otpFromServer={otpFromServer} onSuccess={handleOtpSuccess} />
+          <Otp
+            email={email}
+            otpFromServer={otpFromServer}
+            onSuccess={handleOtpSuccess}
+          />
         )}
       </div>
     </div>

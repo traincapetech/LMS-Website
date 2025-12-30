@@ -50,6 +50,9 @@ const pendingCourseSchema = new mongoose.Schema({
     default: 'pending'
   },
   isNew: { type: Boolean, default: true },
+  courseType: { type: String, enum: ['course', 'practice'], default: 'course' },
+  category: String,
+  timeCommitment: String,
   adminMessage: String
 }, { timestamps: true });
 

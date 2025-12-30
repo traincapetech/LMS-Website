@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ChevronLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -11,7 +14,7 @@ const PendingCourseDetails = () => {
   const [videos, setVideos] = useState([]);
 
   const token = localStorage.getItem("token");
-  const API_BASE = import.meta.env.VITE_API_BASE_URL||"http://localhost:5001";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
   /* -------------------------------------------
      1️⃣  Fetch Pending Course Details
@@ -30,6 +33,7 @@ const PendingCourseDetails = () => {
         );
 
         const data = await res.json();
+        console.log("mohit",data);
         if (!res.ok) throw new Error(data.message || "Failed to fetch course");
 
         setCourse(data);
@@ -42,7 +46,6 @@ const PendingCourseDetails = () => {
 
     fetchCourse();
   }, [pendingCourseId, token]);
-
 
   /* -------------------------------------------
      2️⃣  Fetch Videos for This Course
@@ -70,7 +73,6 @@ const PendingCourseDetails = () => {
     fetchVideos();
   }, [pendingCourseId]);
 
-
   /* -------------------------------------------
            LOADING + ERROR HANDLING
   ------------------------------------------- */
@@ -86,15 +88,15 @@ const PendingCourseDetails = () => {
 
   if (!course) return null;
 
-
   /* -------------------------------------------
                   RENDER DATA
   ------------------------------------------- */
   return (
-    <div
+    <Card
+      className="mt-30 mb-10 mx-auto font-poppins"
       style={{
         maxWidth: 900,
-        margin: "40px auto",
+
         padding: 32,
         background: "#ffffff",
         borderRadius: 16,
@@ -102,46 +104,31 @@ const PendingCourseDetails = () => {
       }}
     >
       {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          marginBottom: 24,
-          background: "#6d28d9",
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "10px 28px",
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-      >
-        ← Back
-      </button>
-
-      <h2
-        style={{
-          fontWeight: 800,
-          fontSize: 30,
-          marginBottom: 24,
-          color: "#1f2937",
-        }}
-      >
-        Pending Course Preview
-      </h2>
+      <Button className="w-1/10" onClick={() => navigate(-1)}>
+        <ChevronLeft />
+        Back
+      </Button>
+      <div className="flex items-center justify-center mb-6">
+        <h2 className="text-4xl font-semibold">Pending Course Preview</h2>
+      </div>
 
       {/* Thumbnail */}
       <div style={{ marginBottom: 32 }}>
-        <img
-          src={course.thumbnailUrl}
-          alt="Course Thumbnail"
-          style={{
-            width: "100%",
+        {course.thumbnailUrl ? (
+          <img
+            src={course.thumbnailUrl}
+            alt="Course Thumbnail"
+            style={{
+              width: "100%",
             maxHeight: 260,
             objectFit: "cover",
             borderRadius: 12,
             boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
           }}
         />
+        ) : (
+          <p>No Thumbnail uploaded</p>
+        )}
       </div>
 
       {/* DETAILS SECTION */}
@@ -150,7 +137,10 @@ const PendingCourseDetails = () => {
         <Detail label="Subtitle" value={course.landingSubtitle} />
         <Detail label="Description" value={course.landingDesc} />
 
-        <DetailList label="Learning Objectives" items={course.learningObjectives} />
+        <DetailList
+          label="Learning Objectives"
+          items={course.learningObjectives}
+        />
         <DetailList label="Requirements" items={course.requirements} />
 
         <Detail label="Structure" value={course.structure} />
@@ -216,13 +206,12 @@ const PendingCourseDetails = () => {
                               width: "100%",
                               maxHeight: "300px",
                               borderRadius: 8,
-                              background: "#000"
+                              background: "#000",
                             }}
                           >
                             <source src={matchedVideo.url} type="video/mp4" />
                             Your browser does not support the video tag.
                           </video>
-
                         </div>
                       ) : (
                         <p style={{ color: "#9ca3af", marginTop: 4 }}>
@@ -280,7 +269,7 @@ const PendingCourseDetails = () => {
           value={new Date(course.createdAt).toLocaleString()}
         />
       </div>
-    </div>
+    </Card>
   );
 };
 

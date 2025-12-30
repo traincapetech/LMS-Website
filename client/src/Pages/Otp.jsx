@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { otpAPI } from "@/utils/api";
 import "./Otp.css";
 
 const Otp = ({ email, otpFromServer, onSuccess }) => {
@@ -11,24 +12,21 @@ const Otp = ({ email, otpFromServer, onSuccess }) => {
     setLoading(true);
     try {
       // Call backend to verify OTP
-      const res = await fetch("https://lms-backend-5s5x.onrender.com/api/otp/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, enteredOtp: otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message || "OTP verification failed");
-        setLoading(false);
-        return;
-      }
+      const res = await otpAPI.verifyOtp({ email, enteredOtp: otp });
+
       // Save user to localStorage
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
       }
+
+      alert(res.data.message || "OTP verified successfully!");
       if (onSuccess) onSuccess();
     } catch (err) {
-      alert("Something went wrong. Please try again.");
+      console.error("OTP Verification Error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        "Something went wrong. Please try again.";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -37,7 +35,9 @@ const Otp = ({ email, otpFromServer, onSuccess }) => {
   return (
     <div className="otp-container">
       <h2>Verify Your Email</h2>
-      <p>We’ve sent an OTP to <strong>{email}</strong></p>
+      <p>
+        We’ve sent an OTP to <strong>{email}</strong>
+      </p>
       <form onSubmit={handleVerify}>
         <input
           type="text"
@@ -46,7 +46,9 @@ const Otp = ({ email, otpFromServer, onSuccess }) => {
           onChange={(e) => setOtp(e.target.value)}
           required
         />
-        <button type="submit" disabled={loading}>{loading ? "Verifying..." : "Verify & Continue"}</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Verifying..." : "Verify & Continue"}
+        </button>
       </form>
     </div>
   );

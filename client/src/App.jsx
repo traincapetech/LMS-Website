@@ -50,7 +50,6 @@ const MyLearning = () => (
   <div style={{ padding: "2rem" }}>My Learning Page</div>
 );
 
-
 const Notifications = () => (
   <div style={{ padding: "2rem" }}>Notifications Page</div>
 );
@@ -75,34 +74,32 @@ const Profile = () => <div style={{ padding: "2rem" }}>Profile Page</div>;
 const Settings = () => <div style={{ padding: "2rem" }}>Settings Page</div>;
 
 function App() {
-  const [cart, setCart] = useState([]);
-  const [cartCount, setCartCount] = useState(0);
+  // Initialize cart from localStorage to avoid dual sourcing issues
+  const [cart, setCart] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("cart") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
-  // Run network diagnostics on app start (commented out to avoid CORS issues)
-  // useEffect(() => {
-  //   console.log('🚀 App starting - running network diagnostics...');
-  //   logNetworkStatus();
-  // }, []);
+  // Calculate total cart count - simplistic approach: just use state length
+  // Since state is initialized from storage and synced, this is accurate.
+  const cartCount = cart.length;
 
-  // Calculate total cart count from both local state and localStorage
-  const getCartCount = () => {
-    const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    return cart.length + localCart.length;
-  };
-
-  // Update cart count when cart changes
-  React.useEffect(() => {
-    setCartCount(getCartCount());
-  }, [cart]);
-
-  // Listen for localStorage changes
+  // Listen for localStorage changes to sync state across tabs/components
   React.useEffect(() => {
     const handleStorageChange = () => {
-      setCartCount(getCartCount());
+      try {
+        const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
+        setCart(localCart);
+      } catch (error) {
+        console.error("Error syncing cart from storage:", error);
+      }
     };
 
     const handleCustomCartChange = () => {
-      setCartCount(getCartCount());
+      handleStorageChange();
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -119,7 +116,8 @@ function App() {
       // Prevent duplicates by title
       if (prev.find((item) => item.title === course.title)) return prev;
       const newCart = [...prev, course];
-      // Dispatch custom event to update cart count
+      localStorage.setItem("cart", JSON.stringify(newCart));
+      // Dispatch custom event to update other components if needed
       setTimeout(() => window.dispatchEvent(new Event("cartUpdated")), 0);
       return newCart;
     });
@@ -154,7 +152,10 @@ function App() {
               <Route path="/admin/instructors" element={<AdminInstructors />} />
               <Route path="/admin/coupons" element={<AdminCoupons />} />
               <Route path="/admin/newsletter" element={<AdminNewsletter />} />
-              <Route path="/admin/newsletter-detail" element={<AdminNewsletterDetail />} />
+              <Route
+                path="/admin/newsletter-detail"
+                element={<AdminNewsletterDetail />}
+              />
               <Route path="/subpage" element={<SubPages />} />
               <Route path="/ibm" element={<IBMPages />} />
               <Route path="/html" element={<Html />} />
