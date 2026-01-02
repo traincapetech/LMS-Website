@@ -4,7 +4,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL:
     "http://localhost:5001/api" || "https://lms-backend-5s5x.onrender.com/api",
-  timeout: 10000, // 10 second timeout
+  timeout: 60000, // 30 second timeout
   headers: {
     "Content-Type": "application/json",
   },
@@ -135,6 +135,7 @@ export const newsletterAPI = {
 
 export const publicAPI = {
   getStats: () => api.get("/public/stats"),
+  contactUs: (data) => api.post("/public/contact", data),
 };
 
 export default api;

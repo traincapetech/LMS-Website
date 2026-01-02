@@ -16,6 +16,7 @@ import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import QuizPage from "./QuizPage";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 

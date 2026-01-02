@@ -1,11 +1,11 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 // Create transporter with OAuth2 (more secure)
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
+  return nodemailer.createTransport({
+    service: "gmail",
     auth: {
-      type: 'OAuth2',
+      type: "OAuth2",
       user: process.env.EMAIL_USER,
       clientId: process.env.GMAIL_CLIENT_ID,
       clientSecret: process.env.GMAIL_CLIENT_SECRET,
@@ -17,8 +17,8 @@ const createTransporter = () => {
 
 // Fallback to regular SMTP if OAuth2 not configured
 const createFallbackTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
+  return nodemailer.createTransport({
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
@@ -27,10 +27,10 @@ const createFallbackTransporter = () => {
 };
 
 // Send OTP email
-const sendOtpEmail = async (email, otp, purpose = 'verification') => {
+const sendOtpEmail = async (email, otp, purpose = "verification") => {
   try {
     let transporter;
-    
+
     // Try OAuth2 first, fallback to regular SMTP
     if (process.env.GMAIL_CLIENT_ID) {
       transporter = createTransporter();
@@ -38,10 +38,11 @@ const sendOtpEmail = async (email, otp, purpose = 'verification') => {
       transporter = createFallbackTransporter();
     }
 
-    const subject = purpose === 'password-reset' 
-      ? 'Password Reset OTP - Traincape LMS'
-      : 'Email Verification OTP - Traincape LMS';
-    
+    const subject =
+      purpose === "password-reset"
+        ? "Password Reset OTP - Traincape LMS"
+        : "Email Verification OTP - Traincape LMS";
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center;">
@@ -50,13 +51,18 @@ const sendOtpEmail = async (email, otp, purpose = 'verification') => {
         
         <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
           <h2 style="color: #333; margin-bottom: 20px; text-align: center;">
-            ${purpose === 'password-reset' ? 'Password Reset Request' : 'Email Verification'}
+            ${
+              purpose === "password-reset"
+                ? "Password Reset Request"
+                : "Email Verification"
+            }
           </h2>
           
           <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
-            ${purpose === 'password-reset' 
-              ? 'You have requested to reset your password. Use the OTP below to complete the process:'
-              : 'Thank you for registering! Please use the OTP below to verify your email address:'
+            ${
+              purpose === "password-reset"
+                ? "You have requested to reset your password. Use the OTP below to complete the process:"
+                : "Thank you for registering! Please use the OTP below to verify your email address:"
             }
           </p>
           
@@ -81,16 +87,43 @@ const sendOtpEmail = async (email, otp, purpose = 'verification') => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: subject,
-      html: htmlContent
+      html: htmlContent,
     };
 
     const result = await transporter.sendMail(mailOptions);
     console.log(`📧 Email sent successfully to ${email}`);
     return true;
   } catch (error) {
-    console.error('❌ Error sending email:', error.message);
+    console.error("❌ Error sending email:", error.message);
     return false;
   }
 };
 
-module.exports = { sendOtpEmail }; 
+const sendGenericEmail = async (to, subject, htmlContent) => {
+  try {
+    let transporter;
+
+    // Try OAuth2 first, fallback to regular SMTP
+    if (process.env.GMAIL_CLIENT_ID) {
+      transporter = createTransporter();
+    } else {
+      transporter = createFallbackTransporter();
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`📧 Email sent successfully to ${to}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error sending email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+module.exports = { sendOtpEmail, sendGenericEmail };

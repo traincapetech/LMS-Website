@@ -52,7 +52,7 @@ import {
   FaHandsHelping,
 } from "react-icons/fa";
 import { SiUnity, SiCisco } from "react-icons/si";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AiOutlineThunderbolt } from "react-icons/ai";
 import { FaSuitcase } from "react-icons/fa6";
 import { FaTools } from "react-icons/fa";
@@ -80,6 +80,21 @@ const Home1 = () => {
     };
     loadStats();
   }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log("location.hash", location.hash);
+    if (location.hash) {
+      const element = document.getElementById(location.hash.slice(1));
+      console.log("element", element);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 500); // 100ms delay to ensure DOM is ready
+      }
+    }
+  }, [location]);
 
   const {
     subscribe,
@@ -320,7 +335,7 @@ const Home1 = () => {
         <FeaturedCourses courses={courses} />
       </Suspense>
       {/* SECTION 3 – WHY CHOOSE TRAINCAPE */}
-      <section className="w-full py-20 bg-white font-poppins">
+      <section id="aboutus" className="w-full py-20 bg-white font-poppins">
         <div className="max-w-7xl mx-auto px-6">
           {/* Heading */}
           <motion.div
