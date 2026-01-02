@@ -2,8 +2,9 @@ import axios from "axios";
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL:
-    "http://localhost:5001/api" || "https://lms-backend-5s5x.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL
+    ? `${import.meta.env.VITE_API_BASE_URL}/api`
+    : "https://lms-backend-5s5x.onrender.com/api",
   timeout: 10000, // 10 second timeout
   headers: {
     "Content-Type": "application/json",
@@ -135,6 +136,21 @@ export const newsletterAPI = {
 
 export const publicAPI = {
   getStats: () => api.get("/public/stats"),
+};
+
+export const enrollmentAPI = {
+  enroll: (courseId) => api.post("/enrollments/enroll", { courseId }),
+  getMyEnrollments: () => api.get("/enrollments/my-enrollments"),
+  checkEnrollment: (courseId) => api.get(`/enrollments/check/${courseId}`),
+  unenroll: (courseId) => api.delete(`/enrollments/unenroll/${courseId}`),
+  getStats: () => api.get("/enrollments/stats"),
+};
+
+export const progressAPI = {
+  markLectureComplete: (data) => api.post("/progress/lecture/complete", data),
+  updateLastAccessed: (data) => api.post("/progress/lecture/access", data),
+  getCourseProgress: (courseId) => api.get(`/progress/course/${courseId}`),
+  markQuizComplete: (data) => api.post("/progress/quiz/complete", data),
 };
 
 export default api;

@@ -19,7 +19,7 @@ import {
 import { useStore } from "../Store/store";
 
 const LectureVideo = () => {
-  const { videoId } = useParams();
+  const { lectureId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,12 +37,16 @@ const LectureVideo = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
-// const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
+  // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
+
+
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
       for (const item of sec.items) {
-        if (item._id?.toString() === itemId?.toString()) {
+        const id = item._id || item.id || item.itemId;
+
+        if (id?.toString() === itemId?.toString()) {
           return item;
         }
       }
@@ -72,7 +76,7 @@ const LectureVideo = () => {
         setLoading(true); // Start loading
 
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
-         const rawCourse = await courseRes.json();
+        const rawCourse = await courseRes.json();
         //  fetchCoursesById(courseId);
 
         if (!rawCourse.curriculum) return;
@@ -132,7 +136,7 @@ const LectureVideo = () => {
         if (populatedCurriculum.length > 0) {
           setOpenSections({
             [populatedCurriculum[0]._id ||
-            populatedCurriculum[0].sectionId]: true,
+              populatedCurriculum[0].sectionId]: true,
           });
         }
 
@@ -140,12 +144,14 @@ const LectureVideo = () => {
         let selected = null;
 
         // First try to find by lecture ID from URL
-        if (videoId) {
-          selected = findLectureById(fullCourse, videoId);
+        if (lectureId) {
+          selected = findLectureById(fullCourse, lectureId);
+
+
 
           // If not found by lecture ID, try to find by video ID
           if (!selected) {
-            selected = findLectureByVideoId(fullCourse, videoId);
+            selected = findLectureByVideoId(fullCourse, lectureId);
           }
         }
 
@@ -179,7 +185,7 @@ const LectureVideo = () => {
     };
 
     fetchCourseAndVideos();
-  }, [courseId, videoId, location.state]);
+  }, [courseId, lectureId, location.state]);
 
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -187,11 +193,11 @@ const LectureVideo = () => {
   // Calculate total lectures correctly
   const totalLectures = course
     ? course.curriculum.reduce(
-        (sum, sec) =>
-          sum +
-          (sec.items || []).filter((item) => item.type === "lecture").length,
-        0
-      )
+      (sum, sec) =>
+        sum +
+        (sec.items || []).filter((item) => item.type === "lecture").length,
+      0
+    )
     : 0;
 
   // Calculate progress percentage
@@ -257,7 +263,8 @@ const LectureVideo = () => {
   // -------------------------------------------------------------------
   const VideoListItem = ({ vid, isActive }) => {
     // Make sure we have correct ID for navigation
-    const lectureId = vid._id || vid.itemId;
+    // Ensure fallback to 'id' if '_id' is missing
+    const lectureId = vid._id || vid.id || vid.itemId;
     const videoId = vid.videoId;
     const isCompleted = completedLectures.has(lectureId);
 
@@ -323,15 +330,19 @@ const LectureVideo = () => {
             >
               {isCompleted && "✓"}
             </div>
-            <FaPlayCircle style={{ color: "#7e22ce" }} />
+            {vid.type === "quiz" ? (
+              <FaQuestionCircle style={{ color: "#7e22ce" }} />
+            ) : (
+              <FaPlayCircle style={{ color: "#7e22ce" }} />
+            )}
             <span style={{ marginLeft: "10px" }}>{vid.title}</span>
           </div>
 
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {vid.duration
               ? `${Math.floor(vid.duration / 60)}:${String(
-                  Math.floor(vid.duration % 60)
-                ).padStart(2, "0")}`
+                Math.floor(vid.duration % 60)
+              ).padStart(2, "0")}`
               : "5:00"}
           </span>
         </div>
@@ -390,6 +401,8 @@ const LectureVideo = () => {
     );
   }
 
+
+  console.log("currentVideo", currentVideo);
   // -------------------------------------------------------------------
   // MAIN RENDER
   // -------------------------------------------------------------------
@@ -452,11 +465,11 @@ const LectureVideo = () => {
 
       {/* MAIN LAYOUT */}
       <div className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
-        // style={{
-        //   display: "flex",
-        //   minHeight: "100vh",
-        //   backgroundColor: "#f4f6f9",
-        // }}
+      // style={{
+      //   display: "flex",
+      //   minHeight: "100vh",
+      //   backgroundColor: "#f4f6f9",
+      // }}
       >
         {/* LEFT: VIDEO PLAYER */}
         <div style={{ flex: 1, padding: "20px" }}>
@@ -467,7 +480,48 @@ const LectureVideo = () => {
               boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
             }}
           >
-            {currentVideo?.videoUrl ? (
+
+            {/* START: Modified Main Content Area */}
+            {currentVideo?.type === "quiz" ? (
+              // ----------------- QUIZ VIEW -----------------
+              <div style={{ padding: "40px", backgroundColor: "#fff", minHeight: "400px" }}>
+                <h2 className="text-2xl font-bold mb-4">📝 Quiz: {currentVideo.title}</h2>
+
+                {currentVideo.questions && currentVideo.questions.length > 0 ? (
+                  <div className="space-y-6">
+                    {currentVideo.questions.map((q, index) => (
+                      <div key={index} className="border p-4 rounded-lg shadow-sm">
+                        <h3 className="font-semibold text-lg mb-3">
+                          {index + 1}. {q.question || q.text} {/* Adjust based on your DB schema */}
+                        </h3>
+                        <div className="space-y-2">
+                          {q.options && q.options.map((opt, optIndex) => (
+                            // Adjust logic based on how you saved options (array of strings or objects)
+                            <div key={optIndex} className="flex items-center gap-2">
+                              <input type="radio" name={`question-${index}`} id={`q${index}-opt${optIndex}`} />
+                              <label htmlFor={`q${index}-opt${optIndex}`}>{opt.text || opt}</label>
+                            </div>
+                          ))}
+                          {/* Fallback if you used 'answers' array in useQuiz.js */}
+                          {q.answers && q.answers.map((ans, ansIndex) => (
+                            <div key={ansIndex} className="flex items-center gap-2">
+                              <input type="radio" name={`question-${index}`} />
+                              <label>{ans.text}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    <button className="mt-5 px-4 py-2 bg-purple-600 text-white rounded">
+                      Submit Quiz
+                    </button>
+                  </div>
+                ) : (
+                  <p>No questions in this quiz.</p>
+                )}
+              </div>
+            ) : currentVideo?.videoUrl ? (
+              // ----------------- VIDEO VIEW -----------------
               <video
                 key={currentVideo._id}
                 controls
@@ -477,12 +531,12 @@ const LectureVideo = () => {
                 <source src={currentVideo.videoUrl} type="video/mp4" />
               </video>
             ) : (
-              <div
-                style={{ color: "white", padding: "20px", textAlign: "center" }}
-              >
-                No video uploaded.
+              // ----------------- EMPTY VIEW -----------------
+              <div style={{ color: "white", padding: "20px", textAlign: "center" }}>
+                Select a lecture or quiz to start.
               </div>
             )}
+            {/* END: Modified Main Content Area */}
           </div>
 
           <h2
@@ -587,7 +641,7 @@ const LectureVideo = () => {
                 {openSections[key] && (
                   <div>
                     {(section.items || [])
-                      .filter((i) => i.type === "lecture")
+                      .filter((i) => i.type === "lecture" || i.type === "quiz")
                       .map((vid) => (
                         <VideoListItem
                           key={vid._id || vid.itemId || vid.videoId}

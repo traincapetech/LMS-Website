@@ -288,7 +288,9 @@ exports.approve = async (req, res) => {
         videoId: item.videoId,
         videoUrl: videoMap[String(item.videoId)] || "",
         documents: item.documents,
+        questions: item.questions || [],
         quizId: item.quizId,
+
       })),
     }));
 

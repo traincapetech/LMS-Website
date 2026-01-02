@@ -16,6 +16,7 @@ import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import QuizPage from "./QuizPage";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
@@ -515,6 +516,9 @@ export default function Dashboard() {
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || d.filename || "",
           })),
+
+          questions: item.questions || [],
+
           quizId: item.quizId || null,
         })),
       }));
@@ -542,6 +546,8 @@ export default function Dashboard() {
         curriculum: curriculumMeta,
         instructor: JSON.parse(localStorage.getItem("user") || "{}"),
       };
+
+      console.log("SENDING CURRICULUM DATA:", JSON.stringify(curriculumMeta, null, 2));
 
       // 3) Build FormData
       const form = new FormData();
@@ -587,6 +593,11 @@ export default function Dashboard() {
               `curriculum[${sIndex}][items][${iIndex}][videoId]`,
               String(item.videoId)
             );
+
+          if (item.type === 'quiz' && item.questions && item.questions.length > 0) {
+            // Questions array ko String bana ke bhejna padega taaki FormData structure maintain rahe
+            form.append(`curriculum[${sIndex}][items][${iIndex}][questions]`, JSON.stringify(item.questions));
+          }
         });
 
         // also append section title
@@ -1043,16 +1054,16 @@ export default function Dashboard() {
                                         prev.map((sec) =>
                                           sec.id === section.id
                                             ? {
-                                                ...sec,
-                                                items: sec.items.map((it) =>
-                                                  it.id === item.id
-                                                    ? {
-                                                        ...it,
-                                                        uploadProgress: 0,
-                                                      }
-                                                    : it
-                                                ),
-                                              }
+                                              ...sec,
+                                              items: sec.items.map((it) =>
+                                                it.id === item.id
+                                                  ? {
+                                                    ...it,
+                                                    uploadProgress: 0,
+                                                  }
+                                                  : it
+                                              ),
+                                            }
                                             : sec
                                         )
                                       );
@@ -1067,18 +1078,18 @@ export default function Dashboard() {
                                               prev.map((sec) =>
                                                 sec.id === section.id
                                                   ? {
-                                                      ...sec,
-                                                      items: sec.items.map(
-                                                        (it) =>
-                                                          it.id === item.id
-                                                            ? {
-                                                                ...it,
-                                                                uploadProgress:
-                                                                  percent,
-                                                              }
-                                                            : it
-                                                      ),
-                                                    }
+                                                    ...sec,
+                                                    items: sec.items.map(
+                                                      (it) =>
+                                                        it.id === item.id
+                                                          ? {
+                                                            ...it,
+                                                            uploadProgress:
+                                                              percent,
+                                                          }
+                                                          : it
+                                                    ),
+                                                  }
                                                   : sec
                                               )
                                             );
@@ -1437,10 +1448,9 @@ export default function Dashboard() {
                 <li key={step.key}>
                   <button
                     className={` px-5 py-4 w-full text-left text-lg font-normal cursor-pointer
-                      ${
-                        active === step.key
-                          ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
-                          : "hover:text-blue-600"
+                      ${active === step.key
+                        ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
+                        : "hover:text-blue-600"
                       }`}
                     onClick={() => setActive(step.key)}
                   >
