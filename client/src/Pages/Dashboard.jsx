@@ -184,7 +184,20 @@ export default function Dashboard() {
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || "",
           })),
-          questions: item.questions || [],
+          questions: (item.questions || []).map((q) => ({
+            id: q.id || q._id,
+            question: q.text,
+            answers: (q.answers || []).map((a) => ({
+              id: a.id || a._id,
+              text: a.text,
+              correct: a.correct,
+              explain: a.explain,
+            })),
+            image: q.media || null,
+            hint: q.hint || "",
+            tags: q.tags || [],
+            type: q.type,
+          })),
           quizId: item.quizId || null,
         })),
       }));
