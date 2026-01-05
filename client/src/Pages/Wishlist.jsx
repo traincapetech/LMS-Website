@@ -45,15 +45,27 @@ const Wishlist = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+<<<<<<< HEAD
             {wishlist.map((course, index) => (
               <motion.div
                 key={course._id || index}
+=======
+            {wishlist.map((course, index) => {
+              const courseId = course.id || course._id;
+              return (
+              <motion.div
+                key={courseId || index}
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="bg-white relative rounded-2xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
+<<<<<<< HEAD
                 <Link to={`/course/${course._id}`}>
+=======
+                <Link to={`/course/${courseId}`}>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                   <img
                     src={course.thumbnailUrl}
                     alt={course.title}
@@ -66,7 +78,11 @@ const Wishlist = () => {
                 </Link>
 
                 <div className="p-6">
+<<<<<<< HEAD
                   <Link to={`/course/${course._id}`}>
+=======
+                  <Link to={`/course/${courseId}`}>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                     <h3 className="text-xl font-medium mb-2 line-clamp-2">
                       {course.title}
                     </h3>
@@ -90,7 +106,11 @@ const Wishlist = () => {
                   </div>
 
                   <div className="flex gap-2">
+<<<<<<< HEAD
                     <Link to={`/course/${course._id}`} className="flex-1">
+=======
+                    <Link to={`/course/${courseId}`} className="flex-1">
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                       <Button className="w-full bg-blue-600 hover:bg-blue-700">
                         View
                       </Button>
@@ -100,7 +120,11 @@ const Wishlist = () => {
                       size="icon"
                       onClick={(e) => {
                         e.preventDefault();
+<<<<<<< HEAD
                         removeFromWishlist(course._id);
+=======
+                        removeFromWishlist(courseId);
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                       }}
                       title="Remove from Wishlist"
                     >
@@ -109,7 +133,12 @@ const Wishlist = () => {
                   </div>
                 </div>
               </motion.div>
+<<<<<<< HEAD
             ))}
+=======
+            );
+            })}
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           </div>
         )}
       </div>

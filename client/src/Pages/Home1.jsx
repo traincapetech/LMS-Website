@@ -52,7 +52,11 @@ import {
   FaHandsHelping,
 } from "react-icons/fa";
 import { SiUnity, SiCisco } from "react-icons/si";
+<<<<<<< HEAD
 import { Link, useNavigate, useLocation } from "react-router-dom";
+=======
+import { Link, useNavigate } from "react-router-dom";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 import { AiOutlineThunderbolt } from "react-icons/ai";
 import { FaSuitcase } from "react-icons/fa6";
 import { FaTools } from "react-icons/fa";
@@ -81,6 +85,7 @@ const Home1 = () => {
     loadStats();
   }, []);
 
+<<<<<<< HEAD
   const location = useLocation();
 
   useEffect(() => {
@@ -96,6 +101,8 @@ const Home1 = () => {
     }
   }, [location]);
 
+=======
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   const {
     subscribe,
     subscribing,
@@ -335,7 +342,11 @@ const Home1 = () => {
         <FeaturedCourses courses={courses} />
       </Suspense>
       {/* SECTION 3 – WHY CHOOSE TRAINCAPE */}
+<<<<<<< HEAD
       <section id="aboutus" className="w-full py-20 bg-white font-poppins">
+=======
+      <section className="w-full py-20 bg-white font-poppins">
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
         <div className="max-w-7xl mx-auto px-6">
           {/* Heading */}
           <motion.div
@@ -423,9 +434,17 @@ const Home1 = () => {
               </li>
             </ul>
 
+<<<<<<< HEAD
             <Button className="mt-8 bg-Accent text-white hover:bg-Accent/80 transition-all shadow-md">
               Start Teaching Today
             </Button>
+=======
+            <Link to="/teach">
+              <Button className="mt-8 bg-Accent text-white hover:bg-Accent/80 transition-all shadow-md">
+                Start Teaching Today
+              </Button>
+            </Link>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           </motion.div>
 
           {/* RIGHT IMAGE */}

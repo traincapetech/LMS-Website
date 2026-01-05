@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+<<<<<<< HEAD
 const BASE_URL = "http://localhost:5001";
+=======
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -804,7 +808,11 @@ const AdminDashboard = () => {
                             fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
                           }}
                           onClick={() =>
+<<<<<<< HEAD
                             navigate(`/admin/pending-course/${req._id}`)
+=======
+                            navigate(`/preview/pending-course/${req._id}`)
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                           }
                         >
                           View Details

@@ -14,7 +14,11 @@ const PendingCourseDetails = () => {
   const [videos, setVideos] = useState([]);
 
   const token = localStorage.getItem("token");
+<<<<<<< HEAD
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+=======
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
   /* -------------------------------------------
      1️⃣  Fetch Pending Course Details

@@ -16,9 +16,14 @@ import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+<<<<<<< HEAD
 import QuizPage from "./QuizPage";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+=======
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
 const steps = [
   { key: "intended", label: "Intended learners" },
@@ -184,6 +189,7 @@ export default function Dashboard() {
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || "",
           })),
+<<<<<<< HEAD
           questions: (item.questions || []).map((q) => ({
             id: q.id || q._id,
             question: q.text,
@@ -198,6 +204,9 @@ export default function Dashboard() {
             tags: q.tags || [],
             type: q.type,
           })),
+=======
+          questions: item.questions || [],
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           quizId: item.quizId || null,
         })),
       }));

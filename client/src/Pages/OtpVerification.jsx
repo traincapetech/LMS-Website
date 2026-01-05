@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+<<<<<<< HEAD
 
 const OtpVerification = () => {
+=======
+import { useNavigate } from "react-router-dom";
+
+const OtpVerification = () => {
+  const navigate = useNavigate();
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   const [form, setForm] = useState({ email: "", otp: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +31,11 @@ const OtpVerification = () => {
               const res = await axios.post("https://lms-backend-5s5x.onrender.com/api/otp/verify-otp", form);
       setMessage(res.data.message || "OTP verified. Redirecting...");
       setTimeout(() => {
+<<<<<<< HEAD
         window.location.href = `/set-new-password?email=${encodeURIComponent(form.email)}`;
+=======
+        navigate(`/set-new-password?email=${encodeURIComponent(form.email)}`);
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
       }, 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || "OTP verification failed");

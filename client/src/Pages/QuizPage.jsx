@@ -97,6 +97,7 @@
 // export default QuizPage;
 
 // components/UploadLecture/Quiz/QuizPage.jsx
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import React, { useRef } from "react";
 import { MdDeleteOutline } from "react-icons/md";
@@ -114,10 +115,21 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function QuizPage({ sectionId, itemId, questions, quiz }) {
+=======
+import React, { useRef } from "react";
+
+export default function QuizPage({
+  sectionId,
+  itemId,
+  questions,
+  quiz,
+}) {
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   const imageInput = useRef({});
 
   return (
     <div className="quiz-page">
+<<<<<<< HEAD
       {questions.map((q, idx) => (
         <div key={q.id} className="quiz-question">
           <div className="flex items-center justify-between pb-3">
@@ -130,23 +142,43 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
               >
                 <MdDeleteOutline className="size-5 text-red-500" />
               </Button>
+=======
+
+      {questions.map((q, idx) => (
+        <div key={q.id} className="quiz-question">
+
+          <div className="quiz-header">
+            <strong>Q{idx + 1}</strong>
+
+            <div className="quiz-q-actions">
+              <button onClick={() => quiz.deleteQuestion(sectionId, itemId, q.id)}>Delete</button>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
             </div>
           </div>
 
           {/* QUESTION TEXT */}
+<<<<<<< HEAD
           <Textarea
+=======
+          <textarea
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
             className="quiz-textarea"
             placeholder="Write your question..."
             value={q.text}
             onChange={(e) =>
+<<<<<<< HEAD
               quiz.updateQuestion(sectionId, itemId, q.id, {
                 ...q,
                 text: e.target.value,
               })
+=======
+              quiz.updateQuestion(sectionId, itemId, q.id, { ...q, text: e.target.value })
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
             }
           />
 
           {/* TYPE + DIFFICULTY */}
+<<<<<<< HEAD
           <div className="flex items-center gap-5">
             <div className="flex items-center py-5 gap-5">
               <Label>Type:</Label>
@@ -157,11 +189,21 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
                     ...q,
                     type: e.target.value,
                   })
+=======
+          <div className="quiz-row">
+            <div>
+              <label>Type:</label>
+              <select
+                value={q.type}
+                onChange={(e) =>
+                  quiz.updateQuestion(sectionId, itemId, q.id, { ...q, type: e.target.value })
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
                 }
               >
                 <option value="mcq">MCQ (single correct)</option>
                 <option value="multi">Multi select</option>
                 <option value="tf">True/False</option>
+<<<<<<< HEAD
               </select> */}
 
               <Select
@@ -210,10 +252,28 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
                   </SelectGroup>
                 </SelectContent>
               </Select>
+=======
+              </select>
+            </div>
+
+            <div>
+              <label>Difficulty:</label>
+              <select
+                value={q.difficulty}
+                onChange={(e) =>
+                  quiz.updateQuestion(sectionId, itemId, q.id, { ...q, difficulty: e.target.value })
+                }
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
             </div>
           </div>
 
           {/* ANSWERS */}
+<<<<<<< HEAD
           <div className="quiz-answers mt-5">
             <Label>Answers:</Label>
             <div className="grid grid-cols-2 gap-5 py-5">
@@ -299,6 +359,81 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
             <Label>Attach Image:</Label>
 
             <Input
+=======
+          <div className="quiz-answers">
+            <label>Answers:</label>
+
+            {q.answers.map((ans) => (
+              <div key={ans.id} className="quiz-answer-row">
+                <input
+                  type={q.type === "multi" ? "checkbox" : "radio"}
+                  name={`correct-${q.id}`}
+                  checked={ans.correct}
+                  onChange={() => {
+                    const updatedAnswers =
+                      q.type === "multi"
+                        ? q.answers.map((a) =>
+                            a.id === ans.id ? { ...a, correct: !a.correct } : a
+                          )
+                        : q.answers.map((a) => ({ ...a, correct: a.id === ans.id }));
+
+                    quiz.updateQuestion(sectionId, itemId, q.id, {
+                      ...q,
+                      answers: updatedAnswers,
+                    });
+                  }}
+                />
+
+                <input
+                  type="text"
+                  className="answer-input"
+                  placeholder="Answer text"
+                  value={ans.text}
+                  onChange={(e) => {
+                    const updated = q.answers.map((a) =>
+                      a.id === ans.id ? { ...a, text: e.target.value } : a
+                    );
+                    quiz.updateQuestion(sectionId, itemId, q.id, { ...q, answers: updated });
+                  }}
+                />
+
+                <button
+                  className="delete-btn"
+                  onClick={() => {
+                    const updated = q.answers.filter((a) => a.id !== ans.id);
+                    quiz.updateQuestion(sectionId, itemId, q.id, { ...q, answers: updated });
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            <button
+              className="cb-btn small"
+              onClick={() => {
+                const newAns = {
+                  id: Math.random().toString(36),
+                  text: "",
+                  correct: false,
+                  explain: "",
+                };
+                quiz.updateQuestion(sectionId, itemId, q.id, {
+                  ...q,
+                  answers: [...q.answers, newAns],
+                });
+              }}
+            >
+              + Add Answer
+            </button>
+          </div>
+
+          {/* MEDIA UPLOAD */}
+          <div className="quiz-media">
+            <label>Attach Image:</label>
+
+            <input
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               ref={(el) => (imageInput.current[q.id] = el)}
               type="file"
               accept="image/*"
@@ -313,20 +448,35 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
               }}
             />
 
+<<<<<<< HEAD
             <Button
               className="bg-Accent hover:bg-Accent/80"
               onClick={() => imageInput.current[q.id]?.click()}
             >
               Upload Image
             </Button>
+=======
+            <button
+              className="cb-btn"
+              onClick={() => imageInput.current[q.id]?.click()}
+            >
+              Upload Image
+            </button>
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
             {q.media && <span className="media-name">{q.media.filename}</span>}
           </div>
 
           {/* HINT */}
+<<<<<<< HEAD
           <div className="flex items-center gap-2 my-5">
             <Label>Hint:</Label>
             <Input
+=======
+          <div className="quiz-hint">
+            <label>Hint:</label>
+            <input
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               type="text"
               value={q.hint}
               onChange={(e) =>
@@ -339,9 +489,15 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
           </div>
 
           {/* TAGS */}
+<<<<<<< HEAD
           <div className="flex items-center gap-2 my-5">
             <Label>Tags:</Label>
             <Input
+=======
+          <div className="quiz-tags">
+            <label>Tags:</label>
+            <input
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               type="text"
               value={q.tags.join(", ")}
               placeholder="comma separated"
@@ -356,6 +512,7 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
               }
             />
           </div>
+<<<<<<< HEAD
         </div>
       ))}
 
@@ -365,6 +522,16 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
       >
         + Add Question
       </Button>
+=======
+
+        </div>
+      ))}
+
+      <button className="cb-btn" onClick={() => quiz.addQuestion(sectionId, itemId)}>
+        + Add Question
+      </button>
+
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
     </div>
   );
 }

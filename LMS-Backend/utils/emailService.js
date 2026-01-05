@@ -266,6 +266,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
   }
 };
 
+<<<<<<< HEAD
 
 const sendGenericEmail = async (to, subject, htmlContent) => {
   try {
@@ -297,3 +298,6 @@ const sendGenericEmail = async (to, subject, htmlContent) => {
 
 
 module.exports = { sendOtpEmail, sendEmail, sendGenericEmail };
+=======
+module.exports = { sendOtpEmail, sendEmail };
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02

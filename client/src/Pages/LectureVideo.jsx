@@ -17,6 +17,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useStore } from "../Store/store";
+<<<<<<< HEAD
 
 const LectureVideo = () => {
   const { videoId } = useParams();
@@ -24,6 +25,17 @@ const LectureVideo = () => {
   const navigate = useNavigate();
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+=======
+import { enrollmentAPI, progressAPI } from "@/utils/api";
+import { toast } from "sonner";
+
+const LectureVideo = () => {
+  const { lectureId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
   const searchParams = new URLSearchParams(location.search);
   const courseId =
@@ -37,6 +49,11 @@ const LectureVideo = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
+<<<<<<< HEAD
+=======
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
@@ -140,12 +157,21 @@ const LectureVideo = () => {
         let selected = null;
 
         // First try to find by lecture ID from URL
+<<<<<<< HEAD
         if (videoId) {
           selected = findLectureById(fullCourse, videoId);
 
           // If not found by lecture ID, try to find by video ID
           if (!selected) {
             selected = findLectureByVideoId(fullCourse, videoId);
+=======
+        if (lectureId) {
+          selected = findLectureById(fullCourse, lectureId);
+
+          // If not found by lecture ID, try to find by video ID
+          if (!selected) {
+            selected = findLectureByVideoId(fullCourse, lectureId);
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           }
         }
 
@@ -179,7 +205,71 @@ const LectureVideo = () => {
     };
 
     fetchCourseAndVideos();
+<<<<<<< HEAD
   }, [courseId, videoId, location.state]);
+=======
+  }, [courseId, lectureId, location.state]);
+
+  // Check enrollment and load progress
+  useEffect(() => {
+    const checkEnrollmentAndLoadProgress = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !courseId) {
+        setCheckingEnrollment(false);
+        return;
+      }
+
+      try {
+        // Check enrollment
+        const enrollmentRes = await enrollmentAPI.checkEnrollment(courseId);
+        setIsEnrolled(enrollmentRes.data.isEnrolled);
+
+        if (enrollmentRes.data.isEnrolled) {
+          // Load progress
+          const progressRes = await progressAPI.getCourseProgress(courseId);
+          const completed = progressRes.data.completedLectures || [];
+          const completedIds = new Set(
+            completed.map((l) => l.lectureId?.toString() || l.itemId)
+          );
+          setCompletedLectures(completedIds);
+
+          // Update last accessed
+          if (lectureId) {
+            const currentLecture = findLectureById(course, lectureId);
+            if (currentLecture) {
+              await progressAPI.updateLastAccessed({
+                courseId,
+                lectureId: currentLecture.videoId || null,
+                itemId: currentLecture.itemId || lectureId,
+                sectionId: course?.curriculum?.find((sec) =>
+                  sec.items?.some((item) => item.itemId === lectureId)
+                )?.sectionId,
+              });
+            }
+          }
+        } else {
+          // Not enrolled - redirect to course details
+          toast.error("You must be enrolled in this course to access lectures");
+          navigate(`/course/${courseId}`);
+        }
+      } catch (err) {
+        console.error("Enrollment check error:", err);
+        // If not logged in, allow viewing (for preview)
+        if (err.response?.status === 401) {
+          setIsEnrolled(false);
+        } else {
+          toast.error("Failed to verify enrollment");
+        }
+      } finally {
+        setCheckingEnrollment(false);
+      }
+    };
+
+    if (courseId && course) {
+      checkEnrollmentAndLoadProgress();
+    }
+  }, [courseId, course, lectureId]);
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -201,8 +291,41 @@ const LectureVideo = () => {
       : 0;
 
   // Mark lecture as completed
+<<<<<<< HEAD
   const markAsCompleted = (lectureId) => {
     setCompletedLectures((prev) => new Set(prev).add(lectureId));
+=======
+  const markAsCompleted = async (lectureId) => {
+    const token = localStorage.getItem("token");
+    if (!token || !courseId) {
+      toast.error("Please login to track progress");
+      return;
+    }
+
+    // Optimistically update UI
+    setCompletedLectures((prev) => new Set(prev).add(lectureId));
+
+    try {
+      // Find the lecture to get its details
+      const lecture = findLectureById(course, lectureId);
+      if (lecture) {
+        await progressAPI.markLectureComplete({
+          courseId,
+          lectureId: lecture.videoId || null,
+          itemId: lecture.itemId || lectureId,
+        });
+        toast.success("Lecture marked as completed!");
+      }
+    } catch (err) {
+      // Revert on error
+      setCompletedLectures((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(lectureId);
+        return newSet;
+      });
+      toast.error("Failed to mark lecture as completed");
+    }
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   };
 
   // -------------------------------------------------------------------
@@ -370,7 +493,11 @@ const LectureVideo = () => {
   };
 
   // Loading UI
+<<<<<<< HEAD
   if (loading) {
+=======
+  if (loading || checkingEnrollment) {
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
     return (
       <div
         style={{

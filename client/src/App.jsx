@@ -3,10 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { logNetworkStatus } from "./utils/networkTest";
 import Navbar from "./components/Navbar";
 import Plans from "./Pages/Plans";
+<<<<<<< HEAD
 import Home from "./Pages/Home1";
 import Teach from "./Pages/teach";
 import Signup from "./Pages/Signup";
 import Login from "./Pages/login";
+=======
+import NotFound from "./Pages/NotFound";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 import Footer from "./components/Footer";
 import Form from "./Pages/Form";
 import Create from "./Pages/Create";
@@ -41,20 +45,27 @@ import Signup1 from "./Pages/signup1";
 import Teach1 from "./Pages/teach1";
 import Wishlist from "./Pages/Wishlist";
 import AdminNewsletterDetail from "./Pages/AdminNewsletter-detail";
+<<<<<<< HEAD
 import ContactUs from "./Pages/ContactUs";
 import FAQs from "./Pages/FAQ";
 import HelpCenter from "./Pages/HelpCenter";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import TermsAndConditions from "./Pages/TermsAndConditions";
+=======
+import MyLearning from "./Pages/MyLearning";
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 // Cart context setup
 export const CartContext = createContext();
 
 // Placeholder pages for profile and dropdown menu
 
+<<<<<<< HEAD
 const MyLearning = () => (
   <div style={{ padding: "2rem" }}>My Learning Page</div>
 );
 
+=======
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 const Notifications = () => (
   <div style={{ padding: "2rem" }}>Notifications Page</div>
 );
@@ -138,12 +149,17 @@ function App() {
               <Route path="/" element={<Home1 />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/teach" element={<Teach1 />} />
+<<<<<<< HEAD
               {/* <Route path="/signup" element={<Signup1 />} /> */}
+=======
+              <Route path="/signup" element={<Signup1 />} />
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               <Route path="/login" element={<Login1 />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/form" element={<Form />} />
               <Route path="/create" element={<Create />} />
+<<<<<<< HEAD
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/faqs" element={<FAQs />} />
               <Route path="/help-center" element={<HelpCenter />} />
@@ -152,6 +168,8 @@ function App() {
                 path="/terms-and-conditions"
                 element={<TermsAndConditions />}
               />
+=======
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               <Route
                 path="/dashboard/:pendingCourseId"
                 element={<Dashboard />}
@@ -211,7 +229,13 @@ function App() {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/createQuiz" element={<CreateQuiz />} />
               <Route path="/lecture/:lectureId" element={<LectureVideo />} />
+<<<<<<< HEAD
               <Route path="/resource/:id" element={<ResourceView />} />\
+=======
+              <Route path="/resource/:id" element={<ResourceView />} />
+              {/* 404 Catch-all route - must be last */}
+              <Route path="*" element={<NotFound />} />
+>>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
             </Routes>
           </div>
           <Footer />
