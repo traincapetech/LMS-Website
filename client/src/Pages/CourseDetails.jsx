@@ -5,11 +5,8 @@ import { useStore } from "../Store/store";
 import { Spinner } from "@/components/ui/spinner";
 import { IoMdArrowDropright } from "react-icons/io";
 import { GoVideo } from "react-icons/go";
-<<<<<<< HEAD
-=======
 import { enrollmentAPI } from "@/utils/api";
 import { toast } from "sonner";
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 import {
   Accordion,
   AccordionContent,
@@ -36,14 +33,11 @@ const CourseDetails = () => {
 
   const { addToCart } = useContext(CartContext);
 
-<<<<<<< HEAD
-=======
   // Enrollment state
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   const [enrollmentProgress, setEnrollmentProgress] = useState(null);
 
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   // Expand/Collapse
   const [expanded, setExpanded] = useState({});
   const [expandedAll, setExpandedAll] = useState(false);
@@ -57,8 +51,6 @@ const CourseDetails = () => {
     window.scrollTo(0, 0);
     fetchCoursesById(id);
   }, [id, fetchCoursesById]);
-<<<<<<< HEAD
-=======
 
   // Check enrollment status
   useEffect(() => {
@@ -125,7 +117,6 @@ const CourseDetails = () => {
       },
     });
   };
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   console.log("mohit", course);
   // ⭐ Add to cart
   const handleAddToCart = () => {
@@ -362,27 +353,6 @@ const CourseDetails = () => {
 
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5">
-<<<<<<< HEAD
-                <span className="text-2xl font-semibold">${course.price}</span>
-
-                <span className="text-blue-600 text-sm">
-                  {course.discount}% off
-                </span>
-              </div>
-              <Button
-                className="bg-Accent hover:bg-Accent/80 mb-5"
-                onClick={handleAddToCart}
-              >
-                Add to cart
-              </Button>
-              <Button
-                variant="outline"
-                className="border border-Accent text-Accent mb-5"
-                onClick={handleBuyNow}
-              >
-                Buy now
-              </Button>
-=======
                 <span className="text-2xl font-semibold">
                   {course.price === 0 || course.price === "0" ? "Free" : `₹${course.price}`}
                 </span>
@@ -462,7 +432,6 @@ const CourseDetails = () => {
                   )}
                 </>
               )}
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
               <div className="flex items-center gap-2 mb-3">
                 <GoInfinity />
                 Full Lifetime Access

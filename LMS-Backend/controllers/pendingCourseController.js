@@ -25,7 +25,7 @@ exports.getAll = async (req, res) => {
   try {
     const courses = await PendingCourse.find()
       .sort({ createdAt: -1 })
-      .populate("instructor", "name email");;
+      .populate("instructor", "name email");
     res.json(courses);
   } catch (err) {
     res
@@ -100,7 +100,9 @@ exports.getMyCourses = async (req, res) => {
         { "instructor._id": req.user._id }, // Object in DB
         { "instructor._id": id }, // Object with string _id
       ],
-    }).sort({ createdAt: -1 }).populate("instructor", "name email");
+    })
+      .sort({ createdAt: -1 })
+      .populate("instructor", "name email");
 
     res.json(courses);
   } catch (error) {
@@ -288,6 +290,7 @@ exports.approve = async (req, res) => {
         videoId: item.videoId,
         videoUrl: videoMap[String(item.videoId)] || "",
         documents: item.documents,
+        quizQuestions: item.quizQuestions || [],
         quizId: item.quizId,
       })),
     }));
@@ -444,6 +447,16 @@ exports.updateCurriculum = async (req, res) => {
     const { curriculum } = req.body;
 
     console.log("📝 Updating curriculum for course:", courseId);
+    if (curriculum && curriculum.length > 0) {
+      const firstItem = curriculum[0]?.items?.[0];
+      console.log("🔍 Payload check - Curriculum Type:", typeof curriculum);
+      console.log("🔍 First section items type:", typeof curriculum[0]?.items);
+      if (firstItem) {
+        console.log("🔍 First item keys:", Object.keys(firstItem));
+        console.log("🔍 quizQuestions Type:", typeof firstItem.quizQuestions);
+        console.log("🔍 quizQuestions Value:", firstItem.quizQuestions);
+      }
+    }
 
     // Find the course and verify ownership
     const course = await PendingCourse.findOne({
@@ -478,7 +491,7 @@ exports.updateCurriculum = async (req, res) => {
           title: item.title,
           videoId: item.videoId,
           documents: item.documents,
-          questions: item.questions,
+          quizQuestions: item.quizQuestions,
           quizId: item.quizId,
         })),
       }));

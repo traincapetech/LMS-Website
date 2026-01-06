@@ -44,16 +44,10 @@ const Form = () => {
     }
   };
 
-<<<<<<< HEAD
-  // After OTP verification, go to course creation steps
-  const handleOtpSuccess = () => {
-    navigate("/instructor-dashboard", { state: { name, email } });
-=======
   // After OTP verification, redirect new instructors to course creation
   const handleOtpSuccess = () => {
     // New instructors should start by creating their first course
     navigate("/create", { state: { name, email } });
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   };
 
   return (

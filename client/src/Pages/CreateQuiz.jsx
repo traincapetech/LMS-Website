@@ -2,13 +2,9 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-<<<<<<< HEAD
-const API_BASE = "http://localhost:5001/api/quizzes";
-=======
 const API_BASE = import.meta.env.VITE_API_BASE_URL 
   ? `${import.meta.env.VITE_API_BASE_URL}/api/quizzes`
   : "https://lms-backend-5s5x.onrender.com/api/quizzes";
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
 function CreateQuiz() {
   const { id } = useParams();

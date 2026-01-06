@@ -16,14 +16,11 @@ import { MdOutlineEdit, MdDeleteOutline } from "react-icons/md";
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-<<<<<<< HEAD
 import QuizPage from "./QuizPage";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
-=======
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://lms-backend-5s5x.onrender.com/api";
 
 const steps = [
   { key: "intended", label: "Intended learners" },
@@ -189,8 +186,7 @@ export default function Dashboard() {
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || "",
           })),
-<<<<<<< HEAD
-          questions: (item.questions || []).map((q) => ({
+          quizQuestions: (item.questions || []).map((q) => ({
             id: q.id || q._id,
             question: q.text,
             answers: (q.answers || []).map((a) => ({
@@ -200,13 +196,11 @@ export default function Dashboard() {
               explain: a.explain,
             })),
             image: q.media || null,
+            difficulty: q.difficulty || "easy",
             hint: q.hint || "",
             tags: q.tags || [],
             type: q.type,
           })),
-=======
-          questions: item.questions || [],
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           quizId: item.quizId || null,
         })),
       }));
@@ -399,7 +393,18 @@ export default function Dashboard() {
                   fileName: d.fileName,
                 })) || [],
               // for quizzes
-              questions: item.questions || [],
+              questions: (item.quizQuestions || item.questions || []).map(
+                (q) => ({
+                  id: q.id || q._id,
+                  text: q.question || "",
+                  answers: q.answers || [],
+                  media: q.image || null,
+                  difficulty: q.difficulty || "medium",
+                  hint: q.hint || "",
+                  tags: q.tags || [],
+                  type: q.type || "mcq",
+                })
+              ),
               quizId: item.quizId || null,
             })),
           }))
@@ -537,6 +542,21 @@ export default function Dashboard() {
           documents: (item.documents || []).map((d) => ({
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || d.filename || "",
+          })),
+          quizQuestions: (item.questions || []).map((q) => ({
+            id: q.id || q._id,
+            question: q.text,
+            answers: (q.answers || []).map((a) => ({
+              id: a.id || a._id,
+              text: a.text,
+              correct: a.correct,
+              explain: a.explain,
+            })),
+            image: q.media || null,
+            difficulty: q.difficulty || "easy",
+            hint: q.hint || "",
+            tags: q.tags || [],
+            type: q.type,
           })),
           quizId: item.quizId || null,
         })),

@@ -17,15 +17,6 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useStore } from "../Store/store";
-<<<<<<< HEAD
-
-const LectureVideo = () => {
-  const { videoId } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
-=======
 import { enrollmentAPI, progressAPI } from "@/utils/api";
 import { toast } from "sonner";
 
@@ -34,8 +25,9 @@ const LectureVideo = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
+  const API_BASE =
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://lms-backend-5s5x.onrender.com";
 
   const searchParams = new URLSearchParams(location.search);
   const courseId =
@@ -49,12 +41,9 @@ const LectureVideo = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
-<<<<<<< HEAD
-=======
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
-// const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
+  // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
@@ -89,7 +78,7 @@ const LectureVideo = () => {
         setLoading(true); // Start loading
 
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
-         const rawCourse = await courseRes.json();
+        const rawCourse = await courseRes.json();
         //  fetchCoursesById(courseId);
 
         if (!rawCourse.curriculum) return;
@@ -157,21 +146,12 @@ const LectureVideo = () => {
         let selected = null;
 
         // First try to find by lecture ID from URL
-<<<<<<< HEAD
-        if (videoId) {
-          selected = findLectureById(fullCourse, videoId);
-
-          // If not found by lecture ID, try to find by video ID
-          if (!selected) {
-            selected = findLectureByVideoId(fullCourse, videoId);
-=======
         if (lectureId) {
           selected = findLectureById(fullCourse, lectureId);
 
           // If not found by lecture ID, try to find by video ID
           if (!selected) {
             selected = findLectureByVideoId(fullCourse, lectureId);
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
           }
         }
 
@@ -205,11 +185,9 @@ const LectureVideo = () => {
     };
 
     fetchCourseAndVideos();
-<<<<<<< HEAD
-  }, [courseId, videoId, location.state]);
-=======
   }, [courseId, lectureId, location.state]);
 
+  console.log("mohit", course);
   // Check enrollment and load progress
   useEffect(() => {
     const checkEnrollmentAndLoadProgress = async () => {
@@ -269,7 +247,6 @@ const LectureVideo = () => {
       checkEnrollmentAndLoadProgress();
     }
   }, [courseId, course, lectureId]);
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
 
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -291,10 +268,6 @@ const LectureVideo = () => {
       : 0;
 
   // Mark lecture as completed
-<<<<<<< HEAD
-  const markAsCompleted = (lectureId) => {
-    setCompletedLectures((prev) => new Set(prev).add(lectureId));
-=======
   const markAsCompleted = async (lectureId) => {
     const token = localStorage.getItem("token");
     if (!token || !courseId) {
@@ -325,7 +298,6 @@ const LectureVideo = () => {
       });
       toast.error("Failed to mark lecture as completed");
     }
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
   };
 
   // -------------------------------------------------------------------
@@ -492,12 +464,52 @@ const LectureVideo = () => {
     );
   };
 
+  const QuizListItem = ({ item }) => {
+    const quizId = item.quizId || item._id || item.itemId;
+    // Basic styling to match VideoListItem
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 20px",
+          cursor: "pointer",
+          borderBottom: "1px solid #eee",
+          backgroundColor: "#fff",
+        }}
+        onClick={() => {
+          // Navigate to quiz page
+          // Assuming /quiz route handles query params or logic needs to be added there
+          navigate(
+            `/quiz?courseId=${courseId}&quizId=${quizId}&itemId=${
+              item.itemId || item._id
+            }`
+          );
+        }}
+      >
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            marginRight: 10,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <FaQuestionCircle style={{ color: "#7e22ce" }} />
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "14px" }}>{item.title}</div>
+          <span style={{ fontSize: "12px", color: "#6b7280" }}>Quiz</span>
+        </div>
+      </div>
+    );
+  };
+
   // Loading UI
-<<<<<<< HEAD
-  if (loading) {
-=======
   if (loading || checkingEnrollment) {
->>>>>>> 878743f15c374e032c7f7a0450837315d3cedf02
     return (
       <div
         style={{
@@ -535,7 +547,9 @@ const LectureVideo = () => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ color: "#67696b" }}>|</span>
-          <span className="text-sm md:text-base">{course?.title || "Course"}</span>
+          <span className="text-sm md:text-base">
+            {course?.title || "Course"}
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {/* 🏆 Progress */}
@@ -578,7 +592,8 @@ const LectureVideo = () => {
       </header>
 
       {/* MAIN LAYOUT */}
-      <div className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
+      <div
+        className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
         // style={{
         //   display: "flex",
         //   minHeight: "100vh",
@@ -714,14 +729,21 @@ const LectureVideo = () => {
                 {openSections[key] && (
                   <div>
                     {(section.items || [])
-                      .filter((i) => i.type === "lecture")
-                      .map((vid) => (
-                        <VideoListItem
-                          key={vid._id || vid.itemId || vid.videoId}
-                          vid={vid}
-                          isActive={currentVideo?._id === vid._id}
-                        />
-                      ))}
+                      .filter((i) => i.type === "lecture" || i.type === "quiz")
+                      .map((item) =>
+                        item.type === "quiz" ? (
+                          <QuizListItem
+                            key={item._id || item.itemId || item.quizId}
+                            item={item}
+                          />
+                        ) : (
+                          <VideoListItem
+                            key={item._id || item.itemId || item.videoId}
+                            vid={item}
+                            isActive={currentVideo?._id === item._id}
+                          />
+                        )
+                      )}
                   </div>
                 )}
               </div>
