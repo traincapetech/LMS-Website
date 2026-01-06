@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL
     ? `${import.meta.env.VITE_API_BASE_URL}/api`
     : "https://lms-backend-5s5x.onrender.com/api",
-  timeout: 10000, // 10 second timeout
+  timeout: 60000, // 60 second timeout
   headers: {
     "Content-Type": "application/json",
   },
@@ -136,6 +136,7 @@ export const newsletterAPI = {
 
 export const publicAPI = {
   getStats: () => api.get("/public/stats"),
+  contactUs: (data) => api.post("/public/contact", data),
 };
 
 export const enrollmentAPI = {

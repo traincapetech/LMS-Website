@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "http://localhost:5001";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -804,7 +804,7 @@ const AdminDashboard = () => {
                             fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
                           }}
                           onClick={() =>
-                            navigate(`/admin/pending-course/${req._id}`)
+                            navigate(`/preview/pending-course/${req._id}`)
                           }
                         >
                           View Details

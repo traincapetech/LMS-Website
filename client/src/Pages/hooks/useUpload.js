@@ -1,6 +1,6 @@
 // useUpload.js (updated)
 import axios from "axios";
-const API_BASE = "http://localhost:5001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
 
 const useUploads = (setSections, courseId) => {
   const token = localStorage.getItem("token");

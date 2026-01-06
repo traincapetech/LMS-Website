@@ -14,7 +14,7 @@ const TABS = [
 ];
 
 export default function InstructorDashboard() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
 
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
@@ -236,7 +236,7 @@ function CourseList({ courses }) {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const res = await fetch(
-        `http://localhost:5001/api/pending-courses/delete/${id}`, {
+        `${API_BASE}/api/pending-courses/delete/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +264,7 @@ function CourseList({ courses }) {
     if (!confirm("Approve this course?")) return;
 
     const res = await fetch(
-      `http://localhost:5001/api/pending-courses/${id}/approve`,
+      `${API_BASE}/api/pending-courses/${id}/approve`,
       {
         method: "PUT",
         headers: {
@@ -286,7 +286,7 @@ function CourseList({ courses }) {
     if (!confirm("Reject this course?")) return;
 
     const res = await fetch(
-      `http://localhost:5001/api/pending-courses/${id}/reject`,
+      `${API_BASE}/api/pending-courses/${id}/reject`,
       {
         method: "PUT",
         headers: {

@@ -266,4 +266,34 @@ const sendEmail = async ({ to, subject, html, text }) => {
   }
 };
 
-module.exports = { sendOtpEmail, sendEmail };
+
+const sendGenericEmail = async (to, subject, htmlContent) => {
+  try {
+    const transporter = createTransporter();
+
+
+    if (!transporter) {
+      console.error(
+        "❌ Email transporter not created - check environment variables"
+      );
+      return false;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    };
+    console.log(`📨 Sending generic email to: ${to}`);
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`📧 Email sent successfully to ${to}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+
+module.exports = { sendOtpEmail, sendEmail, sendGenericEmail };

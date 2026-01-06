@@ -41,6 +41,11 @@ import Signup1 from "./Pages/signup1";
 import Teach1 from "./Pages/teach1";
 import Wishlist from "./Pages/Wishlist";
 import AdminNewsletterDetail from "./Pages/AdminNewsletter-detail";
+import ContactUs from "./Pages/ContactUs";
+import FAQs from "./Pages/FAQ";
+import HelpCenter from "./Pages/HelpCenter";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import TermsAndConditions from "./Pages/TermsAndConditions";
 // Cart context setup
 export const CartContext = createContext();
 
@@ -139,6 +144,14 @@ function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/form" element={<Form />} />
               <Route path="/create" element={<Create />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/faqs" element={<FAQs />} />
+              <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route
+                path="/terms-and-conditions"
+                element={<TermsAndConditions />}
+              />
               <Route
                 path="/dashboard/:pendingCourseId"
                 element={<Dashboard />}

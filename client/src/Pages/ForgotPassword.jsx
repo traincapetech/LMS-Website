@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { authAPI } from "@/utils/api";
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: email, 2: OTP, 3: new password
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -61,7 +62,7 @@ const ForgotPassword = () => {
       setMessage("Password reset successfully");
       toast.success("Password reset successfully");
       setTimeout(() => {
-        window.location.href = "/login";
+        navigate("/login");
       }, 2000);
     } catch (err) {
       setMessage(err.response?.data?.message || "Failed to reset password");

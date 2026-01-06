@@ -17,13 +17,17 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useStore } from "../Store/store";
+import { enrollmentAPI, progressAPI } from "@/utils/api";
+import { toast } from "sonner";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+  const API_BASE =
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://lms-backend-5s5x.onrender.com";
 
   const searchParams = new URLSearchParams(location.search);
   const courseId =
@@ -37,9 +41,9 @@ const LectureVideo = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
-
-
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
@@ -148,6 +152,8 @@ const LectureVideo = () => {
           selected = findLectureById(fullCourse, lectureId);
 
 
+        if (lectureId) {
+          selected = findLectureById(fullCourse, lectureId);
 
           // If not found by lecture ID, try to find by video ID
           if (!selected) {
@@ -186,6 +192,68 @@ const LectureVideo = () => {
 
     fetchCourseAndVideos();
   }, [courseId, lectureId, location.state]);
+  }, [courseId, lectureId, location.state]);
+
+  console.log("mohit", course);
+  // Check enrollment and load progress
+  useEffect(() => {
+    const checkEnrollmentAndLoadProgress = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !courseId) {
+        setCheckingEnrollment(false);
+        return;
+      }
+
+      try {
+        // Check enrollment
+        const enrollmentRes = await enrollmentAPI.checkEnrollment(courseId);
+        setIsEnrolled(enrollmentRes.data.isEnrolled);
+
+        if (enrollmentRes.data.isEnrolled) {
+          // Load progress
+          const progressRes = await progressAPI.getCourseProgress(courseId);
+          const completed = progressRes.data.completedLectures || [];
+          const completedIds = new Set(
+            completed.map((l) => l.lectureId?.toString() || l.itemId)
+          );
+          setCompletedLectures(completedIds);
+
+          // Update last accessed
+          if (lectureId) {
+            const currentLecture = findLectureById(course, lectureId);
+            if (currentLecture) {
+              await progressAPI.updateLastAccessed({
+                courseId,
+                lectureId: currentLecture.videoId || null,
+                itemId: currentLecture.itemId || lectureId,
+                sectionId: course?.curriculum?.find((sec) =>
+                  sec.items?.some((item) => item.itemId === lectureId)
+                )?.sectionId,
+              });
+            }
+          }
+        } else {
+          // Not enrolled - redirect to course details
+          toast.error("You must be enrolled in this course to access lectures");
+          navigate(`/course/${courseId}`);
+        }
+      } catch (err) {
+        console.error("Enrollment check error:", err);
+        // If not logged in, allow viewing (for preview)
+        if (err.response?.status === 401) {
+          setIsEnrolled(false);
+        } else {
+          toast.error("Failed to verify enrollment");
+        }
+      } finally {
+        setCheckingEnrollment(false);
+      }
+    };
+
+    if (courseId && course) {
+      checkEnrollmentAndLoadProgress();
+    }
+  }, [courseId, course, lectureId]);
 
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -207,8 +275,36 @@ const LectureVideo = () => {
       : 0;
 
   // Mark lecture as completed
-  const markAsCompleted = (lectureId) => {
+  const markAsCompleted = async (lectureId) => {
+    const token = localStorage.getItem("token");
+    if (!token || !courseId) {
+      toast.error("Please login to track progress");
+      return;
+    }
+
+    // Optimistically update UI
     setCompletedLectures((prev) => new Set(prev).add(lectureId));
+
+    try {
+      // Find the lecture to get its details
+      const lecture = findLectureById(course, lectureId);
+      if (lecture) {
+        await progressAPI.markLectureComplete({
+          courseId,
+          lectureId: lecture.videoId || null,
+          itemId: lecture.itemId || lectureId,
+        });
+        toast.success("Lecture marked as completed!");
+      }
+    } catch (err) {
+      // Revert on error
+      setCompletedLectures((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(lectureId);
+        return newSet;
+      });
+      toast.error("Failed to mark lecture as completed");
+    }
   };
 
   // -------------------------------------------------------------------
@@ -380,8 +476,52 @@ const LectureVideo = () => {
     );
   };
 
+  const QuizListItem = ({ item }) => {
+    const quizId = item.quizId || item._id || item.itemId;
+    // Basic styling to match VideoListItem
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "12px 20px",
+          cursor: "pointer",
+          borderBottom: "1px solid #eee",
+          backgroundColor: "#fff",
+        }}
+        onClick={() => {
+          // Navigate to quiz page
+          // Assuming /quiz route handles query params or logic needs to be added there
+          navigate(
+            `/quiz?courseId=${courseId}&quizId=${quizId}&itemId=${
+              item.itemId || item._id
+            }`
+          );
+        }}
+      >
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            marginRight: 10,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <FaQuestionCircle style={{ color: "#7e22ce" }} />
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "14px" }}>{item.title}</div>
+          <span style={{ fontSize: "12px", color: "#6b7280" }}>Quiz</span>
+        </div>
+      </div>
+    );
+  };
+
   // Loading UI
-  if (loading) {
+  if (loading || checkingEnrollment) {
     return (
       <div
         style={{
@@ -421,7 +561,9 @@ const LectureVideo = () => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ color: "#67696b" }}>|</span>
-          <span className="text-sm md:text-base">{course?.title || "Course"}</span>
+          <span className="text-sm md:text-base">
+            {course?.title || "Course"}
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {/* 🏆 Progress */}
@@ -470,6 +612,13 @@ const LectureVideo = () => {
       //   minHeight: "100vh",
       //   backgroundColor: "#f4f6f9",
       // }}
+      <div
+        className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
+        // style={{
+        //   display: "flex",
+        //   minHeight: "100vh",
+        //   backgroundColor: "#f4f6f9",
+        // }}
       >
         {/* LEFT: VIDEO PLAYER */}
         <div style={{ flex: 1, padding: "20px" }}>
@@ -642,13 +791,20 @@ const LectureVideo = () => {
                   <div>
                     {(section.items || [])
                       .filter((i) => i.type === "lecture" || i.type === "quiz")
-                      .map((vid) => (
-                        <VideoListItem
-                          key={vid._id || vid.itemId || vid.videoId}
-                          vid={vid}
-                          isActive={currentVideo?._id === vid._id}
-                        />
-                      ))}
+                      .map((item) =>
+                        item.type === "quiz" ? (
+                          <QuizListItem
+                            key={item._id || item.itemId || item.quizId}
+                            item={item}
+                          />
+                        ) : (
+                          <VideoListItem
+                            key={item._id || item.itemId || item.videoId}
+                            vid={item}
+                            isActive={currentVideo?._id === item._id}
+                          />
+                        )
+                      )}
                   </div>
                 )}
               </div>

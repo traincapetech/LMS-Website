@@ -99,6 +99,8 @@ app.use("/api/quizzes/:quizId/results", require("./routes/quizResultRoute"));
 app.use("/api/quizzes", require("./routes/quizRoute"));
 app.use("/api/newsletter", require("./routes/newsletterRoutes"));
 app.use("/api/public", require("./routes/publicRoutes"));
+app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
+app.use("/api/progress", require("./routes/progressRoutes"));
 
 // Global error handler
 app.use((err, req, res, next) => {

@@ -5,6 +5,8 @@ import { useStore } from "../Store/store";
 import { Spinner } from "@/components/ui/spinner";
 import { IoMdArrowDropright } from "react-icons/io";
 import { GoVideo } from "react-icons/go";
+import { enrollmentAPI } from "@/utils/api";
+import { toast } from "sonner";
 import {
   Accordion,
   AccordionContent,
@@ -31,6 +33,11 @@ const CourseDetails = () => {
 
   const { addToCart } = useContext(CartContext);
 
+  // Enrollment state
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+  const [enrollmentProgress, setEnrollmentProgress] = useState(null);
+
   // Expand/Collapse
   const [expanded, setExpanded] = useState({});
   const [expandedAll, setExpandedAll] = useState(false);
@@ -44,6 +51,72 @@ const CourseDetails = () => {
     window.scrollTo(0, 0);
     fetchCoursesById(id);
   }, [id, fetchCoursesById]);
+
+  // Check enrollment status
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !id) {
+        setCheckingEnrollment(false);
+        return;
+      }
+
+      try {
+        const res = await enrollmentAPI.checkEnrollment(id);
+        setIsEnrolled(res.data.isEnrolled);
+        setEnrollmentProgress(res.data.progress);
+      } catch (err) {
+        // User not enrolled or not logged in
+        setIsEnrolled(false);
+      } finally {
+        setCheckingEnrollment(false);
+      }
+    };
+
+    if (id) {
+      checkEnrollment();
+    }
+  }, [id]);
+
+  // Handle enrollment
+  const handleEnroll = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to enroll in courses");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await enrollmentAPI.enroll(id);
+      setIsEnrolled(true);
+      toast.success("Successfully enrolled in course!");
+      // Navigate to first lecture or course content
+      if (course?.curriculum?.[0]?.items?.[0]) {
+        const firstLecture = course.curriculum[0].items[0];
+        navigate(`/lecture/${firstLecture.itemId}?courseId=${id}`, {
+          state: {
+            lectureId: firstLecture.itemId,
+            courseId: id,
+          },
+        });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to enroll in course");
+    }
+  };
+
+  // Handle start learning (for enrolled users)
+  const handleStartLearning = () => {
+    if (!course?.curriculum?.[0]?.items?.[0]) return;
+    const firstLecture = course.curriculum[0].items[0];
+    navigate(`/lecture/${firstLecture.itemId}?courseId=${id}`, {
+      state: {
+        lectureId: firstLecture.itemId,
+        courseId: id,
+      },
+    });
+  };
   console.log("mohit", course);
   // ⭐ Add to cart
   const handleAddToCart = () => {
@@ -280,25 +353,85 @@ const CourseDetails = () => {
 
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5">
-                <span className="text-2xl font-semibold">${course.price}</span>
-
-                <span className="text-blue-600 text-sm">
-                  {course.discount}% off
+                <span className="text-2xl font-semibold">
+                  {course.price === 0 || course.price === "0" ? "Free" : `₹${course.price}`}
                 </span>
+                {course.price > 0 && course.discount && (
+                  <span className="text-blue-600 text-sm">
+                    {course.discount}% off
+                  </span>
+                )}
               </div>
-              <Button
-                className="bg-Accent hover:bg-Accent/80 mb-5"
-                onClick={handleAddToCart}
-              >
-                Add to cart
-              </Button>
-              <Button
-                variant="outline"
-                className="border border-Accent text-Accent mb-5"
-                onClick={handleBuyNow}
-              >
-                Buy now
-              </Button>
+
+              {/* Show different buttons based on enrollment status */}
+              {checkingEnrollment ? (
+                <div className="mb-5 text-center">
+                  <Spinner className="text-blue-600 size-6 mx-auto" />
+                </div>
+              ) : isEnrolled ? (
+                <>
+                  {enrollmentProgress && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Your Progress</span>
+                        <span className="font-semibold">
+                          {enrollmentProgress.progressPercentage || 0}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{
+                            width: `${enrollmentProgress.progressPercentage || 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    className="bg-green-600 hover:bg-green-700 mb-5"
+                    onClick={handleStartLearning}
+                  >
+                    {enrollmentProgress?.progressPercentage > 0
+                      ? "Continue Learning"
+                      : "Start Learning"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border border-gray-300 mb-5"
+                    onClick={() => navigate("/my-learning")}
+                  >
+                    View in My Learning
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {course.price === 0 || course.price === "0" ? (
+                    <Button
+                      className="bg-Accent hover:bg-Accent/80 mb-5"
+                      onClick={handleEnroll}
+                    >
+                      Enroll for Free
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        className="bg-Accent hover:bg-Accent/80 mb-5"
+                        onClick={handleAddToCart}
+                      >
+                        Add to cart
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border border-Accent text-Accent mb-5"
+                        onClick={handleBuyNow}
+                      >
+                        Buy now
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
               <div className="flex items-center gap-2 mb-3">
                 <GoInfinity />
                 Full Lifetime Access

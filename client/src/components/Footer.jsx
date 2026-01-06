@@ -6,45 +6,44 @@ import { FaLinkedinIn } from "react-icons/fa";
 import { useStore } from "@/Store/store";
 import { toast } from "sonner";
 const Footer = () => {
-
   const [email, setEmail] = useState("");
-    
-    const {
-      subscribe,
-      subscribing,
-      setSubscribing,
-      courses,
-      loading,
-      error,
-      fetchCourses,
-    } = useStore();
-  
-    const handleSubscribe = async () => {
-      if (!email) {
-        toast.error("Please enter your email address.");
-        return;
-      }
-      // Basic validation
-      if (!/\S+@\S+\.\S+/.test(email)) {
-        toast.error("Please enter a valid email address.");
-        return;
-      }
-  
-      setSubscribing(true);
-      try {
-        subscribe(email);
-        toast.success("Subscribed successfully!");
-        setEmail("");
-      } catch (error) {
-        console.error(error);
-        toast.error(
-          error.response?.data?.message ||
-            "Subscription failed. Please try again."
-        );
-      } finally {
-        setSubscribing(false);
-      }
-    };
+
+  const {
+    subscribe,
+    subscribing,
+    setSubscribing,
+    courses,
+    loading,
+    error,
+    fetchCourses,
+  } = useStore();
+
+  const handleSubscribe = async () => {
+    if (!email) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    // Basic validation
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setSubscribing(true);
+    try {
+      subscribe(email);
+      toast.success("Subscribed successfully!");
+      setEmail("");
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message ||
+          "Subscription failed. Please try again."
+      );
+    } finally {
+      setSubscribing(false);
+    }
+  };
   const handleCourseClick = () => {
     window.scrollTo(0, 0);
   };
@@ -60,13 +59,22 @@ const Footer = () => {
             experience. Learn, teach, and grow with TrainCape LMS.
           </p>
           <div className="flex gap-4 pt-2">
-            <a href="#" className="hover:text-white transition">
+            <a
+              href="https://www.facebook.com/people/Traincape-Technology-Pvt-Ltd/100083755432171/"
+              className="hover:text-white transition"
+            >
               <FaFacebook className="text-xl" />
             </a>
-            <a href="#" className="hover:text-white transition">
+            <a
+              href="https://www.instagram.com/traincape_technology/?igsh=MWR5c3EyOTI4dHJ5eg%3D%3D#"
+              className="hover:text-white transition"
+            >
               <BsInstagram className="text-xl" />
             </a>
-            <a href="#" className="hover:text-white transition">
+            <a
+              href="https://www.linkedin.com/company/traincape-technology/"
+              className="hover:text-white transition"
+            >
               <FaLinkedinIn className="text-xl" />
             </a>
           </div>
@@ -77,22 +85,22 @@ const Footer = () => {
           <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
           <ul className="space-y-3 text-sm">
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/" className="hover:text-white transition">
                 Home
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/courses" className="hover:text-white transition">
                 Courses
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/#aboutus" className="hover:text-white transition">
                 About Us
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/contact" className="hover:text-white transition">
                 Contact
               </a>
             </li>
@@ -104,22 +112,25 @@ const Footer = () => {
           <h3 className="text-lg font-semibold text-white mb-4">Support</h3>
           <ul className="space-y-3 text-sm">
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/faqs" className="hover:text-white transition">
                 FAQs
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/help-center" className="hover:text-white transition">
                 Help Center
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a href="/privacy-policy" className="hover:text-white transition">
                 Privacy Policy
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition">
+              <a
+                href="/terms-and-conditions"
+                className="hover:text-white transition"
+              >
                 Terms & Conditions
               </a>
             </li>
