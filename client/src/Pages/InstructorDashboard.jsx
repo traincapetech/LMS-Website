@@ -13,8 +13,10 @@ const TABS = [
   { id: "bundles", label: "Bundles" },
 ];
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+
 export default function InstructorDashboard() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+
 
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
@@ -88,7 +90,7 @@ export default function InstructorDashboard() {
 
     fetchCourses();
   }, [API_BASE]);
- 
+
 
   const handleCreateCourse = () => {
     navigate(`/create`);

@@ -57,26 +57,20 @@ exports.enroll = async (req, res) => {
       $inc: { learners: 1 }
     });
 
-    // 🎉 AUTO-SEND WELCOME MESSAGE
-    try {
-      // Get pending course data for welcome message
-      const pendingCourse = await PendingCourse.findById(course.pendingCourseId);
+    // 🎉 AUTO-SEND WELCOME MESSAGE 
+    // Send personalized welcome message from instructor to newly enrolled student
+    // This creates first message in student's private chat with instructor
+    const { sendWelcomeMessage } = require('./discussionController');
 
-      if (pendingCourse && pendingCourse.welcomeMsg && pendingCourse.welcomeMsg.trim()) {
-        await CourseDiscussion.create({
-          courseId: courseId,
-          sender: course.instructor._id,
-          message: pendingCourse.welcomeMsg.trim(),
-          isInstructorMessage: true
-        });
-        console.log('✅ Welcome message sent to new student');
-      }
-    } catch (msgError) {
-      console.error('Failed to send welcome message:', msgError);
-      // Don't fail enrollment if message fails
+    if (course.instructor) {
+      // Send welcome message (non-blocking - don't wait for result)
+      // If it fails, enrollment still succeeds
+      sendWelcomeMessage(courseId, userId, course.instructor._id)
+        .then(() => console.log(`✅ Welcome message sent for enrollment ${enrollment._id}`))
+        .catch(err => console.error('⚠️ Welcome message failed:', err));
     }
 
-    // Populate course details
+    // Populate course details for response
     await enrollment.populate('course');
 
     res.status(201).json({

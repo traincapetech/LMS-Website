@@ -25,6 +25,7 @@ const getInitials = (name = "") => {
 const UserProfileDropdown = ({
   user,
   cartCount = 0,
+  unreadCount = 0,
   onLogout,
   onProfilePhotoUpload,
 }) => {
@@ -145,8 +146,8 @@ const UserProfileDropdown = ({
                 user.role === "admin"
                   ? "#ef4444"
                   : user.role === "instructor"
-                  ? "#10b981"
-                  : "#6366f1",
+                    ? "#10b981"
+                    : "#6366f1",
               fontSize: 14,
               marginBottom: 4,
             }}
@@ -154,8 +155,8 @@ const UserProfileDropdown = ({
             {user.role === "admin"
               ? "Admin"
               : user.role === "instructor"
-              ? "Instructor"
-              : "Student"}
+                ? "Instructor"
+                : "Student"}
           </div>
           <button
             style={{
@@ -218,6 +219,8 @@ const UserProfileDropdown = ({
           <MenuItem
             icon={<FiMessageSquare />}
             label="Messages"
+            badge={unreadCount > 0 ? `+${unreadCount}` : null}
+            badgeColor="red"
             onClick={() => navigate("/messages")}
           />
           <Divider />
@@ -266,7 +269,7 @@ const UserProfileDropdown = ({
   );
 };
 
-const MenuItem = ({ icon, label, badge, rightLabel, onClick, danger }) => (
+const MenuItem = ({ icon, label, badge, badgeColor, rightLabel, onClick, danger }) => (
   <div
     onClick={onClick}
     style={{
@@ -286,19 +289,21 @@ const MenuItem = ({ icon, label, badge, rightLabel, onClick, danger }) => (
       (e.currentTarget.style.background = danger ? "#fff5f5" : "transparent")
     }
   >
-    <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <span style={{ display: "flex", alignItems: " center", gap: 12 }}>
       {icon}
       {label}
       {badge ? (
         <span
           style={{
-            background: "#a259ff",
+            background: badgeColor === 'red' ? 'red' : "#a259ff",
             color: "white",
             borderRadius: "50%",
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 700,
-            padding: "2px 8px",
+            padding: "2px 6px",
             marginLeft: 8,
+            minWidth: 18,
+            textAlign: 'center'
           }}
         >
           {badge}

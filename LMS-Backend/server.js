@@ -65,7 +65,7 @@ app.use(
       "https://www.cognify.traincapetech.in",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Last-Check"],
     credentials: true,
     optionsSuccessStatus: 200,
   })
