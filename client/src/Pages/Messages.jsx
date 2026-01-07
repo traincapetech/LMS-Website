@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Search, Star, MoreVertical, Bold, Italic, List, Link as LinkIcon, Image as ImageIcon, CheckSquare, ChevronDown, PenSquare } from 'lucide-react';
 import { discussionAPI, enrollmentAPI } from '../utils/api';
 import { toast } from 'sonner';
 
@@ -12,6 +13,21 @@ const Messages = () => {
   const [sending, setSending] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [isInstructor, setIsInstructor] = useState(false); // NEW: Track if user is instructor
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("All Messages");
+  const filterRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setFilterOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Auto-scroll reference
   const messagesEndRef = useRef(null);
@@ -197,7 +213,7 @@ const Messages = () => {
       {/* HEADER */}
       <div className="mb-4">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Messages</h1>
-        <p className="text-gray-600">
+        <p className="text-gray-400">
           {isInstructor
             ? `You have ${myCourses.length} student conversation${myCourses.length !== 1 ? 's' : ''}.`
             : `You have ${myCourses.length} course discussion${myCourses.length !== 1 ? 's' : ''}.`
@@ -208,16 +224,54 @@ const Messages = () => {
       <div className="flex bg-white h-[650px] border border-gray-300 rounded-lg overflow-hidden">
         {/* SIDEBAR - List of Courses/Conversations */}
         <div className="w-96 min-w-[384px] border-r border-gray-300 flex flex-col">
-          {/* Search */}
-          <div className="p-3 flex gap-2 border-b border-gray-300">
-            <input
-              type="text"
-              placeholder={isInstructor ? "Search students..." : "Search courses..."}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-600"
-            />
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-              🔍
-            </button>
+          {/* Sidebar Header Actions */}
+          <div className="p-4 border-b border-gray-200">
+            {/* Compose & Filter Row */}
+            <div className="flex gap-2 mb-3">
+              <button className="flex-1 py-2 px-3 bg-gray-900 border border-gray-900 text-white font-bold text-sm rounded hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+                Compose
+              </button>
+              <div className="relative" ref={filterRef}>
+                <button
+                  className="h-full px-3 border border-gray-300 rounded bg-white text-gray-700 font-medium text-sm hover:bg-gray-50 flex items-center gap-2"
+                  onClick={() => setFilterOpen(!filterOpen)}
+                >
+                  {activeFilter} <ChevronDown size={14} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {filterOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded shadow-lg z-20 py-1">
+                    {["All Messages", "Unread", "No response", "Important"].map((option) => (
+                      <button
+                        key={option}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${activeFilter === option ? "bg-blue-100 text-blue-700 font-medium" : "text-gray-700"}`}
+                        onClick={() => {
+                          setActiveFilter(option);
+                          setFilterOpen(false);
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Search Row */}
+            <div className="flex mb-3">
+              <input
+                type="text"
+                placeholder="Search"
+                className="flex-1 px-3 py-2 border border-blue-600 border-r-0 rounded-l text-sm focus:outline-none focus:border-blue-600 focus:z-10"
+              />
+              <button className="bg-blue-600 text-white px-4 rounded-r hover:bg-blue-700 transition-colors flex items-center justify-center">
+                <Search size={16} />
+              </button>
+            </div>
+
+
           </div>
 
           {/* Thread List */}
@@ -235,25 +289,42 @@ const Messages = () => {
               myCourses.map((course) => (
                 <div
                   key={course.id}
-                  className={`flex p-3 cursor-pointer border-b border-gray-200 transition-colors hover:bg-gray-50 ${selectedCourse?.id === course.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                  className={`group relative flex p-3 cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedCourse?.id === course.id ? 'bg-blue-50' : ''
                     }`}
                   onClick={() => setSelectedCourse(course)}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 mr-3">
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 bg-blue-600 ${selectedCourse?.id === course.id ? 'block' : 'hidden'}`}></div>
+
+                  {/* Avatar */}
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 mr-3">
                     <img
                       src={course.image || "https://placehold.co/100"}
                       alt="course"
                       className="object-cover w-full h-full"
                     />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm text-gray-800 truncate">{course.title}</h4>
-                    <p className="text-xs text-gray-500 truncate">
-                      {isInstructor
-                        ? `Student: ${course.instructor}` // Actually student name
-                        : `Instructor: ${course.instructor}`
-                      }
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 pr-6"> {/* pr-6 for date */}
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <h4 className="font-bold text-sm text-gray-900 truncate">
+                        {isInstructor ? course.instructor : course.instructor}
+                      </h4>
+                    </div>
+
+                    <p className="text-xs text-gray-600 truncate mb-1 line-clamp-1">
+                      {course.title}
                     </p>
+
+
+                  </div>
+
+                  {/* Meta (Date + Star) */}
+                  <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-gray-400 font-medium">1mo ago</span>
+                    <div className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-yellow-500">
+                      <Star size={14} />
+                    </div>
                   </div>
                 </div>
               ))
@@ -266,14 +337,34 @@ const Messages = () => {
           {selectedCourse ? (
             <>
               {/* Chat Header - Shows conversation details */}
-              <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-lg text-gray-800">{selectedCourse.title}</h3>
-                <span className="text-sm text-gray-500">
-                  {isInstructor
-                    ? `Chat with ${selectedCourse.instructor}` // Student name
-                    : `Private Chat with ${selectedCourse.instructor}` // Instructor name
-                  }
-                </span>
+              {/* Chat Header */}
+              <div className="p-4 border-b border-gray-200 flex justify-between items-start bg-white h-20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                    <img
+                      src={selectedCourse.image || "https://placehold.co/100"}
+                      alt="user"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-gray-900">
+                      {isInstructor ? selectedCourse.instructor : selectedCourse.instructor}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {isInstructor ? "Student" : "Instructor"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                    <Star size={20} />
+                  </button>
+                  <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                    <MoreVertical size={20} />
+                  </button>
+                </div>
               </div>
 
               {/* Messages List */}
@@ -324,23 +415,43 @@ const Messages = () => {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 border-t border-gray-200 bg-white flex gap-2">
-                <textarea
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none min-h-[44px] max-h-[120px] focus:outline-none focus:border-blue-600"
-                  placeholder="Type a message..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  disabled={sending}
-                  rows={1}
-                />
-                <button
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
-                  onClick={handleSendMessage}
-                  disabled={sending}
-                >
-                  {sending ? 'Sending...' : 'Send'}
-                </button>
+              {/* Rich Text Input Area */}
+              <div className="p-5 border-t border-gray-200 bg-white">
+                <div className="border border-gray-400 rounded-sm overflow-hidden focus-within:ring-1 focus-within:ring-black focus-within:border-black transition-all">
+                  {/* Toolbar */}
+                  <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-200">
+                    <button className="p-1 text-gray-600 hover:bg-gray-200 rounded"><Bold size={16} /></button>
+                    <button className="p-1 text-gray-600 hover:bg-gray-200 rounded"><Italic size={16} /></button>
+                    <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                    <button className="p-1 text-gray-600 hover:bg-gray-200 rounded"><List size={16} /></button>
+                    <button className="p-1 text-gray-600 hover:bg-gray-200 rounded"><LinkIcon size={16} /></button>
+                    <button className="p-1 text-gray-600 hover:bg-gray-200 rounded"><ImageIcon size={16} /></button>
+                  </div>
+
+                  {/* Textarea */}
+                  <textarea
+                    className="w-full px-3 py-3 text-sm resize-none min-h-[50px] focus:outline-none block"
+                    placeholder="Type a message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    disabled={sending}
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex justify-between items-center mt-3">
+                  <div className="flex gap-4 text-xs font-medium text-purple-700">
+                    {/* Links Placeholder */}
+                  </div>
+                  <button
+                    className="bg-gray-900 text-white px-4 py-2 rounded font-bold hover:bg-gray-800 disabled:opacity-50 transition-colors text-sm"
+                    onClick={handleSendMessage}
+                    disabled={sending}
+                  >
+                    {sending ? 'Sending...' : 'Send'}
+                  </button>
+                </div>
               </div>
             </>
           ) : (
