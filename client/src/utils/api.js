@@ -154,4 +154,10 @@ export const progressAPI = {
   markQuizComplete: (data) => api.post("/progress/quiz/complete", data),
 };
 
+export const discussionAPI = {
+  getCourseMessages: (courseId) => api.get(`/discussion/${courseId}`),
+  sendMessage: (courseId, message) =>
+    api.post(`/discussion/${courseId}`, { message })
+};
+
 export default api;

@@ -2,6 +2,8 @@ const Enrollment = require('../models/Enrollment');
 const Progress = require('../models/Progress');
 const Course = require('../models/Course');
 const User = require('../models/User');
+const CourseDiscussion = require('../models/CourseDiscussion');
+const PendingCourse = require('../models/PendingCourse');
 
 // Enroll a student in a course
 exports.enroll = async (req, res) => {
@@ -14,7 +16,7 @@ exports.enroll = async (req, res) => {
     }
 
     // Check if course exists
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).populate('instructor');
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
@@ -26,7 +28,7 @@ exports.enroll = async (req, res) => {
     });
 
     if (existingEnrollment) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Already enrolled in this course',
         enrollment: existingEnrollment
       });
@@ -54,6 +56,25 @@ exports.enroll = async (req, res) => {
     await Course.findByIdAndUpdate(courseId, {
       $inc: { learners: 1 }
     });
+
+    // 🎉 AUTO-SEND WELCOME MESSAGE
+    try {
+      // Get pending course data for welcome message
+      const pendingCourse = await PendingCourse.findById(course.pendingCourseId);
+
+      if (pendingCourse && pendingCourse.welcomeMsg && pendingCourse.welcomeMsg.trim()) {
+        await CourseDiscussion.create({
+          courseId: courseId,
+          sender: course.instructor._id,
+          message: pendingCourse.welcomeMsg.trim(),
+          isInstructorMessage: true
+        });
+        console.log('✅ Welcome message sent to new student');
+      }
+    } catch (msgError) {
+      console.error('Failed to send welcome message:', msgError);
+      // Don't fail enrollment if message fails
+    }
 
     // Populate course details
     await enrollment.populate('course');

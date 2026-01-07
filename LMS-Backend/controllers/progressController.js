@@ -1,6 +1,8 @@
 const Progress = require('../models/Progress');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const CourseDiscussion = require('../models/CourseDiscussion');
+const PendingCourse = require('../models/PendingCourse');
 
 // Mark lecture as completed
 exports.markLectureComplete = async (req, res) => {
@@ -9,8 +11,8 @@ exports.markLectureComplete = async (req, res) => {
     const userId = req.user._id || req.user.id;
 
     if (!courseId || (!lectureId && !itemId)) {
-      return res.status(400).json({ 
-        message: 'Course ID and Lecture ID (or itemId) are required' 
+      return res.status(400).json({
+        message: 'Course ID and Lecture ID (or itemId) are required'
       });
     }
 
@@ -21,8 +23,8 @@ exports.markLectureComplete = async (req, res) => {
     });
 
     if (!enrollment) {
-      return res.status(403).json({ 
-        message: 'You must be enrolled in this course to track progress' 
+      return res.status(403).json({
+        message: 'You must be enrolled in this course to track progress'
       });
     }
 
@@ -43,8 +45,8 @@ exports.markLectureComplete = async (req, res) => {
     // Check if already completed
     const lectureIdToUse = lectureId || itemId;
     const alreadyCompleted = progress.completedLectures.some(
-      l => l.lectureId?.toString() === lectureIdToUse?.toString() || 
-           l.itemId === itemId
+      l => l.lectureId?.toString() === lectureIdToUse?.toString() ||
+        l.itemId === itemId
     );
 
     if (!alreadyCompleted) {
@@ -55,7 +57,7 @@ exports.markLectureComplete = async (req, res) => {
       });
 
       // Calculate progress percentage
-      const course = await Course.findById(courseId);
+      const course = await Course.findById(courseId).populate('instructor');
       if (course && course.curriculum) {
         const totalLectures = course.curriculum.reduce(
           (sum, section) => sum + (section.items?.filter(item => item.type === 'lecture').length || 0),
@@ -69,6 +71,7 @@ exports.markLectureComplete = async (req, res) => {
         }
 
         // Check if course is completed
+        const wasNotCompleted = !progress.isCompleted;
         if (progress.progressPercentage >= 100) {
           progress.isCompleted = true;
           progress.completedAt = new Date();
@@ -76,6 +79,26 @@ exports.markLectureComplete = async (req, res) => {
           enrollment.completedAt = new Date();
           enrollment.progress = 100;
           await enrollment.save();
+
+          // 🎉 AUTO-SEND CONGRATULATIONS MESSAGE (only first time)
+          if (wasNotCompleted) {
+            try {
+              const pendingCourse = await PendingCourse.findById(course.pendingCourseId);
+
+              if (pendingCourse && pendingCourse.congratsMsg && pendingCourse.congratsMsg.trim()) {
+                await CourseDiscussion.create({
+                  courseId: courseId,
+                  sender: course.instructor._id,
+                  message: pendingCourse.congratsMsg.trim(),
+                  isInstructorMessage: true
+                });
+                console.log('🎉 Congratulations message sent to student who completed course');
+              }
+            } catch (msgError) {
+              console.error('Failed to send congratulations message:', msgError);
+              // Don't fail progress if message fails
+            }
+          }
         }
       }
 
@@ -118,8 +141,8 @@ exports.updateLastAccessed = async (req, res) => {
     });
 
     if (!enrollment) {
-      return res.status(403).json({ 
-        message: 'You must be enrolled in this course' 
+      return res.status(403).json({
+        message: 'You must be enrolled in this course'
       });
     }
 
@@ -196,8 +219,8 @@ exports.markQuizComplete = async (req, res) => {
     const userId = req.user._id || req.user.id;
 
     if (!courseId || !quizId) {
-      return res.status(400).json({ 
-        message: 'Course ID and Quiz ID are required' 
+      return res.status(400).json({
+        message: 'Course ID and Quiz ID are required'
       });
     }
 
@@ -208,8 +231,8 @@ exports.markQuizComplete = async (req, res) => {
     });
 
     if (!enrollment) {
-      return res.status(403).json({ 
-        message: 'You must be enrolled in this course' 
+      return res.status(403).json({
+        message: 'You must be enrolled in this course'
       });
     }
 
