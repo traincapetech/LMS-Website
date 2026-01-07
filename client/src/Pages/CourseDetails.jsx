@@ -56,8 +56,29 @@ const CourseDetails = () => {
   useEffect(() => {
     const checkEnrollment = async () => {
       const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
       if (!token || !id) {
         setCheckingEnrollment(false);
+        return;
+      }
+
+      // ADMIN BYPASS: Grant access immediately
+      if (user?.role === "admin") {
+        console.log("Admin access: Bypassing enrollment check");
+        setIsEnrolled(true);
+        setCheckingEnrollment(false);
+        // Optionally load progress if possible, but don't block
+        // We can try to fetch progress just for the ticks
+        try {
+          const progressRes = await progressAPI.getCourseProgress(courseId);
+          const completed = progressRes.data.completedLectures || [];
+          const completedIds = new Set(
+            completed.map((l) => l.lectureId?.toString() || l.itemId)
+          );
+          setCompletedLectures(completedIds);
+        } catch (e) {
+          console.log("Admin progress fetch skipped or failed", e);
+        }
         return;
       }
 
@@ -354,7 +375,9 @@ const CourseDetails = () => {
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-2xl font-semibold">
-                  {course.price === 0 || course.price === "0" ? "Free" : `₹${course.price}`}
+                  {course.price === 0 || course.price === "0"
+                    ? "Free"
+                    : `₹${course.price}`}
                 </span>
                 {course.price > 0 && course.discount && (
                   <span className="text-blue-600 text-sm">
@@ -362,7 +385,6 @@ const CourseDetails = () => {
                   </span>
                 )}
               </div>
-
               {/* Show different buttons based on enrollment status */}
               {checkingEnrollment ? (
                 <div className="mb-5 text-center">
@@ -382,7 +404,9 @@ const CourseDetails = () => {
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
                           style={{
-                            width: `${enrollmentProgress.progressPercentage || 0}%`,
+                            width: `${
+                              enrollmentProgress.progressPercentage || 0
+                            }%`,
                           }}
                         />
                       </div>

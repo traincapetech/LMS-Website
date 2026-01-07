@@ -39,11 +39,8 @@ const Login1 = () => {
       if (res.data.token && res.data.user) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        window.location.reload(); // Force Navbar to update
+        navigate("/login");
       }
-      setTimeout(() => {
-        navigate("/");
-      }, 1000); // Navigate to home after 1 second
     } catch (err) {
       setMessage(err.response?.data?.message || "Signup failed");
     } finally {

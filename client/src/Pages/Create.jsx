@@ -4,6 +4,7 @@ import "./Create.css";
 import { pendingCoursesAPI } from "@/utils/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const categories = [
   "Development", "Business", "Finance & Accounting", "IT & Software",

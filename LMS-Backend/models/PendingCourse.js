@@ -30,7 +30,7 @@ const ItemSchema = new mongoose.Schema(
     // Using Mixed Array ([]) to bypass "Cast to [string]" error
     quizQuestions: [],
 
-    quizId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    quizId: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
   },
   { _id: false }
 );

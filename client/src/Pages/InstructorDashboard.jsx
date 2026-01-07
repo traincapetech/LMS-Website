@@ -5,7 +5,6 @@ import { useParams } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
-
 const TABS = [
   { id: "courses", label: "Courses" },
   { id: "drafts", label: "Drafts" },
@@ -13,9 +12,10 @@ const TABS = [
   { id: "bundles", label: "Bundles" },
 ];
 
-export default function InstructorDashboard() {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
 
+export default function InstructorDashboard() {
   const [activeTab, setActiveTab] = useState("courses");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -88,7 +88,6 @@ export default function InstructorDashboard() {
 
     fetchCourses();
   }, [API_BASE]);
- 
 
   const handleCreateCourse = () => {
     navigate(`/create`);
@@ -228,22 +227,20 @@ function CourseList({ courses }) {
   const { pendingCourseId } = useParams();
   const handlePreview = (id) => {
     navigate(`/preview/pending-course/${id}`);
-  }
+  };
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
 
     try {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
-      const res = await fetch(
-        `${API_BASE}/api/pending-courses/delete/${id}`, {
+      const res = await fetch(`${API_BASE}/api/pending-courses/delete/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
-      );
+      });
 
       const data = await res.json();
       if (res.ok) {
@@ -263,17 +260,14 @@ function CourseList({ courses }) {
   const handleApprove = async (id) => {
     if (!confirm("Approve this course?")) return;
 
-    const res = await fetch(
-      `${API_BASE}/api/pending-courses/${id}/approve`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ adminMessage: "Approved by admin" }),
-      }
-    );
+    const res = await fetch(`${API_BASE}/api/pending-courses/${id}/approve`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ adminMessage: "Approved by admin" }),
+    });
 
     const data = await res.json();
     alert(data.message || "Approved!");
@@ -285,17 +279,14 @@ function CourseList({ courses }) {
     const msg = prompt("Enter rejection reason (optional):");
     if (!confirm("Reject this course?")) return;
 
-    const res = await fetch(
-      `${API_BASE}/api/pending-courses/${id}/reject`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ adminMessage: msg }),
-      }
-    );
+    const res = await fetch(`${API_BASE}/api/pending-courses/${id}/reject`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ adminMessage: msg }),
+    });
 
     const data = await res.json();
     alert(data.message || "Rejected");
@@ -307,10 +298,7 @@ function CourseList({ courses }) {
       {courses.map((course) => (
         <div className="ic-course-card" key={course._id}>
           <div className="ic-course-thumb">
-            <img
-              src={course.thumbnailUrl}
-              alt={course.landingTitle}
-            />
+            <img src={course.thumbnailUrl} alt={course.landingTitle} />
           </div>
 
           <div className="ic-course-main">
@@ -354,7 +342,12 @@ function CourseList({ courses }) {
                 >
                   Edit / Manage
                 </button>
-                <button className="ic-link-btn" onClick={() => handlePreview(course._id)}>Preview</button>
+                <button
+                  className="ic-link-btn"
+                  onClick={() => handlePreview(course._id)}
+                >
+                  Preview
+                </button>
                 <button className="ic-link-btn">Promotions</button>
 
                 {/* Delete only if status is NOT approved OR user is admin */}
@@ -406,15 +399,15 @@ function EmptyCourses({ activeTab }) {
     activeTab === "drafts"
       ? "You don’t have any drafts yet."
       : activeTab === "archived"
-        ? "You don’t have any archived courses."
-        : "You don’t have any courses yet.";
+      ? "You don’t have any archived courses."
+      : "You don’t have any courses yet.";
 
   const desc =
     activeTab === "drafts"
       ? "Start creating a course and it will appear here as a draft."
       : activeTab === "archived"
-        ? "Archived courses will appear here and won’t be listed for new students."
-        : "Create a new course to start teaching and it will show up here.";
+      ? "Archived courses will appear here and won’t be listed for new students."
+      : "Create a new course to start teaching and it will show up here.";
 
   return (
     <div className="ic-empty-state">

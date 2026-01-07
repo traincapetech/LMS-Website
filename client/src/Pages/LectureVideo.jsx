@@ -19,6 +19,9 @@ import {
 import { useStore } from "../Store/store";
 import { enrollmentAPI, progressAPI } from "@/utils/api";
 import { toast } from "sonner";
+import QuizPlayer from "../components/QuizPlayer";
+import { Check } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
@@ -37,6 +40,7 @@ const LectureVideo = () => {
 
   const [course, setCourse] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(null);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
@@ -48,7 +52,11 @@ const LectureVideo = () => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
       for (const item of sec.items) {
-        if (item._id?.toString() === itemId?.toString()) {
+        if (
+          item._id?.toString() === itemId?.toString() ||
+          item.itemId?.toString() === itemId?.toString() ||
+          item.quizId?.toString() === itemId?.toString()
+        ) {
           return item;
         }
       }
@@ -69,43 +77,38 @@ const LectureVideo = () => {
     return null;
   };
 
-  // FETCH COURSE + VIDEO DETAILS
+  // FETCH COURSE
   useEffect(() => {
     if (!courseId) return;
 
-    const fetchCourseAndVideos = async () => {
+    // If we already have the course loaded and IDs match, don't refetch
+    // checking course._id vs courseId. course._id is usually the mongo id
+    if (course && (course._id === courseId || course.id === courseId)) {
+      return;
+    }
+
+    const fetchCourse = async () => {
       try {
-        setLoading(true); // Start loading
+        setLoading(true);
 
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
         const rawCourse = await courseRes.json();
-        //  fetchCoursesById(courseId);
 
-        if (!rawCourse.curriculum) return;
+        if (!rawCourse.curriculum) {
+          setLoading(false);
+          return;
+        }
 
-        // Extract pendingCourseId from the course data
         const pendingCourseId = rawCourse.pendingCourseId;
-
-        // Collect video IDs
-        const videoIds = [
-          ...new Set(
-            rawCourse.curriculum.flatMap((sec) =>
-              (sec.items || [])
-                .filter((i) => i.videoId)
-                .map((i) => i.videoId.toString())
-            )
-          ),
-        ];
-
-        // Fetch video metadata
         const videoMap = new Map();
+
+        // Fetch video metadata if videos exist
         try {
           const vRes = await fetch(
             `${API_BASE}/api/upload/check/${pendingCourseId}`
           );
           if (vRes.ok) {
             const data = await vRes.json();
-
             if (data.uploadedVideos && Array.isArray(data.uploadedVideos)) {
               data.uploadedVideos.forEach((video) => {
                 videoMap.set(video._id.toString(), video);
@@ -116,7 +119,7 @@ const LectureVideo = () => {
           console.error("Error fetching videos:", error);
         }
 
-        // Attach videoUrl + duration to each item
+        // Attach videoUrl + duration
         const populatedCurriculum = rawCourse.curriculum.map((sec) => ({
           ...sec,
           items: (sec.items || []).map((item) => {
@@ -134,66 +137,107 @@ const LectureVideo = () => {
         const fullCourse = { ...rawCourse, curriculum: populatedCurriculum };
         setCourse(fullCourse);
 
-        // Open first section
+        // Open first section by default
         if (populatedCurriculum.length > 0) {
           setOpenSections({
             [populatedCurriculum[0]._id ||
             populatedCurriculum[0].sectionId]: true,
           });
         }
-
-        // Set current video - prioritize the lecture ID from URL
-        let selected = null;
-
-        // First try to find by lecture ID from URL
-        if (lectureId) {
-          selected = findLectureById(fullCourse, lectureId);
-
-          // If not found by lecture ID, try to find by video ID
-          if (!selected) {
-            selected = findLectureByVideoId(fullCourse, lectureId);
-          }
-        }
-
-        // If not found, try to find by lecture ID from state
-        if (!selected && location.state?.lectureId) {
-          selected = findLectureById(fullCourse, location.state.lectureId);
-        }
-
-        // If still not found, try to find by video ID from state
-        if (!selected && location.state?.videoId) {
-          selected = findLectureByVideoId(fullCourse, location.state.videoId);
-        }
-
-        // Final fallback to the first available video
-        if (!selected) {
-          for (const sec of populatedCurriculum) {
-            const first = sec.items.find((i) => i.type === "lecture");
-            if (first) {
-              selected = first;
-              break;
-            }
-          }
-        }
-
-        setCurrentVideo(selected);
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
-        setLoading(false); // Stop loading regardless of success or error
+        setLoading(false);
       }
     };
 
-    fetchCourseAndVideos();
-  }, [courseId, lectureId, location.state]);
+    fetchCourse();
+  }, [courseId]);
 
-  console.log("mohit", course);
+  // SELECT VIDEO EFFECT
+  useEffect(() => {
+    if (!course) return;
+
+    let selected = null;
+
+    // 1. Try finding by lectureId (URL param)
+    if (lectureId) {
+      selected = findLectureById(course, lectureId);
+      if (!selected) {
+        selected = findLectureByVideoId(course, lectureId);
+      }
+    }
+
+    // 2. Fallback: try finding by location state
+    if (!selected && location.state?.lectureId) {
+      selected = findLectureById(course, location.state.lectureId);
+    }
+    if (!selected && location.state?.videoId) {
+      selected = findLectureByVideoId(course, location.state.videoId);
+    }
+
+    // 3. Last resort: first available lecture
+    if (!selected && !lectureId) {
+      for (const sec of course.curriculum) {
+        const first = sec.items.find(
+          (i) => i.type === "lecture" || i.type === "quiz"
+        );
+        if (first) {
+          selected = first;
+          break;
+        }
+      }
+    }
+
+    console.log("Setting current content:", selected);
+    // Determine type and set state
+    if (selected) {
+      if (selected.type === "quiz") {
+        setSelectedQuiz(selected);
+        setCurrentVideo(null);
+      } else {
+        setCurrentVideo(selected);
+        setSelectedQuiz(null);
+      }
+    } else {
+      // Clear both if nothing selected
+      setCurrentVideo(null);
+      setSelectedQuiz(null);
+    }
+  }, [course, lectureId, location.state]);
+
   // Check enrollment and load progress
+
   useEffect(() => {
     const checkEnrollmentAndLoadProgress = async () => {
       const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
       if (!token || !courseId) {
         setCheckingEnrollment(false);
+        return;
+      }
+
+      // ADMIN BYPASS: Grant access immediately
+      if (user?.role === "admin") {
+        console.log("Admin access: Bypassing enrollment check");
+        setIsEnrolled(true);
+        setCheckingEnrollment(false);
+        // Optionally load progress if possible, but don't block
+        // We can try to fetch progress just for the ticks
+        try {
+          const progressRes = await progressAPI.getCourseProgress(courseId);
+          const completedLecs = progressRes.data.completedLectures || [];
+          const completedQuizzes = progressRes.data.completedQuizzes || [];
+
+          const completedIds = new Set([
+            ...completedLecs.map((l) => l.lectureId?.toString() || l.itemId),
+            ...completedQuizzes.map((q) => q.quizId?.toString()),
+          ]);
+          setCompletedLectures(completedIds);
+        } catch (e) {
+          console.log("Admin progress fetch skipped or failed", e);
+        }
         return;
       }
 
@@ -205,10 +249,13 @@ const LectureVideo = () => {
         if (enrollmentRes.data.isEnrolled) {
           // Load progress
           const progressRes = await progressAPI.getCourseProgress(courseId);
-          const completed = progressRes.data.completedLectures || [];
-          const completedIds = new Set(
-            completed.map((l) => l.lectureId?.toString() || l.itemId)
-          );
+          const completedLecs = progressRes.data.completedLectures || [];
+          const completedQuizzes = progressRes.data.completedQuizzes || [];
+
+          const completedIds = new Set([
+            ...completedLecs.map((l) => l.lectureId?.toString() || l.itemId),
+            ...completedQuizzes.map((q) => q.quizId?.toString()),
+          ]);
           setCompletedLectures(completedIds);
 
           // Update last accessed
@@ -464,27 +511,40 @@ const LectureVideo = () => {
     );
   };
 
-  const QuizListItem = ({ item }) => {
-    const quizId = item.quizId || item._id || item.itemId;
+  const QuizListItem = ({ item, isActive }) => {
+    // Prioritize _id for navigation to match findLectureById logic
+    const quizId = item._id || item.itemId || item.quizId;
+    const isCompleted =
+      completedLectures.has(item._id) ||
+      completedLectures.has(item.itemId) ||
+      completedLectures.has(item.quizId);
+
     // Basic styling to match VideoListItem
     return (
       <div
+        className={` ${
+          isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
+        }`}
         style={{
           display: "flex",
           alignItems: "center",
           padding: "12px 20px",
           cursor: "pointer",
           borderBottom: "1px solid #eee",
-          backgroundColor: "#fff",
+          // backgroundColor: isActive ? "#f3e8ff" : "#fff",
+          // borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
         }}
         onClick={() => {
-          // Navigate to quiz page
-          // Assuming /quiz route handles query params or logic needs to be added there
-          navigate(
-            `/quiz?courseId=${courseId}&quizId=${quizId}&itemId=${
-              item.itemId || item._id
-            }`
-          );
+          // Navigate to lecture page (handling quiz as a lecture item)
+          navigate(`/lecture/${quizId}?courseId=${courseId}`, {
+            state: {
+              lectureId: quizId,
+              courseId: courseId,
+              pendingCourseId: course?.pendingCourseId,
+              video: item, // Passing item as video for consistency in state
+            },
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       >
         <div
@@ -497,12 +557,39 @@ const LectureVideo = () => {
             justifyContent: "center",
           }}
         >
-          <FaQuestionCircle style={{ color: "#7e22ce" }} />
+          <div
+            className="rounded-full w-5 h-5 border flex items-center justify-center border-blue-500"
+            // style={{
+            //   width: 20,
+            //   height: 20,
+            //   borderRadius: "50%",
+            //   border: isCompleted ? "none" : "2px solid #d1d5db",
+            //   backgroundColor: isCompleted ? "#7e22ce" : "transparent",
+            //   marginRight: 10,
+            //   display: "flex",
+            //   alignItems: "center",
+            //   justifyContent: "center",
+            //   color: isCompleted ? "white" : "transparent",
+            //   fontSize: 12,
+            // }}
+            onClick={(e) => {
+              e.stopPropagation();
+              markAsCompleted(quizId);
+            }}
+          >
+            {isCompleted ? (
+              <Check className="size-5 text-blue-500" />
+            ) : (
+              <FaQuestionCircle className="size-5 text-blue-500" />
+            )}
+          </div>
         </div>
 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "14px" }}>{item.title}</div>
-          <span style={{ fontSize: "12px", color: "#6b7280" }}>Quiz</span>
+          <span style={{ fontSize: "12px", color: "#6b7280" }}>
+            {item.quizQuestions?.length || 0} Questions
+          </span>
         </div>
       </div>
     );
@@ -511,20 +598,8 @@ const LectureVideo = () => {
   // Loading UI
   if (loading || checkingEnrollment) {
     return (
-      <div
-        style={{
-          background: "#181821",
-          minHeight: "100vh",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 24, color: "#f4c150" }}>Loading video...</div>
-          <div style={{ color: "#b1b1b1" }}>Please wait.</div>
-        </div>
+      <div className="flex items-center w-full h-screen justify-center">
+        <Spinner className="text-blue-600 size-12" />
       </div>
     );
   }
@@ -554,7 +629,7 @@ const LectureVideo = () => {
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {/* 🏆 Progress */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaTrophy style={{ color: "#a855f7", fontSize: "18px" }} />
+            <FaTrophy className="size-5 text-blue-600" />
             <div>
               <div
                 style={{
@@ -566,10 +641,11 @@ const LectureVideo = () => {
                 }}
               >
                 <div
+                  className="bg-blue-600"
                   style={{
                     height: "100%",
                     width: `${progressPercent}%`,
-                    backgroundColor: "#a855f7",
+
                     transition: "width 0.4s ease",
                   }}
                 ></div>
@@ -604,12 +680,34 @@ const LectureVideo = () => {
         <div style={{ flex: 1, padding: "20px" }}>
           <div
             style={{
-              backgroundColor: "#000",
+              backgroundColor: selectedQuiz ? "#181821" : "#000",
               aspectRatio: "16/9",
               boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+              display: "flex", // Ensure QuizPlayer fills container
+              flexDirection: "column",
             }}
           >
-            {currentVideo?.videoUrl ? (
+            {selectedQuiz ? (
+              <QuizPlayer
+                quiz={selectedQuiz}
+                courseId={courseId}
+                isCompleted={
+                  completedLectures.has(selectedQuiz._id) ||
+                  completedLectures.has(selectedQuiz.itemId) ||
+                  completedLectures.has(selectedQuiz.quizId)
+                }
+                onComplete={(score) => {
+                  // Update local state to show completion immediately
+                  setCompletedLectures((prev) => {
+                    const newSet = new Set(prev);
+                    if (selectedQuiz._id) newSet.add(selectedQuiz._id);
+                    if (selectedQuiz.itemId) newSet.add(selectedQuiz.itemId);
+                    if (selectedQuiz.quizId) newSet.add(selectedQuiz.quizId);
+                    return newSet;
+                  });
+                }}
+              />
+            ) : currentVideo?.videoUrl ? (
               <video
                 key={currentVideo._id}
                 controls
@@ -620,7 +718,12 @@ const LectureVideo = () => {
               </video>
             ) : (
               <div
-                style={{ color: "white", padding: "20px", textAlign: "center" }}
+                style={{
+                  color: "white",
+                  padding: "20px",
+                  textAlign: "center",
+                  margin: "auto",
+                }}
               >
                 No video uploaded.
               </div>
@@ -735,6 +838,10 @@ const LectureVideo = () => {
                           <QuizListItem
                             key={item._id || item.itemId || item.quizId}
                             item={item}
+                            isActive={
+                              currentVideo?._id === item._id ||
+                              currentVideo?.itemId === item.itemId
+                            }
                           />
                         ) : (
                           <VideoListItem

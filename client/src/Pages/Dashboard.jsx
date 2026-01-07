@@ -17,6 +17,7 @@ import { MdKeyboardArrowUp, MdKeyboardArrowDown } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import QuizPage from "./QuizPage";
+import { generateObjectId } from "../utils/objectId";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
@@ -173,6 +174,10 @@ export default function Dashboard() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      // Helper to check for valid ObjectId
+      const isValidObjectId = (id) =>
+        id && typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
       const curriculumMeta = sections.map((section) => ({
         id: section.id || section._id,
         title: section.title || "New Section",
@@ -181,7 +186,8 @@ export default function Dashboard() {
           id: item.id || item._id,
           type: item.type,
           title: item.title,
-          videoId: item.videoId || null,
+          // Only send valid ObjectId for videoId
+          videoId: isValidObjectId(item.videoId) ? item.videoId : null,
           documents: (item.documents || []).map((d) => ({
             fileUrl: d.fileUrl || "",
             fileName: d.fileName || "",
@@ -201,7 +207,8 @@ export default function Dashboard() {
             tags: q.tags || [],
             type: q.type,
           })),
-          quizId: item.quizId || null,
+          // Only send valid ObjectId for quizId
+          quizId: isValidObjectId(item.quizId) ? item.quizId : null,
         })),
       }));
 
@@ -319,7 +326,15 @@ export default function Dashboard() {
         setThumbnailUrl(draft.thumbnailUrl || "");
 
         if (draft.sections) {
-          setSections(draft.sections);
+          // Ensure IDs are present
+          const cleanSections = draft.sections.map((s) => ({
+            ...s,
+            items: (s.items || []).map((i) => ({
+              ...i,
+              quizId: i.quizId || generateObjectId(),
+            })),
+          }));
+          setSections(cleanSections);
         }
 
         draftRestoredRef.current = true; // Update ref immediately
@@ -405,7 +420,7 @@ export default function Dashboard() {
                   type: q.type || "mcq",
                 })
               ),
-              quizId: item.quizId || null,
+              quizId: item.quizId || generateObjectId(),
             })),
           }))
         );
@@ -529,6 +544,10 @@ export default function Dashboard() {
       }
 
       // 2) Build payload metadata (no files)
+      // Helper to check for valid ObjectId
+      const isValidObjectId = (id) =>
+        id && typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
       const curriculumMeta = sections.map((section) => ({
         id: section.id || undefined,
         title: section.title || "New Section",
@@ -537,7 +556,7 @@ export default function Dashboard() {
           type: item.type,
           title: item.title,
           // keep existing videoId (if previously uploaded) so server knows not to replace
-          videoId: item.videoId || null,
+          videoId: isValidObjectId(item.videoId) ? item.videoId : null,
           // documents meta (we will include new files separately)
           documents: (item.documents || []).map((d) => ({
             fileUrl: d.fileUrl || "",
@@ -558,7 +577,7 @@ export default function Dashboard() {
             tags: q.tags || [],
             type: q.type,
           })),
-          quizId: item.quizId || null,
+          quizId: isValidObjectId(item.quizId) ? item.quizId : null,
         })),
       }));
 
@@ -598,6 +617,10 @@ export default function Dashboard() {
       // Append per-item video files + per-item documents
       sections.forEach((section, sIndex) => {
         section.items.forEach((item, iIndex) => {
+          // Helper to check for valid ObjectId
+          const isValidObjectId = (id) =>
+            id && typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+
           // video file
           if (item.videoFile) {
             form.append(
@@ -625,7 +648,7 @@ export default function Dashboard() {
           );
           if (item.id)
             form.append(`curriculum[${sIndex}][items][${iIndex}][id]`, item.id);
-          if (item.videoId)
+          if (item.videoId && isValidObjectId(item.videoId))
             form.append(
               `curriculum[${sIndex}][items][${iIndex}][videoId]`,
               String(item.videoId)

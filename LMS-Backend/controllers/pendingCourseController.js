@@ -135,9 +135,7 @@ exports.editCourse = async (req, res) => {
   try {
     const courseId = req.params.id;
     console.log("courseid ", courseId);
-    // Fix instructorId extraction
-    const instructorId = req.user.id || req.user._id;
-    console.log("instructor iD : ", instructorId);
+
     // Parse FormData JSON body
     let body = req.body;
     if (req.body.data) {
@@ -148,16 +146,28 @@ exports.editCourse = async (req, res) => {
       }
     }
 
-    // Correct ownership check
-    const course = await PendingCourse.findOne({
-      _id: courseId,
-      instructor: req.user._id,
-    });
+    // 1. Find course independent of owner
+    const course = await PendingCourse.findById(courseId);
 
     if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // 2. Check ownership safely
+    const instructorId = req.user._id;
+    // Allow if owner OR if admin (optional, but good for safety)
+    if (
+      String(course.instructor) !== String(instructorId) &&
+      req.user.role !== "admin"
+    ) {
+      console.log(
+        `⛔ Unauthorized edit: User ${instructorId} tried to edit Course ${course.instructor}`
+      );
       return res
-        .status(404)
-        .json({ message: "Course not found or unauthorized" });
+        .status(403)
+        .json({
+          message: "Unauthorized: You are not the instructor of this course.",
+        });
     }
 
     // Whitelist allowed fields
