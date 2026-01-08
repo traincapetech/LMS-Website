@@ -12,6 +12,7 @@ import UserProfileDropdown from "./UserProfileDropdown";
 import { getAllCourses, searchCourses } from "../Pages/CourseData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { discussionAPI } from "@/utils/api";
 
 const Navbar = ({ cartCount = 0 }) => {
   const [user, setUser] = useState(null);
@@ -26,6 +27,7 @@ const Navbar = ({ cartCount = 0 }) => {
   const navigate = useNavigate();
   const [loginHover, setLoginHover] = useState(false);
   const [isSearchHover, setIsSearchHover] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const navLinkBaseStyle = {
     textDecoration: "none",
@@ -75,7 +77,7 @@ const Navbar = ({ cartCount = 0 }) => {
           localStorage.setItem("user", JSON.stringify(data));
           setUser(data);
         }
-      } catch {}
+      } catch { }
     };
     fetchProfile();
   }, []);
@@ -108,12 +110,35 @@ const Navbar = ({ cartCount = 0 }) => {
               )
             );
           }
-        } catch {}
+        } catch { }
       } else {
         setHasPublishedCourses(false);
       }
     };
     fetchInstructorCourses();
+  }, [user]);
+
+  // Poll for unread messages every 30 seconds
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await discussionAPI.getUnreadCount();
+        const count = res.data.unreadCount || 0;
+        setUnreadCount(count);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount(); // Initial fetch
+    const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30s
+
+    return () => clearInterval(interval);
   }, [user]);
 
   // Close dropdown on outside click
@@ -179,11 +204,10 @@ const Navbar = ({ cartCount = 0 }) => {
   return (
     <>
       <nav
-        className={`fixed left-0 top-0 w-full z-50 font-poppins flex items-center justify-between px-5 py-2 ${
-          scrolled
-            ? "bg-transparent backdrop-blur-2xl border-b border-textSecondary"
-            : ""
-        }`}
+        className={`fixed left-0 top-0 w-full z-50 font-poppins flex items-center justify-between px-5 py-2 ${scrolled
+          ? "bg-transparent backdrop-blur-2xl border-b border-textSecondary"
+          : ""
+          }`}
       >
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center" }}>
@@ -306,8 +330,8 @@ const Navbar = ({ cartCount = 0 }) => {
               </Link>
             )}
 
-      
-         
+
+
 
           {/* Cart */}
           <div style={{ position: "relative" }}>
@@ -376,10 +400,38 @@ const Navbar = ({ cartCount = 0 }) => {
                   getInitials(user.name)
                 )}
               </div>
+              {/* Notification Badge */}
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: '#ff0000',
+                    color: 'white',
+                    borderRadius: '50%',
+                    padding: '3px 7px',
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    minWidth: 20,
+                    height: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    zIndex: 10,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    border: '2px solid white'
+                  }}
+                >
+                  +{unreadCount}
+                </span>
+              )}
               {dropdownOpen && (
                 <UserProfileDropdown
                   user={user}
                   cartCount={cartCount}
+                  unreadCount={unreadCount}
                   onLogout={handleLogout}
                   onProfilePhotoUpload={(photoUrl) => {
                     const updatedUser = { ...user, photoUrl };
@@ -400,7 +452,7 @@ const Navbar = ({ cartCount = 0 }) => {
             gap: "16px",
           }}
         >
-         
+
 
           {/* Mobile Cart */}
           <div style={{ position: "relative" }}>
@@ -655,6 +707,26 @@ const Navbar = ({ cartCount = 0 }) => {
                           />
                         ) : (
                           getInitials(user.name)
+                        )}
+                        {/* Mobile Notification Badge */}
+                        {unreadCount > 0 && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: -2,
+                              right: -2,
+                              background: 'red',
+                              color: 'white',
+                              borderRadius: '50%',
+                              padding: '2px 5px',
+                              fontSize: 10,
+                              fontWeight: 'bold',
+                              minWidth: 16,
+                              textAlign: 'center'
+                            }}
+                          >
+                            +{unreadCount}
+                          </span>
                         )}
                       </div>
                       <div>

@@ -1,13 +1,10 @@
 // models/PendingCourse.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const DocumentSchema = new mongoose.Schema(
-  {
-    fileUrl: String,
-    fileName: String,
-  },
-  { _id: false }
-);
+const DocumentSchema = new mongoose.Schema({
+  fileUrl: String,
+  fileName: String
+}, { _id: false });
 
 const ItemSchema = new mongoose.Schema(
   {

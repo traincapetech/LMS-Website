@@ -605,6 +605,8 @@ export default function Dashboard() {
         instructor: JSON.parse(localStorage.getItem("user") || "{}"),
       };
 
+      console.log("SENDING CURRICULUM DATA:", JSON.stringify(curriculumMeta, null, 2));
+
       // 3) Build FormData
       const form = new FormData();
       form.append("data", JSON.stringify(courseMeta));
@@ -653,6 +655,11 @@ export default function Dashboard() {
               `curriculum[${sIndex}][items][${iIndex}][videoId]`,
               String(item.videoId)
             );
+
+          if (item.type === 'quiz' && item.questions && item.questions.length > 0) {
+            // Questions array ko String bana ke bhejna padega taaki FormData structure maintain rahe
+            form.append(`curriculum[${sIndex}][items][${iIndex}][questions]`, JSON.stringify(item.questions));
+          }
         });
 
         // also append section title
@@ -1109,16 +1116,16 @@ export default function Dashboard() {
                                         prev.map((sec) =>
                                           sec.id === section.id
                                             ? {
-                                                ...sec,
-                                                items: sec.items.map((it) =>
-                                                  it.id === item.id
-                                                    ? {
-                                                        ...it,
-                                                        uploadProgress: 0,
-                                                      }
-                                                    : it
-                                                ),
-                                              }
+                                              ...sec,
+                                              items: sec.items.map((it) =>
+                                                it.id === item.id
+                                                  ? {
+                                                    ...it,
+                                                    uploadProgress: 0,
+                                                  }
+                                                  : it
+                                              ),
+                                            }
                                             : sec
                                         )
                                       );
@@ -1133,18 +1140,18 @@ export default function Dashboard() {
                                               prev.map((sec) =>
                                                 sec.id === section.id
                                                   ? {
-                                                      ...sec,
-                                                      items: sec.items.map(
-                                                        (it) =>
-                                                          it.id === item.id
-                                                            ? {
-                                                                ...it,
-                                                                uploadProgress:
-                                                                  percent,
-                                                              }
-                                                            : it
-                                                      ),
-                                                    }
+                                                    ...sec,
+                                                    items: sec.items.map(
+                                                      (it) =>
+                                                        it.id === item.id
+                                                          ? {
+                                                            ...it,
+                                                            uploadProgress:
+                                                              percent,
+                                                          }
+                                                          : it
+                                                    ),
+                                                  }
                                                   : sec
                                               )
                                             );
@@ -1503,10 +1510,9 @@ export default function Dashboard() {
                 <li key={step.key}>
                   <button
                     className={` px-5 py-4 w-full text-left text-lg font-normal cursor-pointer
-                      ${
-                        active === step.key
-                          ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
-                          : "hover:text-blue-600"
+                      ${active === step.key
+                        ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
+                        : "hover:text-blue-600"
                       }`}
                     onClick={() => setActive(step.key)}
                   >

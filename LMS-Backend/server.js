@@ -65,7 +65,7 @@ app.use(
       "https://www.cognify.traincapetech.in",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Last-Check"],
     credentials: true,
     optionsSuccessStatus: 200,
   })
@@ -101,6 +101,7 @@ app.use("/api/newsletter", require("./routes/newsletterRoutes"));
 app.use("/api/public", require("./routes/publicRoutes"));
 app.use("/api/enrollments", require("./routes/enrollmentRoutes"));
 app.use("/api/progress", require("./routes/progressRoutes"));
+app.use("/api/discussion", require("./routes/discussionRoutes"));
 
 // Global error handler
 app.use((err, req, res, next) => {

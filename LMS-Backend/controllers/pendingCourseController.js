@@ -302,6 +302,7 @@ exports.approve = async (req, res) => {
         documents: item.documents,
         quizQuestions: item.quizQuestions || [],
         quizId: item.quizId,
+
       })),
     }));
 

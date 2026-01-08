@@ -154,4 +154,35 @@ export const progressAPI = {
   markQuizComplete: (data) => api.post("/progress/quiz/complete", data),
 };
 
+export const discussionAPI = { // Discussion/Messaging API
+  // Private 1:1 chat between students and instructors
+  // Send message in private conversation
+  // recipientId is required - usually instructor ID for student messages
+  sendMessage: (courseId, message, recipientId) =>
+    api.post(`/discussion/${courseId}`, { message, recipientId }),
+
+  // Get private messages between current user and instructor
+  // Returns only messages in this private conversation (privacy ensured)
+  getCourseMessages: (courseId) =>
+    api.get(`/discussion/${courseId}`),
+
+  // NEW: Get instructor's student conversations (instructor-only)
+  // Returns list of students who have messaged in instructor's courses
+  getInstructorConversations: () =>
+    api.get('/discussion/instructor/conversations'),
+
+  // NEW: Get specific student conversation (instructor-only)
+  getStudentConversation: (courseId, studentId) =>
+    api.get(`/discussion/instructor/${courseId}/${studentId}`),
+
+  // Get unread message count across all enrolled courses
+  // Only counts messages sent TO current user (recipient field)
+  getUnreadCount: () => {
+    const lastCheck = localStorage.getItem('lastMessageCheck');
+    return api.get('/discussion/unread-count', {
+      headers: lastCheck ? { 'X-Last-Check': lastCheck } : {}
+    });
+  }
+};
+
 export default api;
