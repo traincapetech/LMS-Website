@@ -35,11 +35,23 @@ api.interceptors.response.use(
 
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      // Redirect to login if not already there
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      // Don't auto-logout for non-critical endpoints that may be called without auth
+      const url = error.config?.url || '';
+      const skipLogoutRoutes = [
+        '/reviews',  // All review routes (GET, POST, PUT, DELETE)
+        '/enrollments/check/',
+        '/discussion/',
+        '/progress/'
+      ];
+      const shouldSkipLogout = skipLogoutRoutes.some(route => url.includes(route));
+
+      if (!shouldSkipLogout) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        // Redirect to login if not already there
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
       }
     }
 
@@ -183,6 +195,18 @@ export const discussionAPI = { // Discussion/Messaging API
       headers: lastCheck ? { 'X-Last-Check': lastCheck } : {}
     });
   }
+};
+
+export const reviewAPI = {
+  getCourseReviews: (courseId, params) => api.get(`/reviews/course/${courseId}`, { params }),
+  getMyReview: (courseId) => api.get(`/reviews/course/${courseId}/my-review`),
+  getReviewStats: (courseId) => api.get(`/reviews/course/${courseId}/stats`),
+  createReview: (data) => api.post('/reviews', data),
+  updateReview: (reviewId, data) => api.put(`/reviews/${reviewId}`, data),
+  deleteReview: (reviewId) => api.delete(`/reviews/${reviewId}`),
+  markHelpful: (reviewId) => api.post(`/reviews/${reviewId}/helpful`),
+  reportReview: (reviewId, reason) => api.post(`/reviews/${reviewId}/report`, { reason }),
+  addResponse: (reviewId, response) => api.post(`/reviews/${reviewId}/response`, { response }),
 };
 
 export default api;

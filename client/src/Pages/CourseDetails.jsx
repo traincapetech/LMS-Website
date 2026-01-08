@@ -5,8 +5,9 @@ import { useStore } from "../Store/store";
 import { Spinner } from "@/components/ui/spinner";
 import { IoMdArrowDropright } from "react-icons/io";
 import { GoVideo } from "react-icons/go";
-import { enrollmentAPI } from "@/utils/api";
+import { enrollmentAPI, reviewAPI } from "@/utils/api";
 import { toast } from "sonner";
+import ReviewStats from "@/components/ReviewStats";
 import {
   Accordion,
   AccordionContent,
@@ -41,6 +42,9 @@ const CourseDetails = () => {
   // Expand/Collapse
   const [expanded, setExpanded] = useState({});
   const [expandedAll, setExpandedAll] = useState(false);
+
+  // Review stats
+  const [reviewStats, setReviewStats] = useState(null);
 
   const toggleSection = (i) => {
     setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
@@ -96,6 +100,22 @@ const CourseDetails = () => {
 
     if (id) {
       checkEnrollment();
+    }
+  }, [id]);
+
+  // Fetch review stats
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const res = await reviewAPI.getReviewStats(id);
+        setReviewStats(res.data.data);
+      } catch (err) {
+        console.log('Failed to fetch review stats:', err);
+      }
+    };
+
+    if (id) {
+      fetchReviewStats();
     }
   }, [id]);
 
@@ -353,6 +373,41 @@ const CourseDetails = () => {
                     <li key={idx}>{item}</li>
                   ))}
                 </ul>
+              </CardContent>
+            </Card>
+
+            {/* Student Feedback */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Student Feedback</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {reviewStats ? (
+                  <ReviewStats stats={reviewStats} />
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    No reviews yet
+                  </div>
+                )}
+                {reviewStats?.totalReviews > 0 && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4"
+                    onClick={() => {
+                      if (course?.curriculum?.[0]?.items?.[0]) {
+                        navigate(`/lecture/${course.curriculum[0].items[0].itemId}?courseId=${id}`, {
+                          state: {
+                            lectureId: course.curriculum[0].items[0].itemId,
+                            courseId: id,
+                            activeTab: 'reviews'
+                          }
+                        });
+                      }
+                    }}
+                  >
+                    See all reviews ({reviewStats.totalReviews})
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>

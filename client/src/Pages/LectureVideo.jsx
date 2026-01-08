@@ -20,6 +20,7 @@ import { useStore } from "../Store/store";
 import { enrollmentAPI, progressAPI } from "@/utils/api";
 import { toast } from "sonner";
 import QuizPlayer from "../components/QuizPlayer";
+import ReviewList from "../components/ReviewList";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
@@ -381,7 +382,7 @@ const LectureVideo = () => {
       case "qna":
         return <p>❓ Q&A (coming soon)</p>;
       case "reviews":
-        return <p>⭐ Reviews (coming soon)</p>;
+        return <ReviewList courseId={courseId} />;
       default:
         return null;
     }
