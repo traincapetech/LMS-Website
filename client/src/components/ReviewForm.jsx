@@ -174,18 +174,9 @@ const ReviewForm = ({
             {/* Buttons */}
             <div style={{ display: 'flex', gap: '12px' }}>
                 <button
-                    type="submit"
                     disabled={isSubmitting}
-                    style={{
-                        backgroundColor: '#7e22ce',
-                        color: 'white',
-                        padding: '12px 24px',
-                        borderRadius: '6px',
-                        border: 'none',
-                        fontWeight: '600',
-                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                        opacity: isSubmitting ? 0.7 : 1
-                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-semibold"
+
                 >
                     {isSubmitting ? 'Submitting...' : (existingReview ? 'Update Review' : 'Submit Review')}
                 </button>
