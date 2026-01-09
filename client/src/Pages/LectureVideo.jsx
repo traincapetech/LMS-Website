@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   FaChevronDown,
@@ -23,6 +23,10 @@ import { toast } from "sonner";
 import QuizPlayer from "../components/QuizPlayer";
 import { Check } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import ReviewList from "../components/ReviewList";
+import ShareModal from "../components/ShareModal";
+import QnASection from "../components/QnASection";
+import NotesSection from "../components/NotesSection";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
@@ -50,6 +54,8 @@ const LectureVideo = () => {
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false); // Track course completion
   const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const videoRef = useRef(null);
   // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
@@ -144,7 +150,7 @@ const LectureVideo = () => {
         if (populatedCurriculum.length > 0) {
           setOpenSections({
             [populatedCurriculum[0]._id ||
-              populatedCurriculum[0].sectionId]: true,
+            populatedCurriculum[0].sectionId]: true,
           });
         }
       } catch (err) {
@@ -245,7 +251,7 @@ const LectureVideo = () => {
         console.log("Admin access: Bypassing enrollment check");
         setIsEnrolled(true);
         setCheckingEnrollment(false);
-          // Load progress for admin
+        // Load progress for admin
         try {
           const progressRes = await progressAPI.getCourseProgress(courseId);
           const completedLecs = progressRes.data.completedLectures || [];
@@ -322,12 +328,15 @@ const LectureVideo = () => {
               // Find the section containing this lecture
               let sectionId = null;
               for (const sec of course.curriculum || []) {
-                if (sec.items?.some((item) => 
-                  item._id?.toString() === currentLecture._id?.toString() ||
-                  item.itemId === currentLecture.itemId ||
-                  item._id?.toString() === lectureId?.toString() ||
-                  item.itemId === lectureId
-                )) {
+                if (
+                  sec.items?.some(
+                    (item) =>
+                      item._id?.toString() === currentLecture._id?.toString() ||
+                      item.itemId === currentLecture.itemId ||
+                      item._id?.toString() === lectureId?.toString() ||
+                      item.itemId === lectureId
+                  )
+                ) {
                   sectionId = sec._id || sec.sectionId;
                   break;
                 }
@@ -336,7 +345,8 @@ const LectureVideo = () => {
               await progressAPI.updateLastAccessed({
                 courseId,
                 lectureId: currentLecture.videoId || null,
-                itemId: currentLecture.itemId || currentLecture._id || lectureId,
+                itemId:
+                  currentLecture.itemId || currentLecture._id || lectureId,
                 sectionId: sectionId,
               });
             }
@@ -370,11 +380,13 @@ const LectureVideo = () => {
   // Calculate total items (lectures + quizzes) correctly
   const totalItems = course
     ? course.curriculum.reduce(
-      (sum, sec) =>
-        sum +
-        (sec.items || []).filter((item) => item.type === "lecture" || item.type === "quiz").length,
-      0
-    )
+        (sum, sec) =>
+          sum +
+          (sec.items || []).filter(
+            (item) => item.type === "lecture" || item.type === "quiz"
+          ).length,
+        0
+      )
     : 0;
 
   // Calculate completed items count
@@ -390,9 +402,7 @@ const LectureVideo = () => {
 
   // Calculate progress percentage
   const progressPercent =
-    totalItems > 0
-      ? Math.round((completedItemsCount / totalItems) * 100)
-      : 0;
+    totalItems > 0 ? Math.round((completedItemsCount / totalItems) * 100) : 0;
 
   // Update course completion status based on progress
   useEffect(() => {
@@ -404,22 +414,24 @@ const LectureVideo = () => {
   // Download certificate function
   const handleDownloadCertificate = async () => {
     if (!courseId) return;
-    
+
     setDownloadingCertificate(true);
     try {
       const response = await progressAPI.generateCertificate(courseId);
-      
+
       // Create blob from response
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `Certificate_${course?.title?.replace(/[^a-z0-9]/gi, '_') || 'Course'}.pdf`;
+      link.download = `Certificate_${
+        course?.title?.replace(/[^a-z0-9]/gi, "_") || "Course"
+      }.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast.success("Certificate downloaded successfully! 🎉");
     } catch (error) {
       console.error("Certificate download error:", error);
@@ -468,7 +480,7 @@ const LectureVideo = () => {
         lectureId: lecture.videoId || null,
         itemId: lecture.itemId || lecture._id || lectureId,
       });
-      
+
       // Check if course is now completed
       if (response.data?.progress?.isCompleted) {
         setIsCourseCompleted(true);
@@ -524,11 +536,18 @@ const LectureVideo = () => {
       case "overview":
         return renderOverviewTab();
       case "notes":
-        return <p>📝 Notes (coming soon)</p>;
+        return (
+          <NotesSection
+            courseId={courseId}
+            currentLecture={currentVideo}
+            videoRef={videoRef}
+            curriculum={course?.curriculum}
+          />
+        );
       case "qna":
-        return <p>❓ Q&A (coming soon)</p>;
+        return <QnASection courseId={courseId} currentLecture={currentVideo} />;
       case "reviews":
-        return <p>⭐ Reviews (coming soon)</p>;
+        return <ReviewList courseId={courseId} />;
       default:
         return null;
     }
@@ -559,9 +578,9 @@ const LectureVideo = () => {
       <div style={{ borderBottom: "1px solid #eee" }}>
         {/* VIDEO ROW */}
         <div
-         className={` mb-1 ${
-          isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
-        }`}
+          className={` mb-1 ${
+            isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
+          }`}
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -588,7 +607,7 @@ const LectureVideo = () => {
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <div
-            className="rounded-full w-5 h-5 border flex items-center justify-center border-blue-500"
+              className="rounded-full w-5 h-5 border flex items-center justify-center border-blue-500"
               // style={{
               //   width: 20,
               //   height: 20,
@@ -607,7 +626,11 @@ const LectureVideo = () => {
                 markAsCompleted(lectureId);
               }}
             >
-              {isCompleted ? <Check className="size-5 text-blue-500" /> : <FaPlayCircle className="size-5 text-blue-500" />}
+              {isCompleted ? (
+                <Check className="size-5 text-blue-500" />
+              ) : (
+                <FaPlayCircle className="size-5 text-blue-500" />
+              )}
             </div>
             <span style={{ marginLeft: "10px" }}>{vid.title}</span>
           </div>
@@ -615,8 +638,8 @@ const LectureVideo = () => {
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {vid.duration
               ? `${Math.floor(vid.duration / 60)}:${String(
-                Math.floor(vid.duration % 60)
-              ).padStart(2, "0")}`
+                  Math.floor(vid.duration % 60)
+                ).padStart(2, "0")}`
               : "5:00"}
           </span>
         </div>
@@ -820,7 +843,10 @@ const LectureVideo = () => {
             </button>
           )}
 
-          <button className="flex items-center gap-1 border rounded-sm px-2 py-2">
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="flex items-center gap-1 border rounded-sm px-2 py-2 hover:bg-white/10 transition-colors"
+          >
             <FaShareAlt style={{ marginRight: "6px" }} />
             Share
           </button>
@@ -833,11 +859,11 @@ const LectureVideo = () => {
       {/* MAIN LAYOUT */}
       <div
         className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
-      // style={{
-      //   display: "flex",
-      //   minHeight: "100vh",
-      //   backgroundColor: "#f4f6f9",
-      // }}
+        // style={{
+        //   display: "flex",
+        //   minHeight: "100vh",
+        //   backgroundColor: "#f4f6f9",
+        // }}
       >
         {/* LEFT: VIDEO PLAYER */}
         <div style={{ flex: 1, padding: "20px" }}>
@@ -863,10 +889,12 @@ const LectureVideo = () => {
                     allIds.forEach((id) => newSet.add(id));
                     return newSet;
                   });
-                  
+
                   // Check if course is now completed by fetching latest progress
                   try {
-                    const progressRes = await progressAPI.getCourseProgress(courseId);
+                    const progressRes = await progressAPI.getCourseProgress(
+                      courseId
+                    );
                     if (progressRes.data.isCompleted) {
                       setIsCourseCompleted(true);
                       toast.success("🎉 Congratulations! Course completed!");
@@ -878,6 +906,7 @@ const LectureVideo = () => {
               />
             ) : currentVideo?.videoUrl ? (
               <video
+                ref={videoRef}
                 key={currentVideo._id}
                 controls
                 autoPlay
@@ -918,7 +947,8 @@ const LectureVideo = () => {
               style={{
                 marginTop: "20px",
                 padding: "20px",
-                backgroundColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                backgroundColor:
+                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 borderRadius: "12px",
                 color: "white",
@@ -928,7 +958,9 @@ const LectureVideo = () => {
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "16px" }}
+              >
                 <div
                   style={{
                     width: "60px",
@@ -944,11 +976,20 @@ const LectureVideo = () => {
                   🎉
                 </div>
                 <div>
-                  <h3 style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}>
+                  <h3
+                    style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}
+                  >
                     Congratulations!
                   </h3>
-                  <p style={{ fontSize: "14px", margin: "4px 0 0 0", opacity: 0.9 }}>
-                    You've successfully completed this course. Download your certificate to showcase your achievement!
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      margin: "4px 0 0 0",
+                      opacity: 0.9,
+                    }}
+                  >
+                    You've successfully completed this course. Download your
+                    certificate to showcase your achievement!
                   </p>
                 </div>
               </div>
@@ -1109,6 +1150,14 @@ const LectureVideo = () => {
           }
         }
       `}</style>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        courseTitle={course?.title || "Course"}
+        courseId={courseId}
+      />
     </>
   );
 };

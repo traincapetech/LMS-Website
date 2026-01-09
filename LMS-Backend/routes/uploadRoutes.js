@@ -17,6 +17,14 @@ router.get("/check/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validate ID before querying to prevent spam errors
+    if (!id || id === 'undefined' || id === 'null' || id.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID provided"
+      });
+    }
+
     /* --------------------------------------------
        CASE 1: The id is a PendingCourseId
     --------------------------------------------- */
@@ -88,9 +96,8 @@ router.post(
         });
 
       // 🗂 R2 key organized by user + course
-      const key = `thumbnails/${req.user.id}/${pendingCourseId}/${Date.now()}_${
-        req.file.originalname
-      }`;
+      const key = `thumbnails/${req.user.id}/${pendingCourseId}/${Date.now()}_${req.file.originalname
+        }`;
 
       // 📤 Upload to R2
       const url = await uploadToBucket(
@@ -149,9 +156,8 @@ router.post(
         });
 
       // Upload to bucket
-      const key = `documents/${req.user.id}/${pendingCourseId}/${Date.now()}_${
-        req.file.originalname
-      }`;
+      const key = `documents/${req.user.id}/${pendingCourseId}/${Date.now()}_${req.file.originalname
+        }`;
 
       const url = await uploadToBucket(
         req.file.buffer,
@@ -272,9 +278,8 @@ router.post(
         });
       }
 
-      const key = `videos/${req.user.id}/${pendingCourseId}/${Date.now()}_${
-        req.file.originalname
-      }`;
+      const key = `videos/${req.user.id}/${pendingCourseId}/${Date.now()}_${req.file.originalname
+        }`;
 
       const url = await uploadToBucket(
         req.file.buffer,

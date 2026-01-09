@@ -35,16 +35,28 @@ api.interceptors.response.use(
 
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401) {
-      const hadToken = !!localStorage.getItem("token");
+      const url = error.config?.url || "";
 
-      // Clear any stale auth data
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      // Don't auto-logout for non-critical endpoints that may be called without auth
+      const skipLogoutRoutes = [
+        "/reviews", // All review routes (GET, POST, PUT, DELETE)
+        "/enrollments/check/",
+        "/discussion/",
+        "/progress/",
+      ];
+      const shouldSkipLogout = skipLogoutRoutes.some((route) =>
+        url.includes(route)
+      );
 
-      // Only redirect if user previously had a token (session expired),
-      // not for completely anonymous visitors browsing public pages.
-      if (hadToken && window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      if (!shouldSkipLogout) {
+        // Clear any stale auth data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        // Redirect to login if not already there
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
       }
     }
 
@@ -157,10 +169,12 @@ export const progressAPI = {
   updateLastAccessed: (data) => api.post("/progress/lecture/access", data),
   getCourseProgress: (courseId) => api.get(`/progress/course/${courseId}`),
   markQuizComplete: (data) => api.post("/progress/quiz/complete", data),
-  generateCertificate: (courseId) => api.get(`/progress/certificate/${courseId}`, { responseType: 'blob' }),
+  generateCertificate: (courseId) =>
+    api.get(`/progress/certificate/${courseId}`, { responseType: "blob" }),
 };
 
-export const discussionAPI = { // Discussion/Messaging API
+export const discussionAPI = {
+  // Discussion/Messaging API
   // Private 1:1 chat between students and instructors
   // Send message in private conversation
   // recipientId is required - usually instructor ID for student messages
@@ -169,13 +183,12 @@ export const discussionAPI = { // Discussion/Messaging API
 
   // Get private messages between current user and instructor
   // Returns only messages in this private conversation (privacy ensured)
-  getCourseMessages: (courseId) =>
-    api.get(`/discussion/${courseId}`),
+  getCourseMessages: (courseId) => api.get(`/discussion/${courseId}`),
 
   // NEW: Get instructor's student conversations (instructor-only)
   // Returns list of students who have messaged in instructor's courses
   getInstructorConversations: () =>
-    api.get('/discussion/instructor/conversations'),
+    api.get("/discussion/instructor/conversations"),
 
   // NEW: Get specific student conversation (instructor-only)
   getStudentConversation: (courseId, studentId) =>
@@ -184,11 +197,47 @@ export const discussionAPI = { // Discussion/Messaging API
   // Get unread message count across all enrolled courses
   // Only counts messages sent TO current user (recipient field)
   getUnreadCount: () => {
-    const lastCheck = localStorage.getItem('lastMessageCheck');
-    return api.get('/discussion/unread-count', {
-      headers: lastCheck ? { 'X-Last-Check': lastCheck } : {}
+    const lastCheck = localStorage.getItem("lastMessageCheck");
+    return api.get("/discussion/unread-count", {
+      headers: lastCheck ? { "X-Last-Check": lastCheck } : {},
     });
-  }
+  },
+};
+
+export const reviewAPI = {
+  getCourseReviews: (courseId, params) =>
+    api.get(`/reviews/course/${courseId}`, { params }),
+  getMyReview: (courseId) => api.get(`/reviews/course/${courseId}/my-review`),
+  getReviewStats: (courseId) => api.get(`/reviews/course/${courseId}/stats`),
+  createReview: (data) => api.post("/reviews", data),
+  updateReview: (reviewId, data) => api.put(`/reviews/${reviewId}`, data),
+  deleteReview: (reviewId) => api.delete(`/reviews/${reviewId}`),
+  markHelpful: (reviewId) => api.post(`/reviews/${reviewId}/helpful`),
+  reportReview: (reviewId, reason) =>
+    api.post(`/reviews/${reviewId}/report`, { reason }),
+  addResponse: (reviewId, response) =>
+    api.post(`/reviews/${reviewId}/response`, { response }),
+};
+
+export const questionAPI = {
+  getQuestions: (courseId, params) =>
+    api.get(`/questions/course/${courseId}`, { params }),
+  getFeatured: (courseId) => api.get(`/questions/course/${courseId}/featured`),
+  getQuestion: (id) => api.get(`/questions/${id}`),
+  createQuestion: (data) => api.post("/questions", data),
+  addReply: (id, body) => api.post(`/questions/${id}/reply`, { body }),
+  upvoteQuestion: (id) => api.post(`/questions/${id}/upvote`),
+  upvoteReply: (id, replyId) =>
+    api.post(`/questions/${id}/reply/${replyId}/upvote`),
+  followQuestion: (id) => api.post(`/questions/${id}/follow`),
+};
+
+export const noteAPI = {
+  getNotes: (courseId, params) =>
+    api.get(`/notes/course/${courseId}`, { params }),
+  createNote: (data) => api.post("/notes", data),
+  updateNote: (id, content) => api.put(`/notes/${id}`, { content }),
+  deleteNote: (id) => api.delete(`/notes/${id}`),
 };
 
 export default api;
