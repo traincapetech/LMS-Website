@@ -33,16 +33,17 @@ const Login1 = () => {
     setMessage("");
     try {
       const res = await authAPI.signup({ ...signupForm, role: "student" });
+
       // setMessage(res.data.message || "Signup successful!");
       toast.success(res.data.message || "Signup successful!");
       // Store token and user info as needed
-      if (res.data.token && res.data.user) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        navigate("/login");
+      if (res.data.success) {
+        // If no token, switch to login panel so user can login
+        setIsRightPanelActive(false);
       }
     } catch (err) {
       setMessage(err.response?.data?.message || "Signup failed");
+      toast.error(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }

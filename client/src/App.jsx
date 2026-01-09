@@ -46,14 +46,11 @@ import FAQs from "./Pages/FAQ";
 import HelpCenter from "./Pages/HelpCenter";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import TermsAndConditions from "./Pages/TermsAndConditions";
+import MyLearning from "./Pages/MyLearning";
 // Cart context setup
 export const CartContext = createContext();
 
 // Placeholder pages for profile and dropdown menu
-
-const MyLearning = () => (
-  <div style={{ padding: "2rem" }}>My Learning Page</div>
-);
 
 const Notifications = () => (
   <div style={{ padding: "2rem" }}>Notifications Page</div>

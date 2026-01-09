@@ -35,10 +35,15 @@ api.interceptors.response.use(
 
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401) {
+      const hadToken = !!localStorage.getItem("token");
+
+      // Clear any stale auth data
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // Redirect to login if not already there
-      if (window.location.pathname !== "/login") {
+
+      // Only redirect if user previously had a token (session expired),
+      // not for completely anonymous visitors browsing public pages.
+      if (hadToken && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
@@ -152,6 +157,7 @@ export const progressAPI = {
   updateLastAccessed: (data) => api.post("/progress/lecture/access", data),
   getCourseProgress: (courseId) => api.get(`/progress/course/${courseId}`),
   markQuizComplete: (data) => api.post("/progress/quiz/complete", data),
+  generateCertificate: (courseId) => api.get(`/progress/certificate/${courseId}`, { responseType: 'blob' }),
 };
 
 export const discussionAPI = { // Discussion/Messaging API

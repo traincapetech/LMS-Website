@@ -12,12 +12,19 @@ import {
   FaBook,
   FaChartLine,
   FaTrophy,
+  FaFilter,
+  FaSearch,
+  FaStar,
+  FaQuestionCircle,
 } from "react-icons/fa";
 
 const MyLearning = () => {
   const [enrollments, setEnrollments] = useState([]);
+  const [filteredEnrollments, setFilteredEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState("all"); // all, in-progress, completed
   const [stats, setStats] = useState({
     totalEnrollments: 0,
     completedCourses: 0,
@@ -30,6 +37,39 @@ const MyLearning = () => {
     fetchEnrollments();
     fetchStats();
   }, []);
+
+  // Filter and search enrollments
+  useEffect(() => {
+    let filtered = enrollments;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((enrollment) => {
+        const course = enrollment.course;
+        const title = course?.title || course?.landingTitle || "";
+        const instructor = course?.instructor?.name || "";
+        return (
+          title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          instructor.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+    }
+
+    // Apply status filter
+    if (filter === "completed") {
+      filtered = filtered.filter(
+        (enrollment) => enrollment.progress?.isCompleted
+      );
+    } else if (filter === "in-progress") {
+      filtered = filtered.filter(
+        (enrollment) =>
+          !enrollment.progress?.isCompleted &&
+          (enrollment.progress?.progressPercentage || 0) > 0
+      );
+    }
+
+    setFilteredEnrollments(filtered);
+  }, [enrollments, searchQuery, filter]);
 
   const fetchEnrollments = async () => {
     try {
@@ -68,13 +108,36 @@ const MyLearning = () => {
     }
   };
 
-  const getTotalLectures = (course) => {
+  // Get total items (lectures + quizzes) for accurate progress
+  const getTotalItems = (course) => {
     if (!course?.curriculum) return 0;
     return course.curriculum.reduce(
       (sum, section) =>
-        sum + (section.items?.filter((item) => item.type === "lecture").length || 0),
+        sum +
+        (section.items?.filter(
+          (item) => item.type === "lecture" || item.type === "quiz"
+        ).length || 0),
       0
     );
+  };
+
+  // Get completed items count
+  const getCompletedItemsCount = (progress, course) => {
+    if (!progress || !course?.curriculum) return 0;
+    const completedLecs = progress.completedLectures || [];
+    const completedQuizzes = progress.completedQuizzes || [];
+    return completedLecs.length + completedQuizzes.length;
+  };
+
+  // Calculate progress percentage if not provided
+  const calculateProgressPercentage = (progress, course) => {
+    if (progress?.progressPercentage !== undefined) {
+      return progress.progressPercentage;
+    }
+    const totalItems = getTotalItems(course);
+    if (totalItems === 0) return 0;
+    const completedItems = getCompletedItemsCount(progress, course);
+    return Math.round((completedItems / totalItems) * 100);
   };
 
   if (loading) {
@@ -97,6 +160,60 @@ const MyLearning = () => {
             Continue your learning journey and track your progress
           </p>
         </div>
+
+        {/* Search and Filter Bar */}
+        {enrollments.length > 0 && (
+          <div className="mb-6 flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search your courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant={filter === "all" ? "default" : "outline"}
+                onClick={() => setFilter("all")}
+                className="flex items-center gap-2"
+              >
+                <FaFilter className="text-xs" />
+                All ({enrollments.length})
+              </Button>
+              <Button
+                variant={filter === "in-progress" ? "default" : "outline"}
+                onClick={() => setFilter("in-progress")}
+                className="flex items-center gap-2"
+              >
+                <FaClock className="text-xs" />
+                In Progress (
+                {
+                  enrollments.filter(
+                    (e) =>
+                      !e.progress?.isCompleted &&
+                      (e.progress?.progressPercentage || 0) > 0
+                  ).length
+                }
+                )
+              </Button>
+              <Button
+                variant={filter === "completed" ? "default" : "outline"}
+                onClick={() => setFilter("completed")}
+                className="flex items-center gap-2"
+              >
+                <FaCheckCircle className="text-xs" />
+                Completed (
+                {enrollments.filter((e) => e.progress?.isCompleted).length})
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -183,19 +300,25 @@ const MyLearning = () => {
         )}
 
         {/* Enrolled Courses Grid */}
-        {enrollments.length > 0 && (
+        {filteredEnrollments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {enrollments.map((enrollment, index) => {
+            {filteredEnrollments.map((enrollment, index) => {
               const course = enrollment.course;
               if (!course) return null;
 
               const progress = enrollment.progress || {
                 progressPercentage: 0,
-                completedLectures: 0,
+                completedLectures: [],
+                completedQuizzes: [],
                 isCompleted: false,
               };
 
-              const totalLectures = getTotalLectures(course);
+              const totalItems = getTotalItems(course);
+              const completedItems = getCompletedItemsCount(progress, course);
+              const progressPercentage = calculateProgressPercentage(
+                progress,
+                course
+              );
               const courseId = course._id || course.id;
 
               return (
@@ -241,6 +364,19 @@ const MyLearning = () => {
                         </span>
                       </p>
 
+                      {/* Course Rating */}
+                      {course.rating && (
+                        <div className="flex items-center gap-1 mb-3">
+                          <FaStar className="text-yellow-400 text-sm" />
+                          <span className="text-sm font-medium text-gray-700">
+                            {course.rating.toFixed(1)}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            ({course.totalRatings || 0} ratings)
+                          </span>
+                        </div>
+                      )}
+
                       {/* Progress Bar */}
                       <div className="mb-4">
                         <div className="flex justify-between items-center mb-2">
@@ -248,19 +384,42 @@ const MyLearning = () => {
                             Progress
                           </span>
                           <span className="text-sm font-semibold text-blue-600">
-                            {progress.progressPercentage}%
+                            {progressPercentage}%
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
                           <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${progress.progressPercentage}%` }}
+                            className={`h-2.5 rounded-full transition-all ${
+                              progress.isCompleted
+                                ? "bg-green-500"
+                                : "bg-blue-600"
+                            }`}
+                            style={{
+                              width: `${progressPercentage}%`,
+                            }}
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {progress.completedLectures} of {totalLectures} lectures
-                          completed
-                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-gray-500">
+                            {completedItems} of {totalItems} items completed
+                          </p>
+                          {progress.completedLectures?.length > 0 && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <FaPlay className="text-xs" />
+                              <span>
+                                {progress.completedLectures.length} lectures
+                              </span>
+                            </div>
+                          )}
+                          {progress.completedQuizzes?.length > 0 && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <FaQuestionCircle className="text-xs" />
+                              <span>
+                                {progress.completedQuizzes.length} quizzes
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Action Buttons */}
@@ -270,7 +429,7 @@ const MyLearning = () => {
                           onClick={() => handleContinueLearning(enrollment)}
                         >
                           <FaPlay className="mr-2" />
-                          {progress.progressPercentage > 0
+                          {progressPercentage > 0
                             ? "Continue Learning"
                             : "Start Learning"}
                         </Button>
@@ -292,7 +451,26 @@ const MyLearning = () => {
               );
             })}
           </div>
-        )}
+        ) : enrollments.length > 0 ? (
+          <Card className="p-12 text-center bg-white">
+            <FaSearch className="text-6xl text-gray-300 mx-auto mb-4" />
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              No courses found
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Try adjusting your search or filter criteria
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </Card>
+        ) : null}
       </div>
     </div>
   );

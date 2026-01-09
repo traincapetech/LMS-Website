@@ -6,7 +6,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { motion } from "framer-motion";
 import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
 
 const Courses = () => {
   const [searchParams] = useSearchParams();
@@ -121,12 +121,10 @@ const Courses = () => {
           /* COURSE GRID (same layout) */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {filtered.map((course, index) => {
-              const isWishlisted = isInWishlist(course.id || course._id);
+              const courseId = course.id || course._id;
+              const isWishlisted = isInWishlist(courseId);
               return (
-                <Link
-                  to={`/course/${course.id}`}
-                  key={course.id || course._id || index}
-                >
+                <Link to={`/course/${courseId}`} key={courseId || index}>
                   <motion.div
                     style={{ cursor: "pointer" }}
                     initial={{ opacity: 0, y: 50 }} // Gayab aur neeche

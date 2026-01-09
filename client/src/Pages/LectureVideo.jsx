@@ -15,6 +15,7 @@ import {
   FaFilePdf,
   FaFileAlt,
   FaSpinner,
+  FaCertificate,
 } from "react-icons/fa";
 import { useStore } from "../Store/store";
 import { enrollmentAPI, progressAPI } from "@/utils/api";
@@ -41,23 +42,19 @@ const LectureVideo = () => {
   const [course, setCourse] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(null);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [openSections, setOpenSections] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
   const [completedLectures, setCompletedLectures] = useState(new Set()); // Track completed lectures
   const [loading, setLoading] = useState(true); // Loading state
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+  const [isCourseCompleted, setIsCourseCompleted] = useState(false); // Track course completion
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
   // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
     for (const sec of courseData.curriculum) {
       for (const item of sec.items) {
-        if (
-          item._id?.toString() === itemId?.toString() ||
-          item.itemId?.toString() === itemId?.toString() ||
-          item.quizId?.toString() === itemId?.toString()
-        ) {
         if (
           item._id?.toString() === itemId?.toString() ||
           item.itemId?.toString() === itemId?.toString() ||
@@ -84,7 +81,6 @@ const LectureVideo = () => {
   };
 
   // FETCH COURSE
-  // FETCH COURSE
   useEffect(() => {
     if (!courseId) return;
 
@@ -95,15 +91,7 @@ const LectureVideo = () => {
     }
 
     const fetchCourse = async () => {
-    // If we already have the course loaded and IDs match, don't refetch
-    // checking course._id vs courseId. course._id is usually the mongo id
-    if (course && (course._id === courseId || course.id === courseId)) {
-      return;
-    }
-
-    const fetchCourse = async () => {
       try {
-        setLoading(true);
         setLoading(true);
 
         const courseRes = await fetch(`${API_BASE}/api/courses/${courseId}`);
@@ -113,15 +101,9 @@ const LectureVideo = () => {
           setLoading(false);
           return;
         }
-        if (!rawCourse.curriculum) {
-          setLoading(false);
-          return;
-        }
 
         const pendingCourseId = rawCourse.pendingCourseId;
         const videoMap = new Map();
-
-        // Fetch video metadata if videos exist
 
         // Fetch video metadata if videos exist
         try {
@@ -141,7 +123,6 @@ const LectureVideo = () => {
         }
 
         // Attach videoUrl + duration
-        // Attach videoUrl + duration
         const populatedCurriculum = rawCourse.curriculum.map((sec) => ({
           ...sec,
           items: (sec.items || []).map((item) => {
@@ -160,7 +141,6 @@ const LectureVideo = () => {
         setCourse(fullCourse);
 
         // Open first section by default
-        // Open first section by default
         if (populatedCurriculum.length > 0) {
           setOpenSections({
             [populatedCurriculum[0]._id ||
@@ -177,20 +157,25 @@ const LectureVideo = () => {
     fetchCourse();
   }, [courseId]);
 
-  // SELECT VIDEO EFFECT
-  useEffect(() => {
-    if (!course) return;
+  // Helper function to normalize IDs - get all possible ID formats for an item
+  const getAllItemIds = (item) => {
+    const ids = new Set();
+    if (item?._id) ids.add(item._id.toString());
+    if (item?.itemId) ids.add(item.itemId.toString());
+    if (item?.videoId) ids.add(item.videoId.toString());
+    if (item?.quizId) ids.add(item.quizId.toString());
+    return ids;
+  };
 
-    let selected = null;
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourse();
-  }, [courseId]);
+  // Helper function to check if an item is completed using all possible IDs
+  const isItemCompleted = (item) => {
+    if (!item) return false;
+    const itemIds = getAllItemIds(item);
+    for (const id of itemIds) {
+      if (completedLectures.has(id)) return true;
+    }
+    return false;
+  };
 
   // SELECT VIDEO EFFECT
   useEffect(() => {
@@ -205,21 +190,7 @@ const LectureVideo = () => {
         selected = findLectureByVideoId(course, lectureId);
       }
     }
-    // 1. Try finding by lectureId (URL param)
-    if (lectureId) {
-      selected = findLectureById(course, lectureId);
-      if (!selected) {
-        selected = findLectureByVideoId(course, lectureId);
-      }
-    }
 
-    // 2. Fallback: try finding by location state
-    if (!selected && location.state?.lectureId) {
-      selected = findLectureById(course, location.state.lectureId);
-    }
-    if (!selected && location.state?.videoId) {
-      selected = findLectureByVideoId(course, location.state.videoId);
-    }
     // 2. Fallback: try finding by location state
     if (!selected && location.state?.lectureId) {
       selected = findLectureById(course, location.state.lectureId);
@@ -240,26 +211,7 @@ const LectureVideo = () => {
         }
       }
     }
-    // 3. Last resort: first available lecture
-    if (!selected && !lectureId) {
-      for (const sec of course.curriculum) {
-        const first = sec.items.find(
-          (i) => i.type === "lecture" || i.type === "quiz"
-        );
-        if (first) {
-          selected = first;
-          break;
-        }
-      }
-    }
 
-    console.log("Setting current content:", selected);
-    // Determine type and set state
-    if (selected) {
-      if (selected.type === "quiz") {
-        setSelectedQuiz(selected);
-        setCurrentVideo(null);
-      } else {
     console.log("Setting current content:", selected);
     // Determine type and set state
     if (selected) {
@@ -278,13 +230,9 @@ const LectureVideo = () => {
   }, [course, lectureId, location.state]);
 
   // Check enrollment and load progress
-
-
   useEffect(() => {
     const checkEnrollmentAndLoadProgress = async () => {
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-
       const user = JSON.parse(localStorage.getItem("user") || "{}");
 
       if (!token || !courseId) {
@@ -297,17 +245,26 @@ const LectureVideo = () => {
         console.log("Admin access: Bypassing enrollment check");
         setIsEnrolled(true);
         setCheckingEnrollment(false);
-        // Optionally load progress if possible, but don't block
-        // We can try to fetch progress just for the ticks
+          // Load progress for admin
         try {
           const progressRes = await progressAPI.getCourseProgress(courseId);
           const completedLecs = progressRes.data.completedLectures || [];
           const completedQuizzes = progressRes.data.completedQuizzes || [];
 
-          const completedIds = new Set([
-            ...completedLecs.map((l) => l.lectureId?.toString() || l.itemId),
-            ...completedQuizzes.map((q) => q.quizId?.toString()),
-          ]);
+          // Check if course is completed
+          setIsCourseCompleted(progressRes.data.isCompleted || false);
+
+          // Normalize all IDs from backend
+          const completedIds = new Set();
+          completedLecs.forEach((l) => {
+            if (l.lectureId) completedIds.add(l.lectureId.toString());
+            if (l.itemId) completedIds.add(l.itemId.toString());
+          });
+          completedQuizzes.forEach((q) => {
+            if (q.quizId) completedIds.add(q.quizId.toString());
+            if (q.itemId) completedIds.add(q.itemId.toString());
+          });
+
           setCompletedLectures(completedIds);
         } catch (e) {
           console.log("Admin progress fetch skipped or failed", e);
@@ -326,23 +283,61 @@ const LectureVideo = () => {
           const completedLecs = progressRes.data.completedLectures || [];
           const completedQuizzes = progressRes.data.completedQuizzes || [];
 
-          const completedIds = new Set([
-            ...completedLecs.map((l) => l.lectureId?.toString() || l.itemId),
-            ...completedQuizzes.map((q) => q.quizId?.toString()),
-          ]);
+          // Check if course is completed
+          setIsCourseCompleted(progressRes.data.isCompleted || false);
+
+          // Normalize all IDs from backend - check all possible ID formats
+          const completedIds = new Set();
+          completedLecs.forEach((l) => {
+            if (l.lectureId) completedIds.add(l.lectureId.toString());
+            if (l.itemId) completedIds.add(l.itemId.toString());
+          });
+          completedQuizzes.forEach((q) => {
+            if (q.quizId) completedIds.add(q.quizId.toString());
+            if (q.itemId) completedIds.add(q.itemId.toString());
+          });
+
+          // Also match with course items to ensure we capture all ID formats
+          if (course?.curriculum) {
+            course.curriculum.forEach((sec) => {
+              sec.items?.forEach((item) => {
+                const itemIds = getAllItemIds(item);
+                // Check if any of the item's IDs match completed IDs from backend
+                itemIds.forEach((id) => {
+                  if (completedIds.has(id)) {
+                    // Add all IDs for this item to completed set
+                    itemIds.forEach((itemId) => completedIds.add(itemId));
+                  }
+                });
+              });
+            });
+          }
+
           setCompletedLectures(completedIds);
 
           // Update last accessed
-          if (lectureId) {
+          if (lectureId && course) {
             const currentLecture = findLectureById(course, lectureId);
             if (currentLecture) {
+              // Find the section containing this lecture
+              let sectionId = null;
+              for (const sec of course.curriculum || []) {
+                if (sec.items?.some((item) => 
+                  item._id?.toString() === currentLecture._id?.toString() ||
+                  item.itemId === currentLecture.itemId ||
+                  item._id?.toString() === lectureId?.toString() ||
+                  item.itemId === lectureId
+                )) {
+                  sectionId = sec._id || sec.sectionId;
+                  break;
+                }
+              }
+
               await progressAPI.updateLastAccessed({
                 courseId,
                 lectureId: currentLecture.videoId || null,
-                itemId: currentLecture.itemId || lectureId,
-                sectionId: course?.curriculum?.find((sec) =>
-                  sec.items?.some((item) => item.itemId === lectureId)
-                )?.sectionId,
+                itemId: currentLecture.itemId || currentLecture._id || lectureId,
+                sectionId: sectionId,
               });
             }
           }
@@ -372,21 +367,71 @@ const LectureVideo = () => {
   const toggleSection = (id) =>
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Calculate total lectures correctly
-  const totalLectures = course
+  // Calculate total items (lectures + quizzes) correctly
+  const totalItems = course
     ? course.curriculum.reduce(
       (sum, sec) =>
         sum +
-        (sec.items || []).filter((item) => item.type === "lecture").length,
+        (sec.items || []).filter((item) => item.type === "lecture" || item.type === "quiz").length,
       0
     )
     : 0;
 
+  // Calculate completed items count
+  const completedItemsCount = course
+    ? course.curriculum.reduce((count, sec) => {
+        const sectionCompleted = (sec.items || []).filter((item) => {
+          if (item.type !== "lecture" && item.type !== "quiz") return false;
+          return isItemCompleted(item);
+        }).length;
+        return count + sectionCompleted;
+      }, 0)
+    : 0;
+
   // Calculate progress percentage
   const progressPercent =
-    totalLectures > 0
-      ? Math.round((completedLectures.size / totalLectures) * 100)
+    totalItems > 0
+      ? Math.round((completedItemsCount / totalItems) * 100)
       : 0;
+
+  // Update course completion status based on progress
+  useEffect(() => {
+    if (progressPercent === 100 && totalItems > 0) {
+      setIsCourseCompleted(true);
+    }
+  }, [progressPercent, totalItems]);
+
+  // Download certificate function
+  const handleDownloadCertificate = async () => {
+    if (!courseId) return;
+    
+    setDownloadingCertificate(true);
+    try {
+      const response = await progressAPI.generateCertificate(courseId);
+      
+      // Create blob from response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Certificate_${course?.title?.replace(/[^a-z0-9]/gi, '_') || 'Course'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Certificate downloaded successfully! 🎉");
+    } catch (error) {
+      console.error("Certificate download error:", error);
+      if (error.response?.status === 403) {
+        toast.error("Course must be completed to download certificate");
+      } else {
+        toast.error("Failed to download certificate. Please try again.");
+      }
+    } finally {
+      setDownloadingCertificate(false);
+    }
+  };
 
   // Mark lecture as completed
   const markAsCompleted = async (lectureId) => {
@@ -396,25 +441,46 @@ const LectureVideo = () => {
       return;
     }
 
-    // Optimistically update UI
-    setCompletedLectures((prev) => new Set(prev).add(lectureId));
+    // Find the lecture to get its details
+    const lecture = findLectureById(course, lectureId);
+    if (!lecture) {
+      console.error("Lecture not found:", lectureId);
+      return;
+    }
+
+    // Get all possible IDs for this lecture
+    const allIds = getAllItemIds(lecture);
+    if (allIds.size === 0) {
+      // Fallback to the provided lectureId
+      allIds.add(lectureId.toString());
+    }
+
+    // Optimistically update UI - add all IDs
+    setCompletedLectures((prev) => {
+      const newSet = new Set(prev);
+      allIds.forEach((id) => newSet.add(id));
+      return newSet;
+    });
 
     try {
-      // Find the lecture to get its details
-      const lecture = findLectureById(course, lectureId);
-      if (lecture) {
-        await progressAPI.markLectureComplete({
-          courseId,
-          lectureId: lecture.videoId || null,
-          itemId: lecture.itemId || lectureId,
-        });
+      const response = await progressAPI.markLectureComplete({
+        courseId,
+        lectureId: lecture.videoId || null,
+        itemId: lecture.itemId || lecture._id || lectureId,
+      });
+      
+      // Check if course is now completed
+      if (response.data?.progress?.isCompleted) {
+        setIsCourseCompleted(true);
+        toast.success("🎉 Congratulations! Course completed!");
+      } else {
         toast.success("Lecture marked as completed!");
       }
     } catch (err) {
-      // Revert on error
+      // Revert on error - remove all IDs
       setCompletedLectures((prev) => {
         const newSet = new Set(prev);
-        newSet.delete(lectureId);
+        allIds.forEach((id) => newSet.delete(id));
         return newSet;
       });
       toast.error("Failed to mark lecture as completed");
@@ -475,7 +541,7 @@ const LectureVideo = () => {
     // Make sure we have correct ID for navigation
     const lectureId = vid._id || vid.itemId;
     const videoId = vid.videoId;
-    const isCompleted = completedLectures.has(lectureId);
+    const isCompleted = isItemCompleted(vid);
 
     // Function to handle document click
     const handleDocumentClick = (doc) => {
@@ -493,15 +559,18 @@ const LectureVideo = () => {
       <div style={{ borderBottom: "1px solid #eee" }}>
         {/* VIDEO ROW */}
         <div
+         className={` mb-1 ${
+          isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
+        }`}
           style={{
             display: "flex",
             justifyContent: "space-between",
             padding: "12px 20px",
             cursor: "pointer",
-            backgroundColor: isActive ? "#f3e8ff" : "#fff",
-            borderLeft: isActive
-              ? "4px solid #7e22ce"
-              : "4px solid transparent",
+            // backgroundColor: isActive ? "#f3e8ff" : "#fff",
+            // borderLeft: isActive
+            //   ? "4px solid #7e22ce"
+            //   : "4px solid transparent",
           }}
           onClick={() => {
             // Use lecture ID for navigation
@@ -519,27 +588,27 @@ const LectureVideo = () => {
         >
           <div style={{ display: "flex", alignItems: "center" }}>
             <div
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                border: isCompleted ? "none" : "2px solid #d1d5db",
-                backgroundColor: isCompleted ? "#7e22ce" : "transparent",
-                marginRight: 10,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: isCompleted ? "white" : "transparent",
-                fontSize: 12,
-              }}
+            className="rounded-full w-5 h-5 border flex items-center justify-center border-blue-500"
+              // style={{
+              //   width: 20,
+              //   height: 20,
+              //   borderRadius: "50%",
+              //   border: isCompleted ? "none" : "2px solid #d1d5db",
+              //   backgroundColor: isCompleted ? "#7e22ce" : "transparent",
+              //   marginRight: 10,
+              //   display: "flex",
+              //   alignItems: "center",
+              //   justifyContent: "center",
+              //   color: isCompleted ? "white" : "transparent",
+              //   fontSize: 12,
+              // }}
               onClick={(e) => {
                 e.stopPropagation();
                 markAsCompleted(lectureId);
               }}
             >
-              {isCompleted && "✓"}
+              {isCompleted ? <Check className="size-5 text-blue-500" /> : <FaPlayCircle className="size-5 text-blue-500" />}
             </div>
-            <FaPlayCircle style={{ color: "#7e22ce" }} />
             <span style={{ marginLeft: "10px" }}>{vid.title}</span>
           </div>
 
@@ -588,10 +657,7 @@ const LectureVideo = () => {
   const QuizListItem = ({ item, isActive }) => {
     // Prioritize _id for navigation to match findLectureById logic
     const quizId = item._id || item.itemId || item.quizId;
-    const isCompleted =
-      completedLectures.has(item._id) ||
-      completedLectures.has(item.itemId) ||
-      completedLectures.has(item.quizId);
+    const isCompleted = isItemCompleted(item);
 
     // Basic styling to match VideoListItem
     return (
@@ -607,20 +673,8 @@ const LectureVideo = () => {
           borderBottom: "1px solid #eee",
           // backgroundColor: isActive ? "#f3e8ff" : "#fff",
           // borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
-          // backgroundColor: isActive ? "#f3e8ff" : "#fff",
-          // borderLeft: isActive ? "4px solid #7e22ce" : "4px solid transparent",
         }}
         onClick={() => {
-          // Navigate to lecture page (handling quiz as a lecture item)
-          navigate(`/lecture/${quizId}?courseId=${courseId}`, {
-            state: {
-              lectureId: quizId,
-              courseId: courseId,
-              pendingCourseId: course?.pendingCourseId,
-              video: item, // Passing item as video for consistency in state
-            },
-          });
-          window.scrollTo({ top: 0, behavior: "smooth" });
           // Navigate to lecture page (handling quiz as a lecture item)
           navigate(`/lecture/${quizId}?courseId=${courseId}`, {
             state: {
@@ -673,9 +727,6 @@ const LectureVideo = () => {
 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "14px" }}>{item.title}</div>
-          <span style={{ fontSize: "12px", color: "#6b7280" }}>
-            {item.quizQuestions?.length || 0} Questions
-          </span>
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {item.quizQuestions?.length || 0} Questions
           </span>
@@ -740,11 +791,34 @@ const LectureVideo = () => {
                 ></div>
               </div>
               <span style={{ fontSize: "13px", color: "#d1d5db" }}>
-                {completedLectures.size}/{totalLectures} lectures (
-                {progressPercent}%)
+                {completedItemsCount}/{totalItems} items ({progressPercent}%)
               </span>
             </div>
           </div>
+
+          {/* Certificate Download Button */}
+          {isCourseCompleted && (
+            <button
+              onClick={handleDownloadCertificate}
+              disabled={downloadingCertificate}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-sm px-4 py-2 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              {downloadingCertificate ? (
+                <>
+                  <FaSpinner className="animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <FaCertificate />
+                  <span>Download Certificate</span>
+                </>
+              )}
+            </button>
+          )}
 
           <button className="flex items-center gap-1 border rounded-sm px-2 py-2">
             <FaShareAlt style={{ marginRight: "6px" }} />
@@ -770,11 +844,8 @@ const LectureVideo = () => {
           <div
             style={{
               backgroundColor: selectedQuiz ? "#181821" : "#000",
-              backgroundColor: selectedQuiz ? "#181821" : "#000",
               aspectRatio: "16/9",
               boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-              display: "flex", // Ensure QuizPlayer fills container
-              flexDirection: "column",
               display: "flex", // Ensure QuizPlayer fills container
               flexDirection: "column",
             }}
@@ -783,20 +854,26 @@ const LectureVideo = () => {
               <QuizPlayer
                 quiz={selectedQuiz}
                 courseId={courseId}
-                isCompleted={
-                  completedLectures.has(selectedQuiz._id) ||
-                  completedLectures.has(selectedQuiz.itemId) ||
-                  completedLectures.has(selectedQuiz.quizId)
-                }
-                onComplete={(score) => {
+                isCompleted={isItemCompleted(selectedQuiz)}
+                onComplete={async (score) => {
                   // Update local state to show completion immediately
+                  const allIds = getAllItemIds(selectedQuiz);
                   setCompletedLectures((prev) => {
                     const newSet = new Set(prev);
-                    if (selectedQuiz._id) newSet.add(selectedQuiz._id);
-                    if (selectedQuiz.itemId) newSet.add(selectedQuiz.itemId);
-                    if (selectedQuiz.quizId) newSet.add(selectedQuiz.quizId);
+                    allIds.forEach((id) => newSet.add(id));
                     return newSet;
                   });
+                  
+                  // Check if course is now completed by fetching latest progress
+                  try {
+                    const progressRes = await progressAPI.getCourseProgress(courseId);
+                    if (progressRes.data.isCompleted) {
+                      setIsCourseCompleted(true);
+                      toast.success("🎉 Congratulations! Course completed!");
+                    }
+                  } catch (e) {
+                    console.log("Failed to check course completion", e);
+                  }
                 }}
               />
             ) : currentVideo?.videoUrl ? (
@@ -805,17 +882,18 @@ const LectureVideo = () => {
                 controls
                 autoPlay
                 style={{ width: "100%", height: "100%" }}
+                onEnded={() => {
+                  // Auto-mark video as complete when it ends
+                  if (currentVideo && courseId) {
+                    const lectureId = currentVideo._id || currentVideo.itemId;
+                    markAsCompleted(lectureId);
+                  }
+                }}
               >
                 <source src={currentVideo.videoUrl} type="video/mp4" />
               </video>
             ) : (
               <div
-                style={{
-                  color: "white",
-                  padding: "20px",
-                  textAlign: "center",
-                  margin: "auto",
-                }}
                 style={{
                   color: "white",
                   padding: "20px",
@@ -833,6 +911,69 @@ const LectureVideo = () => {
           >
             {currentVideo?.title}
           </h2>
+
+          {/* Course Completion Banner */}
+          {isCourseCompleted && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "20px",
+                backgroundColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "12px",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "28px",
+                  }}
+                >
+                  🎉
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}>
+                    Congratulations!
+                  </h3>
+                  <p style={{ fontSize: "14px", margin: "4px 0 0 0", opacity: 0.9 }}>
+                    You've successfully completed this course. Download your certificate to showcase your achievement!
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDownloadCertificate}
+                disabled={downloadingCertificate}
+                className="bg-white text-purple-700 hover:bg-gray-100 rounded-lg px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                style={{
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {downloadingCertificate ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCertificate />
+                    <span>Get Certificate</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* TABS */}
           <div
@@ -936,10 +1077,6 @@ const LectureVideo = () => {
                           <QuizListItem
                             key={item._id || item.itemId || item.quizId}
                             item={item}
-                            isActive={
-                              currentVideo?._id === item._id ||
-                              currentVideo?.itemId === item.itemId
-                            }
                             isActive={
                               currentVideo?._id === item._id ||
                               currentVideo?.itemId === item.itemId

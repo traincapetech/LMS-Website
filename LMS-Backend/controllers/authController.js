@@ -30,7 +30,7 @@ exports.signup = async (req, res) => {
     const userObj = { name: user.name, email: user.email, role: user.role };
     return res
       .status(201)
-      .json({ message: "User registered successfully.", token, user: userObj });
+      .json({ message: "User registered successfully.", token, user: userObj, success: true });
   } catch (err) {
     return res.status(500).json({ message: "Server error." });
   }

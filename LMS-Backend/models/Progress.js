@@ -75,6 +75,11 @@ const progressSchema = new mongoose.Schema({
   completedAt: {
     type: Date,
     default: null
+  },
+  // Unique course completion certificate ID (if generated)
+  certificateId: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

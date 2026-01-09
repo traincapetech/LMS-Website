@@ -1,12 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/Store/store";
+import { toast } from "sonner";
 
 const FeaturedCourses = ({ courses }) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useStore();
+  
 
   return (
     <section className="w-full py-20 bg-Background font-poppins">
@@ -31,11 +33,13 @@ const FeaturedCourses = ({ courses }) => {
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {courses.slice(0, 6).map((course, index) => {
-            const isWishlisted = isInWishlist(course.id || course._id);
+            const courseId = course.id || course._id;
+            const isWishlisted = isInWishlist(courseId);
             return (
               <Link
-                to={`/course/${course.id}`}
-                key={course.id || course._id || index}
+                to={`/course/${courseId}`}
+                key={courseId || index}
+                
               >
                 <motion.div
                   style={{ cursor: "pointer" }}

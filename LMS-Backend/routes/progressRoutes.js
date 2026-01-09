@@ -18,5 +18,8 @@ router.get('/course/:courseId', progressController.getCourseProgress);
 // Mark quiz as completed
 router.post('/quiz/complete', progressController.markQuizComplete);
 
+// Generate certificate
+router.get('/certificate/:courseId', progressController.generateCertificate);
+
 module.exports = router;
 
