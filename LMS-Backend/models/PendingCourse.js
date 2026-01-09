@@ -1,10 +1,13 @@
 // models/PendingCourse.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const DocumentSchema = new mongoose.Schema({
-  fileUrl: String,
-  fileName: String
-}, { _id: false });
+const DocumentSchema = new mongoose.Schema(
+  {
+    fileUrl: String,
+    fileName: String,
+  },
+  { _id: false }
+);
 
 const ItemSchema = new mongoose.Schema(
   {
@@ -27,7 +30,10 @@ const ItemSchema = new mongoose.Schema(
     // Using Mixed Array ([]) to bypass "Cast to [string]" error
     quizQuestions: [],
 
-    quizId: { type: mongoose.Schema.Types.ObjectId, default: () => new mongoose.Types.ObjectId() },
+    quizId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId(),
+    },
   },
   { _id: false }
 );
@@ -80,7 +86,7 @@ const pendingCourseSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
-    isNew: { type: Boolean, default: true },
+    isBrandNew: { type: Boolean, default: true },
     courseType: {
       type: String,
       enum: ["course", "practice"],

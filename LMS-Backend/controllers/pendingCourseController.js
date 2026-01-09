@@ -121,7 +121,7 @@ exports.createPendingCourse = async (req, res) => {
       category: req.body.category,
       timeCommitment: req.body.timeCommitment,
       instructor: req.user._id, // store full user object or minimal
-      isNew: true,
+      isBrandNew: true,
     });
     res.status(201).json({ success: true, pendingCourseId: pending._id });
   } catch (err) {
@@ -163,11 +163,9 @@ exports.editCourse = async (req, res) => {
       console.log(
         `⛔ Unauthorized edit: User ${instructorId} tried to edit Course ${course.instructor}`
       );
-      return res
-        .status(403)
-        .json({
-          message: "Unauthorized: You are not the instructor of this course.",
-        });
+      return res.status(403).json({
+        message: "Unauthorized: You are not the instructor of this course.",
+      });
     }
 
     // Whitelist allowed fields
@@ -199,7 +197,7 @@ exports.editCourse = async (req, res) => {
       }
     });
 
-    course.isNew = false;
+    course.isBrandNew = false;
     course.updatedAt = new Date();
     await course.save();
 
@@ -302,7 +300,6 @@ exports.approve = async (req, res) => {
         documents: item.documents,
         quizQuestions: item.quizQuestions || [],
         quizId: item.quizId,
-
       })),
     }));
 
