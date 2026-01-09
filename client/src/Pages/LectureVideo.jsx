@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   FaChevronDown,
@@ -21,6 +21,9 @@ import { enrollmentAPI, progressAPI } from "@/utils/api";
 import { toast } from "sonner";
 import QuizPlayer from "../components/QuizPlayer";
 import ReviewList from "../components/ReviewList";
+import ShareModal from "../components/ShareModal";
+import QnASection from "../components/QnASection";
+import NotesSection from "../components/NotesSection";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
@@ -46,6 +49,8 @@ const LectureVideo = () => {
   const [loading, setLoading] = useState(true); // Loading state
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const videoRef = useRef(null);
   // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
@@ -378,9 +383,9 @@ const LectureVideo = () => {
       case "overview":
         return renderOverviewTab();
       case "notes":
-        return <p>📝 Notes (coming soon)</p>;
+        return <NotesSection courseId={courseId} currentLecture={currentVideo} videoRef={videoRef} curriculum={course?.curriculum} />;
       case "qna":
-        return <p>❓ Q&A (coming soon)</p>;
+        return <QnASection courseId={courseId} currentLecture={currentVideo} />;
       case "reviews":
         return <ReviewList courseId={courseId} />;
       default:
@@ -657,7 +662,10 @@ const LectureVideo = () => {
             </div>
           </div>
 
-          <button className="flex items-center gap-1 border rounded-sm px-2 py-2">
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="flex items-center gap-1 border rounded-sm px-2 py-2 hover:bg-white/10 transition-colors"
+          >
             <FaShareAlt style={{ marginRight: "6px" }} />
             Share
           </button>
@@ -700,6 +708,7 @@ const LectureVideo = () => {
               />
             ) : currentVideo?.videoUrl ? (
               <video
+                ref={videoRef}
                 key={currentVideo._id}
                 controls
                 autoPlay
@@ -861,6 +870,14 @@ const LectureVideo = () => {
           }
         }
       `}</style>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        courseTitle={course?.title || "Course"}
+        courseId={courseId}
+      />
     </>
   );
 };

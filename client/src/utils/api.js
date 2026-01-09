@@ -209,4 +209,22 @@ export const reviewAPI = {
   addResponse: (reviewId, response) => api.post(`/reviews/${reviewId}/response`, { response }),
 };
 
+export const questionAPI = {
+  getQuestions: (courseId, params) => api.get(`/questions/course/${courseId}`, { params }),
+  getFeatured: (courseId) => api.get(`/questions/course/${courseId}/featured`),
+  getQuestion: (id) => api.get(`/questions/${id}`),
+  createQuestion: (data) => api.post('/questions', data),
+  addReply: (id, body) => api.post(`/questions/${id}/reply`, { body }),
+  upvoteQuestion: (id) => api.post(`/questions/${id}/upvote`),
+  upvoteReply: (id, replyId) => api.post(`/questions/${id}/reply/${replyId}/upvote`),
+  followQuestion: (id) => api.post(`/questions/${id}/follow`),
+};
+
+export const noteAPI = {
+  getNotes: (courseId, params) => api.get(`/notes/course/${courseId}`, { params }),
+  createNote: (data) => api.post('/notes', data),
+  updateNote: (id, content) => api.put(`/notes/${id}`, { content }),
+  deleteNote: (id) => api.delete(`/notes/${id}`),
+};
+
 export default api;
