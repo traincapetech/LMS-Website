@@ -47,6 +47,7 @@ import HelpCenter from "./Pages/HelpCenter";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import TermsAndConditions from "./Pages/TermsAndConditions";
 import MyLearning from "./Pages/MyLearning";
+import CertificatePage from "./Pages/CertificatePage";
 // Cart context setup
 export const CartContext = createContext();
 
@@ -208,7 +209,8 @@ function App() {
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/createQuiz" element={<CreateQuiz />} />
               <Route path="/lecture/:lectureId" element={<LectureVideo />} />
-              <Route path="/resource/:id" element={<ResourceView />} />\
+              <Route path="/resource/:id" element={<ResourceView />} />
+              <Route path="/certificate/:courseId" element={<CertificatePage />} />
             </Routes>
           </div>
           <Footer />

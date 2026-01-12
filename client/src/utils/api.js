@@ -240,4 +240,14 @@ export const noteAPI = {
   deleteNote: (id) => api.delete(`/notes/${id}`),
 };
 
+// Certificate API for Udemy-style certificate page
+export const certificateAPI = {
+  // Get certificate data for preview (returns JSON)
+  getCertificateData: (courseId) => api.get(`/certificate/data/${courseId}`),
+
+  // Download PDF certificate (returns blob)
+  downloadCertificate: (courseId) =>
+    api.get(`/certificate/download/${courseId}`, { responseType: "blob" }),
+};
+
 export default api;
