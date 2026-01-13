@@ -194,7 +194,7 @@ export default function Dashboard() {
           })),
           quizQuestions: (item.questions || []).map((q) => ({
             id: q.id || q._id,
-            question: q.text,
+            question: q.question,
             answers: (q.answers || []).map((a) => ({
               id: a.id || a._id,
               text: a.text,
@@ -411,13 +411,13 @@ export default function Dashboard() {
               questions: (item.quizQuestions || item.questions || []).map(
                 (q) => ({
                   id: q.id || q._id,
-                  text: q.question || "",
+                  question: q.question || "",
                   answers: q.answers || [],
                   media: q.image || null,
                   difficulty: q.difficulty || "medium",
                   hint: q.hint || "",
                   tags: q.tags || [],
-                  type: q.type || "mcq",
+                  type: q.type || "single",
                 })
               ),
               quizId: item.quizId || generateObjectId(),
@@ -564,12 +564,11 @@ export default function Dashboard() {
           })),
           quizQuestions: (item.questions || []).map((q) => ({
             id: q.id || q._id,
-            question: q.text,
+            question: q.question,
             answers: (q.answers || []).map((a) => ({
               id: a.id || a._id,
               text: a.text,
               correct: a.correct,
-              explain: a.explain,
             })),
             image: q.media || null,
             difficulty: q.difficulty || "easy",

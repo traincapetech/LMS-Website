@@ -83,11 +83,9 @@ export const useStore = create((set, get) => ({
   isRightPanelActive: false,
   setIsRightPanelActive: (active) => set({ isRightPanelActive: active }),
 
-
-// Pending Courses State
-pendingCourses: [],
-setPendingCourses: (pendingCourses) => set({ pendingCourses }),
-
+  // Pending Courses State
+  pendingCourses: [],
+  setPendingCourses: (pendingCourses) => set({ pendingCourses }),
 
   // Cart State
   backendCart: null,
@@ -276,6 +274,11 @@ setPendingCourses: (pendingCourses) => set({ pendingCourses }),
   wishlist: [],
   setWishlist: (wishlist) => set({ wishlist }),
   fetchWishlist: async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      set({ wishlist: [] });
+      return;
+    }
     set({ loading: true });
     try {
       const res = await profileAPI.getWishlist();

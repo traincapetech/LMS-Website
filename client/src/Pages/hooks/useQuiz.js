@@ -5,16 +5,16 @@ export default function useQuiz(setSections) {
   function addQuestion(sectionId, itemId) {
     const q = {
       id: makeId("q"),
-      text: "",
-      type: "mcq",
+      question: "",
+      type: "multiple",
       answers: [
-        { id: makeId("ans"), text: "", explain: "", correct: false },
-        { id: makeId("ans"), text: "", explain: "", correct: false },
+        { id: makeId("ans"), text: "", correct: false },
+        { id: makeId("ans"), text: "", correct: false },
       ],
       hint: "",
       tags: [],
       difficulty: "medium",
-      media: null,
+      image: null,
     };
 
     setSections((prev) =>

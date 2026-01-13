@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { ChevronLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -14,7 +15,9 @@ const PendingCourseDetails = () => {
   const [videos, setVideos] = useState([]);
 
   const token = localStorage.getItem("token");
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+  const API_BASE =
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://lms-backend-5s5x.onrender.com";
 
   /* -------------------------------------------
      1️⃣  Fetch Pending Course Details
@@ -33,7 +36,7 @@ const PendingCourseDetails = () => {
         );
 
         const data = await res.json();
-        console.log("mohit",data);
+        console.log("mohit", data);
         if (!res.ok) throw new Error(data.message || "Failed to fetch course");
 
         setCourse(data);
@@ -76,9 +79,13 @@ const PendingCourseDetails = () => {
   /* -------------------------------------------
            LOADING + ERROR HANDLING
   ------------------------------------------- */
-  if (loading)
-    return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
-
+  if (loading) {
+    return (
+      <div className="flex items-center w-full h-screen justify-center">
+        <Spinner className="text-blue-600 size-12" />
+      </div>
+    );
+  }
   if (error)
     return (
       <div style={{ color: "red", textAlign: "center", marginTop: 60 }}>
@@ -86,7 +93,6 @@ const PendingCourseDetails = () => {
       </div>
     );
 
-    console.log("mohit",course);
   if (!course) return null;
 
   /* -------------------------------------------
@@ -121,12 +127,12 @@ const PendingCourseDetails = () => {
             alt="Course Thumbnail"
             style={{
               width: "100%",
-            maxHeight: 260,
-            objectFit: "cover",
-            borderRadius: 12,
-            boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
-          }}
-        />
+              maxHeight: 260,
+              objectFit: "cover",
+              borderRadius: 12,
+              boxShadow: "0 3px 12px rgba(0,0,0,0.12)",
+            }}
+          />
         ) : (
           <p>No Thumbnail uploaded</p>
         )}
@@ -198,26 +204,34 @@ const PendingCourseDetails = () => {
                       <strong style={{ fontSize: 16 }}>{item.title}</strong>
 
                       {/* Video Link */}
-                      {matchedVideo ? (
-                        <div style={{ marginTop: 6 }}>
-                          <video
-                            controls
-                            style={{
-                              marginTop: 10,
-                              width: "100%",
-                              maxHeight: "300px",
-                              borderRadius: 8,
-                              background: "#000",
-                            }}
-                          >
-                            <source src={matchedVideo.url} type="video/mp4" />
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      ) : (
-                        <p style={{ color: "#9ca3af", marginTop: 4 }}>
-                          No video uploaded
-                        </p>
+                      {item.type === "lecture" && (
+                        <>
+                          {" "}
+                          {matchedVideo ? (
+                            <div style={{ marginTop: 6 }}>
+                              <video
+                                controls
+                                style={{
+                                  marginTop: 10,
+                                  width: "100%",
+                                  maxHeight: "300px",
+                                  borderRadius: 8,
+                                  background: "#000",
+                                }}
+                              >
+                                <source
+                                  src={matchedVideo.url}
+                                  type="video/mp4"
+                                />
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                          ) : (
+                            <p style={{ color: "#9ca3af", marginTop: 4 }}>
+                              No video uploaded
+                            </p>
+                          )}
+                        </>
                       )}
 
                       {/* Documents */}
@@ -239,6 +253,91 @@ const PendingCourseDetails = () => {
                             ))}
                           </ul>
                         </div>
+                      )}
+
+                      {/* Quiz Questions */}
+                      {item.type === "quiz" && (
+                        <>
+                          {item.quizQuestion?.length > 0 ? (
+                            <div style={{ marginTop: 14 }}>
+                              <strong style={{ color: "#4b5563" }}>
+                                Quiz Questions:
+                              </strong>
+                              <div
+                                style={{
+                                  marginTop: 6,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 10,
+                                }}
+                              >
+                                {item.quizQuestion.map((q, qIdx) => (
+                                  <div
+                                    key={qIdx}
+                                    style={{
+                                      padding: 10,
+                                      background: "#f8f9fa",
+                                      borderRadius: 6,
+                                      border: "1px solid #e9ecef",
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        fontSize: 15,
+                                        fontWeight: 600,
+                                        color: "#111",
+                                      }}
+                                    >
+                                      {qIdx + 1}.{" "}
+                                      {q.question || "No Question Text"}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: 12,
+                                        color: "#666",
+                                        marginTop: 2,
+                                      }}
+                                    >
+                                      Type:{" "}
+                                      <span style={{ fontWeight: 500 }}>
+                                        {q.type}
+                                      </span>
+                                    </div>
+
+                                    <div
+                                      style={{ marginTop: 6, paddingLeft: 8 }}
+                                    >
+                                      {q.answers?.map((ans, aIdx) => (
+                                        <div
+                                          key={aIdx}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            marginTop: 3,
+                                            fontSize: 14,
+                                            color: ans.correct
+                                              ? "#16a34a"
+                                              : "#374151",
+                                            fontWeight: ans.correct ? 600 : 400,
+                                          }}
+                                        >
+                                          <span style={{ marginRight: 8 }}>
+                                            {ans.correct ? "✅" : "⚪"}
+                                          </span>
+                                          {ans.text}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <p style={{ color: "#9ca3af", marginTop: 4 }}>
+                              No quiz uploaded
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   );

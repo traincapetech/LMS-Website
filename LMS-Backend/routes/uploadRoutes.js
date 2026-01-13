@@ -230,7 +230,7 @@ router.post(
       //   fileName: req.file.originalname,
       // });
 
-      // await course.save();
+      // await course.save(); 
 
       return res.json({
         success: true,

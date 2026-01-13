@@ -70,6 +70,20 @@ exports.getById = async (req, res) => {
         videoId: it.videoId || null,
         videoUrl: it.videoId ? videoMap[String(it.videoId)]?.url || "" : "",
         documents: it.documents || [],
+        quizQuestion: (it.quizQuestions || []).map((q) => ({
+          id: q.id || q._id,
+          question: q.question,
+          answers: (q.answers || []).map((a) => ({
+            id: a.id || a._id,
+            text: a.text,
+            correct: a.correct,
+          })),
+          image: q.media || null,
+          difficulty: q.difficulty || "easy",
+          hint: q.hint || "",
+          tags: q.tags || [],
+          type: q.type,
+        })),
         quizId: it.quizId || null,
       })),
     }));

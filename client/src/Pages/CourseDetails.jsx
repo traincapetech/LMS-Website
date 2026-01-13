@@ -61,7 +61,7 @@ const CourseDetails = () => {
     const checkEnrollment = async () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-     
+
       if (!token || !id) {
         setCheckingEnrollment(false);
         return;
@@ -131,7 +131,7 @@ const CourseDetails = () => {
         const res = await reviewAPI.getReviewStats(id);
         setReviewStats(res.data.data);
       } catch (err) {
-        console.log('Failed to fetch review stats:', err);
+        console.log("Failed to fetch review stats:", err);
       }
     };
 
@@ -139,6 +139,16 @@ const CourseDetails = () => {
       fetchReviewStats();
     }
   }, [id]);
+
+  const handleVideoLink = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to enroll in courses");
+      navigate("/login");
+      return false;
+    }
+    return true;
+  };
 
   // Handle enrollment
   const handleEnroll = async () => {
@@ -311,8 +321,21 @@ const CourseDetails = () => {
               <CardContent>
                 <div className="font-inter">
                   {course.curriculum?.length} sections •{" "}
-                  {course.curriculum?.reduce((n, s) => n + s.items.length, 0)}{" "}
-                  lectures
+                  {course.curriculum?.reduce(
+                    (n, s) =>
+                      n +
+                      (s.items?.filter((i) => i.type === "lecture").length ||
+                        0),
+                    0
+                  )}{" "}
+                  lectures • {""}
+                  {course.curriculum?.reduce(
+                    (n, s) =>
+                      n +
+                      (s.items?.filter((i) => i.type === "quiz").length || 0),
+                    0
+                  )}{" "}
+                  quizzes
                 </div>
                 <div
                   className="my-5 cursor-pointer"
@@ -334,15 +357,27 @@ const CourseDetails = () => {
                       <div className="flex gap-2">
                         <span>
                           <IoMdArrowDropright
-                            className={`text-2xl transition-all duration-300 ${expanded[sIdx] ? "rotate-90" : ""
-                              }`}
+                            className={`text-2xl transition-all duration-300 ${
+                              expanded[sIdx] ? "rotate-90" : ""
+                            }`}
                           />
                         </span>
                         <span>{section.title}</span>
                       </div>
 
                       <span className="text-sm">
-                        {section.items.length} lectures
+                        {(() => {
+                          const lectures =
+                            section.items?.filter((i) => i.type === "lecture")
+                              .length || 0;
+                          const quizzes =
+                            section.items?.filter((i) => i.type === "quiz")
+                              .length || 0;
+                          const parts = [];
+                          if (lectures > 0) parts.push(`${lectures} lectures`);
+                          if (quizzes > 0) parts.push(`${quizzes} quizzes`);
+                          return parts.join(" • ");
+                        })()}
                       </span>
                     </div>
 
@@ -353,19 +388,21 @@ const CourseDetails = () => {
                           <div
                             className="flex items-center gap-2 cursor-pointer px-3 py-2"
                             key={iIdx}
-                            onClick={() =>
-                              navigate(
-                                `/lecture/${item.itemId}?courseId=${course.id}`,
-                                {
-                                  state: {
-                                    lectureId: item.itemId,
-                                    videoId: item.videoId,
-                                    courseId: course.id,
-                                    pendingCourseId: course.pendingCourseId,
-                                  },
-                                }
-                              )
-                            }
+                            onClick={() => {
+                              if (handleVideoLink()) {
+                                navigate(
+                                  `/lecture/${item.itemId}?courseId=${course.id}`,
+                                  {
+                                    state: {
+                                      lectureId: item.itemId,
+                                      videoId: item.videoId,
+                                      courseId: course.id,
+                                      pendingCourseId: course.pendingCourseId,
+                                    },
+                                  }
+                                );
+                              }
+                            }}
                           >
                             <span>
                               <GoVideo />
@@ -416,13 +453,16 @@ const CourseDetails = () => {
                     className="w-full mt-4"
                     onClick={() => {
                       if (course?.curriculum?.[0]?.items?.[0]) {
-                        navigate(`/lecture/${course.curriculum[0].items[0].itemId}?courseId=${id}`, {
-                          state: {
-                            lectureId: course.curriculum[0].items[0].itemId,
-                            courseId: id,
-                            activeTab: 'reviews'
+                        navigate(
+                          `/lecture/${course.curriculum[0].items[0].itemId}?courseId=${id}`,
+                          {
+                            state: {
+                              lectureId: course.curriculum[0].items[0].itemId,
+                              courseId: id,
+                              activeTab: "reviews",
+                            },
                           }
-                        });
+                        );
                       }
                     }}
                   >
@@ -441,18 +481,11 @@ const CourseDetails = () => {
               src={course.thumbnailUrl}
               alt="Course Thumbnail"
               className="w-full h-64 object-cover"
-              onError={(e) => {
-                e.target.src =
-                  "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg";
-              }}
             />
 
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-2xl font-semibold">
-                  {course.price === 0 || course.price === "0"
-                    ? "Free"
-                    : `₹${course.price}`}
                   {course.price === 0 || course.price === "0"
                     ? "Free"
                     : `₹${course.price}`}

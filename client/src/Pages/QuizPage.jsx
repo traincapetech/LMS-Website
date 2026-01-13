@@ -137,11 +137,11 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
           <Textarea
             className="quiz-textarea"
             placeholder="Write your question..."
-            value={q.text}
+            value={q.question}
             onChange={(e) =>
               quiz.updateQuestion(sectionId, itemId, q.id, {
                 ...q,
-                text: e.target.value,
+                question: e.target.value,
               })
             }
           />
@@ -179,9 +179,9 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Question Types</SelectLabel>
-                    <SelectItem value="mcq">MCQ (single correct)</SelectItem>
-                    <SelectItem value="multi">Multi select</SelectItem>
-                    <SelectItem value="tf">True/False</SelectItem>
+                    <SelectItem value="single">MCQ (single correct)</SelectItem>
+                    <SelectItem value="multiple">Multi select</SelectItem>
+                    <SelectItem value="True/false">True/False</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -221,12 +221,12 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
                 <div key={ans.id} className="flex items-center">
                   <input
                     className="mr-3"
-                    type={q.type === "multi" ? "checkbox" : "radio"}
+                    type={q.type === "multiple" ? "checkbox" : "radio"}
                     name={`correct-${q.id}`}
                     checked={ans.correct}
                     onChange={() => {
                       const updatedAnswers =
-                        q.type === "multi"
+                        q.type === "multiple"
                           ? q.answers.map((a) =>
                               a.id === ans.id
                                 ? { ...a, correct: !a.correct }
@@ -308,7 +308,7 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
                 if (!file) return;
                 quiz.updateQuestion(sectionId, itemId, q.id, {
                   ...q,
-                  media: { filename: file.name, file },
+                  image: { filename: file.name, file },
                 });
               }}
             />
@@ -320,7 +320,7 @@ export default function QuizPage({ sectionId, itemId, questions, quiz }) {
               Upload Image
             </Button>
 
-            {q.media && <span className="media-name">{q.media.filename}</span>}
+            {q.image && <span className="media-name">{q.media.filename}</span>}
           </div>
 
           {/* HINT */}
