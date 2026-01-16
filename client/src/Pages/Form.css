@@ -70,7 +70,7 @@ form input[type="password"] {
   margin-top: 5px;
 }
 
-form button[type="submit"] {
+/* form button[type="submit"] {
   width: 100%;
   padding: 14px;
   background: linear-gradient(90deg, #7b2ff7, #f107a3);
@@ -98,7 +98,7 @@ form button[type="submit"]:hover {
   background: linear-gradient(90deg, #661fd4, #d9068c);
   transform: translateY(-2px);
   box-shadow: 0 6px 24px rgba(123, 47, 247, 0.3);
-}
+} */
 
 .divider {
   text-align: center;

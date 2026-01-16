@@ -1,0 +1,150 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+
+const EmailVerification = () => {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", otp: "" });
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("email") || "";
+    setForm((prev) => ({ ...prev, email }));
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await axios.post(`${API_BASE}/api/auth/verify-email`, form);
+      setMessage(res.data.message || "Email verified. Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (err) {
+      setMessage(
+        err.response?.data?.message || "Verification failed. Check OTP."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-5 font-inter animate-fadeIn"
+      style={{
+        background:
+          "radial-gradient(circle at 10% 20%, #ede9fe, #d1c4e9, #c4b5fd)",
+      }}
+    >
+      <div
+        className="bg-white/95"
+        style={{
+          backdropFilter: "blur(12px)",
+          padding: "40px 30px",
+          borderRadius: "16px",
+          boxShadow: "0 12px 36px rgba(86, 36, 208, 0.18)",
+          maxWidth: "430px",
+          width: "100%",
+          textAlign: "center",
+          position: "relative",
+          animation: "slideIn 0.7s ease-out",
+          transition: "transform 0.3s, box-shadow 0.3s",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "2.2rem",
+            color: "#5624d0",
+            fontWeight: 700,
+            marginBottom: "24px",
+            textShadow: "0 2px 4px rgba(86, 36, 208, 0.1)",
+          }}
+        >
+          Verify Email
+        </h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Enter the OTP sent to your email to activate your account.
+        </p>
+        <form
+          className="flex flex-col"
+          style={{ gap: "18px", marginBottom: "20px" }}
+          onSubmit={handleSubmit}
+        >
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Enter your email"
+            className="flex-1 border border-gray-300 rounded-md p-2"
+            required
+            readOnly={!!form.email}
+          />
+          <input
+            type="text"
+            name="otp"
+            value={form.otp}
+            onChange={handleChange}
+            placeholder="Enter Verification OTP"
+            className="flex-1 border border-gray-300 rounded-md p-2"
+            required
+          />
+          <button
+            type="submit"
+            style={{
+              background: "linear-gradient(to right, #5624d0, #7c3aed)",
+              color: "white",
+              padding: "12px 16px",
+              fontSize: "1rem",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: 600,
+              transition: "transform 0.3s, background 0.3s",
+              boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
+            }}
+            disabled={loading}
+          >
+            {loading ? "Verifying..." : "Verify & Activate"}
+          </button>
+        </form>
+        {message && (
+          <div
+            style={{
+              color: message.includes("verified") ? "green" : "red",
+              marginBottom: 10,
+            }}
+          >
+            {message}
+          </div>
+        )}
+        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          <a
+            href="/login"
+            style={{
+              color: "#5624d0",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            Back to Login
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default EmailVerification;

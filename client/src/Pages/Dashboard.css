@@ -111,7 +111,7 @@ main {
   text-decoration: underline;
 }
 
-button[type="submit"],
+/* button[type="submit"],
 .primary-btn,
 .btn,
 .publish-btn {
@@ -135,7 +135,7 @@ button[type="submit"]:hover,
   background: linear-gradient(90deg, #7c3aed 0%, #5624d0 100%);
   box-shadow: 0 10px 32px rgba(86, 36, 208, 0.13);
   transform: translateY(-2px) scale(1.03);
-}
+} */
 
 ::-webkit-scrollbar {
   width: 8px;

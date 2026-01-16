@@ -36,7 +36,7 @@ const QuizPlayer = ({ quiz, courseId, onComplete, isCompleted }) => {
     if (isSubmitted) return;
 
     setSelectedAnswers((prev) => {
-      if (type === "multi") {
+      if (type === "multiple") {
         const current = prev[qId] || [];
         const newSelection = current.includes(ansId)
           ? current.filter((id) => id !== ansId)
@@ -66,8 +66,8 @@ const QuizPlayer = ({ quiz, courseId, onComplete, isCompleted }) => {
 
       if (!selected) return;
 
-      if (q.type === "multi") {
-        // For multi-select, check if all correct answers are selected and no wrong ones
+      if (q.type === "multiple") {
+        // For multiple-select, check if all correct answers are selected and no wrong ones
         const correctIds = q.answers.filter((a) => a.correct).map((a) => a.id);
         const selectedIds = selected;
 
@@ -367,7 +367,7 @@ const QuizPlayer = ({ quiz, courseId, onComplete, isCompleted }) => {
                     width: "20px",
                     height: "20px",
                     borderRadius:
-                      currentQuestion.type === "multi" ? "4px" : "50%",
+                      currentQuestion.type === "multiple" ? "4px" : "50%",
                     // border: `2px solid ${selected ? "#7e22ce" : "#666"}`,
                     marginRight: "16px",
                     display: "flex",

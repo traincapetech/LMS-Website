@@ -28,6 +28,7 @@ import AdminNewsletter from "./Pages/AdminNewsletter";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
 import OtpVerification from "./Pages/OtpVerification";
+import EmailVerification from "./Pages/EmailVerification";
 import SetNewPassword from "./Pages/SetNewPassword";
 import CourseDetails from "./Pages/CourseDetails";
 import QuizPage from "./Pages/QuizPage";
@@ -191,6 +192,10 @@ function App() {
               />{" "}
               {/* this is edit route*/}
               <Route path="/verify-otp" element={<OtpVerification />} />
+              <Route
+                path="/email-verification"
+                element={<EmailVerification />}
+              />
               <Route path="/set-new-password" element={<SetNewPassword />} />
               <Route path="/course/:id" element={<CourseDetails />} />
               {/* Profile and dropdown menu routes */}

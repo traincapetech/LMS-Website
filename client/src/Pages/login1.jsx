@@ -29,17 +29,44 @@ const Login1 = () => {
 
   const handleSubmitSignUp = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
+
+    if (!emailRegex.test(signupForm.email)) {
+      const msg = "Invalid email format";
+      setMessage(msg);
+      // toast.error(msg);
+      return;
+    }
+
+    if (!passwordRegex.test(signupForm.password)) {
+      const msg =
+        "Password must be at least 6 characters long and contain at least one letter and one number";
+      setMessage(msg);
+      // toast.error(msg);
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await authAPI.signup({ ...signupForm, role: "student" });
 
       // setMessage(res.data.message || "Signup successful!");
-      toast.success(res.data.message || "Signup successful!");
-      // Store token and user info as needed
+      toast.success(
+        res.data.message || "Signup successful! Please verify your email."
+      );
+
       if (res.data.success) {
-        // If no token, switch to login panel so user can login
-        setIsRightPanelActive(false);
+        if (res.data.requireVerification) {
+          navigate(
+            `/email-verification?email=${encodeURIComponent(signupForm.email)}`
+          );
+        } else {
+          // If no token (legacy flow) or manual switch required
+          setIsRightPanelActive(false);
+        }
       }
     } catch (err) {
       setMessage(err.response?.data?.message || "Signup failed");
@@ -51,8 +78,17 @@ const Login1 = () => {
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginForm.email)) {
+      const msg = "Invalid email format";
+      setMessage(msg);
+      // toast.error(msg);
+      return;
+    }
+
+    setLoading(true);
     try {
       console.log("=== LOGIN DEBUG ===");
       console.log("Attempting login with:", loginForm.email);
@@ -104,7 +140,18 @@ const Login1 = () => {
     } catch (err) {
       console.error("Login error:", err);
       console.error("Error response:", err.response);
-      toast.error(err.response?.data?.message || "Login failed");
+
+      const errorMsg = err.response?.data?.message || "Login failed";
+      toast.error(errorMsg);
+
+      if (err.response?.data?.requireVerification) {
+        // Redirect to verification if account exists but unverified
+        setTimeout(() => {
+          navigate(
+            `/email-verification?email=${encodeURIComponent(loginForm.email)}`
+          );
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }

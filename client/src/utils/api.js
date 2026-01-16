@@ -87,6 +87,13 @@ export const profileAPI = {
     api.post("/profile/add-to-wishlist", { courseId }),
   removeFromWishlist: (courseId) =>
     api.delete(`/profile/remove-from-wishlist/${courseId}`),
+  uploadAvatar: (formData) =>
+    api.post("/public/upload-avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  removeAvatar: () => api.post("/public/remove-avatar"),
 };
 
 export const coursesAPI = {

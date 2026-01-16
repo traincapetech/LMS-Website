@@ -213,6 +213,12 @@ exports.editCourse = async (req, res) => {
 
     course.isBrandNew = false;
     course.updatedAt = new Date();
+
+    // If instructor submits changes, reset status to pending for admin re-approval
+    if (req.user.role === "instructor") {
+      course.status = "pending";
+    }
+
     await course.save();
 
     return res.json({ success: true, course });
