@@ -12,6 +12,16 @@ console.log("🔍 Environment variables check:");
 console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ Set" : "❌ Not set");
 console.log("PORT:", process.env.PORT || "5000 (default)");
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "✅ Set" : "❌ Not set");
+console.log("\n📦 R2 Storage Configuration:");
+console.log("R2_ENDPOINT:", process.env.R2_ENDPOINT ? `✅ Set (${process.env.R2_ENDPOINT.substring(0, 30)}...)` : "❌ Not set");
+console.log("R2_ACCESS_KEY_ID:", process.env.R2_ACCESS_KEY_ID ? "✅ Set" : "❌ Not set");
+console.log("R2_SECRET_ACCESS_KEY:", process.env.R2_SECRET_ACCESS_KEY ? "✅ Set" : "❌ Not set");
+console.log("R2_BUCKET_VIDEOS:", process.env.R2_BUCKET_VIDEOS ? `✅ Set ("${process.env.R2_BUCKET_VIDEOS}")` : "❌ Not set");
+console.log("R2_BUCKET_DOCS:", process.env.R2_BUCKET_DOCS ? `✅ Set ("${process.env.R2_BUCKET_DOCS}")` : "❌ Not set");
+console.log("R2_BUCKET_IMAGES:", process.env.R2_BUCKET_IMAGES ? `✅ Set ("${process.env.R2_BUCKET_IMAGES}")` : "❌ Not set");
+console.log("R2_PUBLIC_URL_VIDEOS:", process.env.R2_PUBLIC_URL_VIDEOS ? `✅ Set ("${process.env.R2_PUBLIC_URL_VIDEOS}")` : "❌ Not set");
+console.log("R2_PUBLIC_URL_DOCS:", process.env.R2_PUBLIC_URL_DOCS ? `✅ Set ("${process.env.R2_PUBLIC_URL_DOCS}")` : "❌ Not set");
+console.log("R2_PUBLIC_URL_IMAGES:", process.env.R2_PUBLIC_URL_IMAGES ? `✅ Set ("${process.env.R2_PUBLIC_URL_IMAGES}")` : "❌ Not set");
 
 // Initialize server after environment variables are loaded
 const initializeServer = async () => {
@@ -56,14 +66,21 @@ async function ensureAdminUser() {
 const app = express();
 
 // Configure CORS properly
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://cognify.traincapetech.in",
+  "https://www.cognify.traincapetech.in",
+];
+
+// Add Render URL from environment variable if set
+if (process.env.RENDER_URL) {
+  allowedOrigins.push(process.env.RENDER_URL);
+}
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://cognify.traincapetech.in",
-      "https://www.cognify.traincapetech.in",
-    ],
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
       "Content-Type",
@@ -127,9 +144,20 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use("*", (req, res) => {
+  console.log("❌ 404 - Route not found:", {
+    method: req.method,
+    url: req.originalUrl,
+    path: req.path,
+    headers: {
+      origin: req.headers.origin,
+      'content-type': req.headers['content-type'],
+    },
+  });
   res.status(404).json({
     success: false,
     message: "Route not found",
+    path: req.path,
+    method: req.method,
   });
 });
 

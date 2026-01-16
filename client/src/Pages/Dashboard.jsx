@@ -20,9 +20,10 @@ import { Label } from "@/components/ui/label";
 import QuizPage from "./QuizPage";
 import { generateObjectId } from "../utils/objectId";
 
+// API_BASE should NOT include /api - we'll add it in each request
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ||
-  "https://lms-backend-5s5x.onrender.com/api";
+  "https://lms-backend-5s5x.onrender.com";
 
 const steps = [
   { key: "intended", label: "Intended learners" },

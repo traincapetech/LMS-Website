@@ -1,6 +1,8 @@
 // useUpload.js (updated)
 import axios from "axios";
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+const API_BASE = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : "https://lms-backend-5s5x.onrender.com/api";
 
 const useUploads = (setSections, courseId) => {
   const token = localStorage.getItem("token");
@@ -25,7 +27,7 @@ const useUploads = (setSections, courseId) => {
       form.append("thumbnail", file);
 
       const res = await axios.post(
-        `${API_BASE}/api/upload/thumbnail/${courseId}`,
+        `${API_BASE}/upload/thumbnail/${courseId}`,
         form,
         {
           headers: {
@@ -61,7 +63,7 @@ const useUploads = (setSections, courseId) => {
       form.append("itemId", itemId);
 
       const res = await axios.post(
-        `${API_BASE}/api/upload/videos/${courseId}`,
+        `${API_BASE}/upload/videos/${courseId}`,
         form,
         {
           headers: {
@@ -75,10 +77,16 @@ const useUploads = (setSections, courseId) => {
         }
       );
 
-      const { videoId, url } = res.data;
-      // Save both videoId and videoUrl into item in state
+      // Validate response structure
+      if (!res.data || !res.data.videoId || !res.data.url) {
+        console.error("❌ Invalid upload response:", res.data);
+        throw new Error("Invalid response from server - missing videoId or url");
+      }
 
-       console.log("mohit",sectionId,)
+      const { videoId, url } = res.data;
+      console.log("✅ Video upload successful:", { videoId, url });
+      
+      // Save both videoId and videoUrl into item in state
       setSections((prev) =>
         prev.map((section) =>
           section.id === sectionId
@@ -100,8 +108,26 @@ const useUploads = (setSections, courseId) => {
         )
       );
     } catch (err) {
-      console.error("Video upload failed", err);
-      alert("Video upload failed - check console");
+      // Only show error if it's actually an upload error, not a 404 from a different request
+      if (err.response?.status === 404 && !err.config?.url?.includes('/upload/')) {
+        console.warn("⚠️ 404 error from non-upload route (may be unrelated):", err.config?.url);
+        // Don't show alert for unrelated 404s
+        return;
+      }
+      
+      console.error("❌ Video upload failed", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Video upload failed";
+      console.error("Error details:", {
+        status: err.response?.status,
+        url: err.config?.url,
+        data: err.response?.data,
+        message: errorMessage,
+      });
+      
+      // Only alert if it's actually an upload error
+      if (err.config?.url?.includes('/upload/')) {
+        alert(`Video upload failed: ${errorMessage}`);
+      }
     }
   };
 
@@ -129,7 +155,7 @@ const useUploads = (setSections, courseId) => {
       form.append("file", file);
 
       const res = await axios.post(
-        `${API_BASE}/api/upload/document/${courseId}`,
+        `${API_BASE}/upload/document/${courseId}`,
         form,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -139,6 +165,12 @@ const useUploads = (setSections, courseId) => {
           },
         }
       );
+
+      // Validate response structure
+      if (!res.data || !res.data.document) {
+        console.error("❌ Invalid document upload response:", res.data);
+        throw new Error("Invalid response from server - missing document");
+      }
 
       const doc = res.data.document;
       console.log("✅ Document uploaded successfully:", doc);
@@ -185,8 +217,24 @@ const useUploads = (setSections, courseId) => {
 
       console.log("✅ Document upload complete!");
     } catch (err) {
+      // Only show error if it's actually an upload error, not a 404 from a different request
+      if (err.response?.status === 404 && !err.config?.url?.includes('/upload/')) {
+        console.warn("⚠️ 404 error from non-upload route (may be unrelated):", err.config?.url);
+        // Don't show error for unrelated 404s
+        return;
+      }
+      
       console.error("❌ Document upload failed:", err);
-      console.error("Error details:", err.response?.data || err.message);
+      console.error("Error details:", {
+        status: err.response?.status,
+        url: err.config?.url,
+        data: err.response?.data || err.message,
+      });
+      
+      // Only alert if it's actually an upload error
+      if (err.config?.url?.includes('/upload/')) {
+        alert(`Document upload failed: ${err.response?.data?.message || err.message}`);
+      }
     }
   };
 
