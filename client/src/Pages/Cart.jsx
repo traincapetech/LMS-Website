@@ -55,6 +55,13 @@ const Cart = () => {
     }
   }, []);
 
+  // Sync backend cart coupon code to local state
+  useEffect(() => {
+    if (backendCart?.couponCode) {
+      setCouponCode(backendCart.couponCode);
+    }
+  }, [backendCart]);
+
   const refreshLocalCart = () => {
     const localCart = JSON.parse(localStorage.getItem("cart") || "[]");
     setCart(localCart);

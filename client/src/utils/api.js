@@ -115,9 +115,19 @@ export const cartAPI = {
 export const couponsAPI = {
   getCoupons: () => api.get("/coupons"),
   createCoupon: (data) => api.post("/coupons", data),
+  updateCoupon: (id, data) => api.put(`/coupons/${id}`, data),
   deleteCoupon: (id) => api.delete(`/coupons/${id}`),
   generateDefault: () => api.post("/coupons/generate-default"),
   getAvailableCoupons: () => api.get("/coupons/available"),
+  // New course-specific methods
+  validateForCourse: (courseId, couponCode) =>
+    api.post("/coupons/validate-course", { courseId, couponCode }),
+  getCouponsByCourse: (courseId) =>
+    api.get(`/coupons/course/${courseId}`),
+  createCouponForCourse: (courseId, data) =>
+    api.post(`/coupons/course/${courseId}`, data),
+  deleteCouponForCourse: (courseId, couponId) =>
+    api.delete(`/coupons/course/${courseId}/${couponId}`),
 };
 
 export const adminAPI = {

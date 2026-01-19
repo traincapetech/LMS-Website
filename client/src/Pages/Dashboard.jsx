@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Dashboard.css";
 import axios from "axios";
+import { couponsAPI } from "@/utils/api";
 import "./curriculum.css";
 import { useParams, useNavigate } from "react-router-dom";
 import initialData from "./initialData";
@@ -68,6 +69,11 @@ export default function Dashboard() {
   const [price, setPrice] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [promoDesc, setPromoDesc] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [courseCoupons, setCourseCoupons] = useState([]);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [creatingCoupon, setCreatingCoupon] = useState(false);
   const [welcomeMsg, setWelcomeMsg] = useState("");
   const [congratsMsg, setCongratsMsg] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -100,6 +106,69 @@ export default function Dashboard() {
   const [editingItem, setEditingItem] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+
+  // ---------- COUPON LOGIC ----------
+  useEffect(() => {
+    if (active === "promotions" && (courseId || pendingCourseId)) {
+      const fetchCoupons = async () => {
+        setCouponLoading(true);
+        try {
+          const res = await couponsAPI.getCouponsByCourse(courseId || pendingCourseId);
+          setCourseCoupons(res.data);
+        } catch (err) {
+          console.log("Error fetching coupons:", err);
+        } finally {
+          setCouponLoading(false);
+        }
+      };
+      fetchCoupons();
+    }
+  }, [active, courseId, pendingCourseId]);
+
+  const handleCreateCoupon = async () => {
+    if (!promoCode || !discountPercentage) {
+      toast.error("Please enter coupon code and discount percentage");
+      return;
+    }
+    if (discountPercentage < 1 || discountPercentage > 100) {
+      toast.error("Discount must be between 1 and 100%");
+      return;
+    }
+
+    setCreatingCoupon(true);
+    try {
+      const res = await couponsAPI.createCouponForCourse(
+        courseId || pendingCourseId,
+        {
+          code: promoCode,
+          discountPercentage: Number(discountPercentage),
+          description: promoDesc || `${discountPercentage}% off`,
+          validUntil: validUntil || null,
+        }
+      );
+      setCourseCoupons([res.data, ...courseCoupons]);
+      toast.success("Coupon created successfully!");
+      setPromoCode("");
+      setDiscountPercentage("");
+      setPromoDesc("");
+      setValidUntil("");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create coupon");
+    } finally {
+      setCreatingCoupon(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId) => {
+    if (!window.confirm("Delete this coupon?")) return;
+    try {
+      await couponsAPI.deleteCouponForCourse(courseId || pendingCourseId, couponId);
+      setCourseCoupons(courseCoupons.filter((c) => c._id !== couponId));
+      toast.success("Coupon deleted");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete coupon");
+    }
+  };
 
   // ---------- AUTO-SAVE DRAFT TO LOCALSTORAGE ----------
   const saveDraftToLocalStorage = useCallback(() => {
@@ -1126,16 +1195,16 @@ export default function Dashboard() {
                                         prev.map((sec) =>
                                           sec.id === section.id
                                             ? {
-                                                ...sec,
-                                                items: sec.items.map((it) =>
-                                                  it.id === item.id
-                                                    ? {
-                                                        ...it,
-                                                        uploadProgress: 0,
-                                                      }
-                                                    : it
-                                                ),
-                                              }
+                                              ...sec,
+                                              items: sec.items.map((it) =>
+                                                it.id === item.id
+                                                  ? {
+                                                    ...it,
+                                                    uploadProgress: 0,
+                                                  }
+                                                  : it
+                                              ),
+                                            }
                                             : sec
                                         )
                                       );
@@ -1150,18 +1219,18 @@ export default function Dashboard() {
                                               prev.map((sec) =>
                                                 sec.id === section.id
                                                   ? {
-                                                      ...sec,
-                                                      items: sec.items.map(
-                                                        (it) =>
-                                                          it.id === item.id
-                                                            ? {
-                                                                ...it,
-                                                                uploadProgress:
-                                                                  percent,
-                                                              }
-                                                            : it
-                                                      ),
-                                                    }
+                                                    ...sec,
+                                                    items: sec.items.map(
+                                                      (it) =>
+                                                        it.id === item.id
+                                                          ? {
+                                                            ...it,
+                                                            uploadProgress:
+                                                              percent,
+                                                          }
+                                                          : it
+                                                    ),
+                                                  }
                                                   : sec
                                               )
                                             );
@@ -1381,20 +1450,134 @@ export default function Dashboard() {
         return (
           <div>
             <h2 className="dash-heading">Promotions</h2>
-            <input
-              type="text"
-              className="input-box"
-              placeholder="Promo Code"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-            />
-            <input
-              type="text"
-              className="input-box"
-              placeholder="Discount description"
-              value={promoDesc}
-              onChange={(e) => setPromoDesc(e.target.value)}
-            />
+            <p className="dash-desc" style={{ marginBottom: 20, color: "#666" }}>
+              Create discount coupons for your course. Students can use these codes to get discounts.
+            </p>
+
+            {/* Create Coupon Form */}
+            <div className="dash-section" style={{
+              background: "#f8f9fa",
+              padding: 20,
+              borderRadius: 8,
+              marginBottom: 24
+            }}>
+              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>Create New Coupon</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Coupon Code *</label>
+                  <input
+                    type="text"
+                    className="input-box"
+                    placeholder="e.g. SAVE20"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    style={{ textTransform: "uppercase" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Discount % *</label>
+                  <input
+                    type="number"
+                    className="input-box"
+                    placeholder="e.g. 20"
+                    min="1"
+                    max="100"
+                    value={discountPercentage}
+                    onChange={(e) => setDiscountPercentage(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Description (optional)</label>
+                  <input
+                    type="text"
+                    className="input-box"
+                    placeholder="e.g. Special launch discount"
+                    value={promoDesc}
+                    onChange={(e) => setPromoDesc(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Valid Until (optional)</label>
+                  <input
+                    type="date"
+                    className="input-box"
+                    value={validUntil}
+                    onChange={(e) => setValidUntil(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleCreateCoupon}
+                disabled={creatingCoupon || !promoCode || !discountPercentage}
+                style={{ marginTop: 16 }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {creatingCoupon ? "Creating..." : "Create Coupon"}
+              </Button>
+            </div>
+
+            {/* Existing Coupons */}
+            <div className="dash-section">
+              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>Your Coupons</h3>
+              {courseCoupons.length === 0 ? (
+                <p style={{ color: "#888", fontStyle: "italic" }}>No coupons created yet</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {courseCoupons.map((coupon) => (
+                    <div
+                      key={coupon._id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: 16,
+                        background: "white",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 8
+                      }}
+                    >
+                      <div>
+                        <span style={{
+                          fontWeight: 700,
+                          fontSize: 16,
+                          color: "#2563eb"
+                        }}>
+                          {coupon.code}
+                        </span>
+                        <span style={{
+                          marginLeft: 12,
+                          background: "#dcfce7",
+                          color: "#16a34a",
+                          padding: "4px 8px",
+                          borderRadius: 4,
+                          fontSize: 14,
+                          fontWeight: 600
+                        }}>
+                          {coupon.discountPercentage}% OFF
+                        </span>
+                        {coupon.validUntil && (
+                          <span style={{ marginLeft: 12, color: "#888", fontSize: 13 }}>
+                            Expires: {new Date(coupon.validUntil).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteCoupon(coupon._id)}
+                        style={{
+                          color: "#ef4444",
+                          cursor: "pointer",
+                          background: "none",
+                          border: "none",
+                          fontWeight: 500
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         );
       }
@@ -1520,10 +1703,9 @@ export default function Dashboard() {
                 <li key={step.key}>
                   <button
                     className={` px-5 py-4 w-full text-left text-lg font-normal cursor-pointer
-                      ${
-                        active === step.key
-                          ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
-                          : "hover:text-blue-600"
+                      ${active === step.key
+                        ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
+                        : "hover:text-blue-600"
                       }`}
                     onClick={() => setActive(step.key)}
                   >

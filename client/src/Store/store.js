@@ -84,9 +84,9 @@ export const useStore = create((set, get) => ({
   setIsRightPanelActive: (active) => set({ isRightPanelActive: active }),
 
 
-// Pending Courses State
-pendingCourses: [],
-setPendingCourses: (pendingCourses) => set({ pendingCourses }),
+  // Pending Courses State
+  pendingCourses: [],
+  setPendingCourses: (pendingCourses) => set({ pendingCourses }),
 
 
   // Cart State
@@ -108,7 +108,24 @@ setPendingCourses: (pendingCourses) => set({ pendingCourses }),
       }
 
       const res = await cartAPI.getCart();
+
+      // Update backend cart
       set({ backendCart: res.data });
+
+      // Sync coupon state from backend cart data
+      if (res.data && res.data.couponCode) {
+        set({
+          couponApplied: true,
+          couponMessage: `Coupon ${res.data.couponCode} applied!`,
+          discountAmount: res.data.totalBeforeDiscount - res.data.totalAfterDiscount
+        });
+      } else {
+        set({
+          couponApplied: false,
+          couponMessage: "",
+          discountAmount: 0
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch cart:", error);
       if (error.response?.status === 401) {
@@ -221,7 +238,7 @@ setPendingCourses: (pendingCourses) => set({ pendingCourses }),
       console.error(error);
       toast.error(
         error.response?.data?.message ||
-          "Subscription failed. Please try again."
+        "Subscription failed. Please try again."
       );
     } finally {
       set({ subscribing: false });
@@ -267,7 +284,7 @@ setPendingCourses: (pendingCourses) => set({ pendingCourses }),
       console.error(error);
       toast.error(
         error.response?.data?.message ||
-          "Unsubscription failed. Please try again."
+        "Unsubscription failed. Please try again."
       );
     }
   },
