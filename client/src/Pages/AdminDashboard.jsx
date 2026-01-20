@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -60,7 +61,9 @@ const AdminDashboard = () => {
         const data2 = await res2.json();
         if (!res2.ok)
           throw new Error(data2.message || "Failed to fetch pending courses");
-        setPendingCourses(data2);
+        setPendingCourses(
+          data2.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        );
       } catch (err) {
         setError(err.message);
       } finally {
@@ -69,7 +72,7 @@ const AdminDashboard = () => {
     };
     fetchAll();
   }, [token]);
-
+  console.log(pendingCourses);
   // Approve or reject instructor request
   const handleAction = async (id, action) => {
     try {
@@ -693,7 +696,7 @@ const AdminDashboard = () => {
                           fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
                         }}
                       >
-                        {req.structure}
+                        {req.structure?.slice(0, 200) + "..."}
                       </td>
                       <td
                         style={{

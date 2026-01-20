@@ -27,6 +27,7 @@ import ReviewList from "../components/ReviewList";
 import ShareModal from "../components/ShareModal";
 import QnASection from "../components/QnASection";
 import NotesSection from "../components/NotesSection";
+import VideoPlayer from "@/components/VideoPlayer";
 
 const LectureVideo = () => {
   const { lectureId } = useParams();
@@ -55,7 +56,51 @@ const LectureVideo = () => {
   const [isCourseCompleted, setIsCourseCompleted] = useState(false); // Track course completion
   const [downloadingCertificate, setDownloadingCertificate] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+
   const videoRef = useRef(null);
+  const [videoContainer, setVideoContainer] = useState(null);
+  const playerRef = useRef(null);
+
+  const videoJsOptions = {
+    autoplay: true,
+    controls: true,
+    responsive: true,
+    fluid: true,
+    sources: [
+      {
+        src: currentVideo?.videoUrl,
+        // src: "https://ik.imagekit.io/vsyrm12ge/1767000158300_14460099_3840_2160_30fps.mp4/ik-master.m3u8?tr=sr-240_360_480_720_1080_1440_2160",
+        // type: "application/x-mpegURL",
+        type: "video/mp4",
+      },
+    ],
+  };
+
+  const handlePlayerReady = (player) => {
+    playerRef.current = player;
+
+    // Get the underlying video element for NotesSection
+    const videoEl = player.tech().el();
+    if (videoEl) {
+      setVideoContainer(videoEl);
+    }
+
+    // You can handle player events here, for example:
+    player.on("waiting", () => {
+      console.log("player is waiting");
+    });
+
+    player.on("dispose", () => {
+      console.log("player will dispose");
+    });
+
+    player.on("ended", () => {
+      if (currentVideo && courseId) {
+        const lectureId = currentVideo._id || currentVideo.itemId;
+        markAsCompleted(lectureId);
+      }
+    });
+  };
   // const { loading, error, fetchCoursesById, coursesById: rawCourse } = useStore();
   const findLectureById = (courseData, itemId) => {
     if (!courseData?.curriculum) return null;
@@ -538,9 +583,11 @@ const LectureVideo = () => {
       case "notes":
         return (
           <NotesSection
+            key={currentVideo?._id || "notes-section"}
             courseId={courseId}
             currentLecture={currentVideo}
             videoRef={videoRef}
+            videoElement={videoContainer}
             curriculum={course?.curriculum}
           />
         );
@@ -905,22 +952,14 @@ const LectureVideo = () => {
                 }}
               />
             ) : currentVideo?.videoUrl ? (
-              <video
-                ref={videoRef}
-                key={currentVideo._id}
-                controls
-                autoPlay
-                style={{ width: "100%", height: "100%" }}
-                onEnded={() => {
-                  // Auto-mark video as complete when it ends
-                  if (currentVideo && courseId) {
-                    const lectureId = currentVideo._id || currentVideo.itemId;
-                    markAsCompleted(lectureId);
-                  }
-                }}
-              >
-                <source src={currentVideo.videoUrl} type="video/mp4" />
-              </video>
+              <>
+                <VideoPlayer
+                  key={currentVideo?._id || currentVideo?.itemId}
+                  options={videoJsOptions}
+                  onReady={handlePlayerReady}
+                />
+                
+              </>
             ) : (
               <div
                 style={{
