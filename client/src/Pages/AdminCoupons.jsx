@@ -53,20 +53,11 @@ const AdminCoupons = () => {
     }
   };
 
-  const generateDefaultCoupons = async () => {
-    try {
-      const response = await couponsAPI.generateDefault();
-      await fetchCoupons();
-      alert(`Generated ${response.data.totalCreated} default coupons!`);
-    } catch (error) {
-      console.error('Failed to generate default coupons:', error);
-      alert('Failed to generate default coupons');
-    }
-  };
+
 
   const deleteCoupon = async (id) => {
     if (!window.confirm('Are you sure you want to delete this coupon?')) return;
-    
+
     try {
       await couponsAPI.deleteCoupon(id);
       setCoupons(coupons.filter(coupon => coupon._id !== id));
@@ -90,32 +81,32 @@ const AdminCoupons = () => {
   );
 
   return (
-    <div style={{ 
-      maxWidth: 1200, 
-      margin: '0 auto', 
+    <div style={{
+      maxWidth: 1200,
+      margin: '0 auto',
       padding: '40px 24px',
       backgroundColor: '#f8fafc',
       minHeight: '100vh'
     }}>
       {/* Debug Component */}
       <ApiDebugger />
-      
+
       {/* Header */}
-      <div style={{ 
-        textAlign: 'center', 
+      <div style={{
+        textAlign: 'center',
         marginBottom: '48px'
       }}>
-        <h1 style={{ 
-          fontWeight: 800, 
-          fontSize: '42px', 
+        <h1 style={{
+          fontWeight: 800,
+          fontSize: '42px',
           marginBottom: '16px',
           color: '#1e293b',
           letterSpacing: '-0.025em'
         }}>
           Coupon Management
         </h1>
-        <p style={{ 
-          fontSize: '18px', 
+        <p style={{
+          fontSize: '18px',
           color: '#64748b',
           maxWidth: '600px',
           margin: '0 auto'
@@ -125,9 +116,9 @@ const AdminCoupons = () => {
       </div>
 
       {/* Action Buttons */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '16px', 
+      <div style={{
+        display: 'flex',
+        gap: '16px',
         marginBottom: '32px',
         justifyContent: 'center'
       }}>
@@ -146,21 +137,7 @@ const AdminCoupons = () => {
         >
           Create New Coupon
         </button>
-        <button
-          onClick={generateDefaultCoupons}
-          style={{
-            background: '#059669',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 24px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            fontSize: '16px'
-          }}
-        >
-          Generate Default Coupons
-        </button>
+
       </div>
 
       {/* Create Coupon Form */}
@@ -182,7 +159,7 @@ const AdminCoupons = () => {
                 <input
                   type="text"
                   value={newCoupon.code}
-                  onChange={(e) => setNewCoupon({...newCoupon, code: e.target.value})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -200,7 +177,7 @@ const AdminCoupons = () => {
                   min="0"
                   max="100"
                   value={newCoupon.discountPercentage}
-                  onChange={(e) => setNewCoupon({...newCoupon, discountPercentage: parseInt(e.target.value)})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, discountPercentage: parseInt(e.target.value) })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -216,7 +193,7 @@ const AdminCoupons = () => {
                 <input
                   type="text"
                   value={newCoupon.description}
-                  onChange={(e) => setNewCoupon({...newCoupon, description: e.target.value})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, description: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -231,7 +208,7 @@ const AdminCoupons = () => {
                 <input
                   type="datetime-local"
                   value={newCoupon.validUntil}
-                  onChange={(e) => setNewCoupon({...newCoupon, validUntil: e.target.value})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, validUntil: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -247,7 +224,7 @@ const AdminCoupons = () => {
                   type="number"
                   min="1"
                   value={newCoupon.maxUses}
-                  onChange={(e) => setNewCoupon({...newCoupon, maxUses: e.target.value})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, maxUses: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -263,7 +240,7 @@ const AdminCoupons = () => {
                   type="number"
                   min="0"
                   value={newCoupon.minimumPurchase}
-                  onChange={(e) => setNewCoupon({...newCoupon, minimumPurchase: parseInt(e.target.value)})}
+                  onChange={(e) => setNewCoupon({ ...newCoupon, minimumPurchase: parseInt(e.target.value) })}
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -310,9 +287,9 @@ const AdminCoupons = () => {
       )}
 
       {/* Coupons List */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', 
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
         gap: '24px'
       }}>
         {coupons.map(coupon => (
@@ -325,17 +302,17 @@ const AdminCoupons = () => {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>
-                <div style={{ 
-                  fontWeight: '700', 
-                  fontSize: '20px', 
+                <div style={{
+                  fontWeight: '700',
+                  fontSize: '20px',
                   color: '#1e293b',
                   marginBottom: '4px'
                 }}>
                   {coupon.code}
                 </div>
-                <div style={{ 
-                  color: '#7c3aed', 
-                  fontWeight: '600', 
+                <div style={{
+                  color: '#7c3aed',
+                  fontWeight: '600',
                   fontSize: '16px'
                 }}>
                   {coupon.discountPercentage}% OFF
@@ -352,19 +329,25 @@ const AdminCoupons = () => {
                 {coupon.isActive ? 'Active' : 'Inactive'}
               </div>
             </div>
-            
+
             <div style={{ marginBottom: '16px' }}>
               <div style={{ color: '#64748b', fontSize: '14px', marginBottom: '8px' }}>
                 {coupon.description || 'No description'}
               </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                Created: {new Date(coupon.createdAt).toLocaleDateString()}
+              <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span>Created: {new Date(coupon.createdAt).toLocaleDateString()}</span>
+                <span style={{
+                  color: coupon.createdBy?.role === 'admin' ? '#7c3aed' : '#475569',
+                  fontWeight: coupon.createdBy?.role === 'admin' ? '600' : '400'
+                }}>
+                  Created By: {coupon.createdBy?.role === 'admin' ? 'Admin' : (coupon.createdBy?.name || 'Unknown Instructor')}
+                </span>
               </div>
             </div>
 
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
               gap: '12px',
               marginBottom: '16px',
               fontSize: '12px',
@@ -405,8 +388,8 @@ const AdminCoupons = () => {
       </div>
 
       {coupons.length === 0 && (
-        <div style={{ 
-          textAlign: 'center', 
+        <div style={{
+          textAlign: 'center',
           color: '#64748b',
           fontSize: '18px',
           padding: '60px 20px'

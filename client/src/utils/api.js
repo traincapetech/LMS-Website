@@ -122,9 +122,19 @@ export const cartAPI = {
 export const couponsAPI = {
   getCoupons: () => api.get("/coupons"),
   createCoupon: (data) => api.post("/coupons", data),
+  updateCoupon: (id, data) => api.put(`/coupons/${id}`, data),
   deleteCoupon: (id) => api.delete(`/coupons/${id}`),
   generateDefault: () => api.post("/coupons/generate-default"),
   getAvailableCoupons: () => api.get("/coupons/available"),
+  // New course-specific methods
+  validateForCourse: (courseId, couponCode) =>
+    api.post("/coupons/validate-course", { courseId, couponCode }),
+  getCouponsByCourse: (courseId) =>
+    api.get(`/coupons/course/${courseId}`),
+  createCouponForCourse: (courseId, data) =>
+    api.post(`/coupons/course/${courseId}`, data),
+  deleteCouponForCourse: (courseId, couponId) =>
+    api.delete(`/coupons/course/${courseId}/${couponId}`),
 };
 
 export const adminAPI = {
@@ -245,6 +255,16 @@ export const noteAPI = {
   createNote: (data) => api.post("/notes", data),
   updateNote: (id, content) => api.put(`/notes/${id}`, { content }),
   deleteNote: (id) => api.delete(`/notes/${id}`),
+};
+
+// Certificate API for Udemy-style certificate page
+export const certificateAPI = {
+  // Get certificate data for preview (returns JSON)
+  getCertificateData: (courseId) => api.get(`/certificate/data/${courseId}`),
+
+  // Download PDF certificate (returns blob)
+  downloadCertificate: (courseId) =>
+    api.get(`/certificate/download/${courseId}`, { responseType: "blob" }),
 };
 
 export default api;

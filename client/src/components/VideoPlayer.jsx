@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
-import "videojs-contrib-quality-levels";
+// import "videojs-contrib-quality-levels";
 import "../utils/httpSourceSelector";
 import "videojs-http-source-selector/dist/videojs-http-source-selector.css";
 

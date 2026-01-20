@@ -337,7 +337,7 @@ const MyLearning = () => {
                         className="w-full h-48 object-cover"
                         onError={(e) => {
                           e.target.src =
-                            "https://img-c.udemycdn.com/course/750x422/851712_fc61_6.jpg";
+                            "https://img.freepik.com/premium-vector/online-education-flat-illustration-editable-vector_203633-2808.jpg";
                         }}
                       />
                       {progress.isCompleted && (

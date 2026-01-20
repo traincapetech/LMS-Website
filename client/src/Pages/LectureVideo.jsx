@@ -54,7 +54,6 @@ const LectureVideo = () => {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false); // Track course completion
-  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
   const videoRef = useRef(null);
@@ -65,6 +64,7 @@ const LectureVideo = () => {
     autoplay: true,
     controls: true,
     responsive: true,
+    muted: true,
     fluid: true,
     sources: [
       {
@@ -195,7 +195,7 @@ const LectureVideo = () => {
         if (populatedCurriculum.length > 0) {
           setOpenSections({
             [populatedCurriculum[0]._id ||
-            populatedCurriculum[0].sectionId]: true,
+              populatedCurriculum[0].sectionId]: true,
           });
         }
       } catch (err) {
@@ -425,24 +425,24 @@ const LectureVideo = () => {
   // Calculate total items (lectures + quizzes) correctly
   const totalItems = course
     ? course.curriculum.reduce(
-        (sum, sec) =>
-          sum +
-          (sec.items || []).filter(
-            (item) => item.type === "lecture" || item.type === "quiz"
-          ).length,
-        0
-      )
+      (sum, sec) =>
+        sum +
+        (sec.items || []).filter(
+          (item) => item.type === "lecture" || item.type === "quiz"
+        ).length,
+      0
+    )
     : 0;
 
   // Calculate completed items count
   const completedItemsCount = course
     ? course.curriculum.reduce((count, sec) => {
-        const sectionCompleted = (sec.items || []).filter((item) => {
-          if (item.type !== "lecture" && item.type !== "quiz") return false;
-          return isItemCompleted(item);
-        }).length;
-        return count + sectionCompleted;
-      }, 0)
+      const sectionCompleted = (sec.items || []).filter((item) => {
+        if (item.type !== "lecture" && item.type !== "quiz") return false;
+        return isItemCompleted(item);
+      }).length;
+      return count + sectionCompleted;
+    }, 0)
     : 0;
 
   // Calculate progress percentage
@@ -456,38 +456,10 @@ const LectureVideo = () => {
     }
   }, [progressPercent, totalItems]);
 
-  // Download certificate function
-  const handleDownloadCertificate = async () => {
+  // Navigate to certificate page (Udemy-style)
+  const handleGetCertificate = () => {
     if (!courseId) return;
-
-    setDownloadingCertificate(true);
-    try {
-      const response = await progressAPI.generateCertificate(courseId);
-
-      // Create blob from response
-      const blob = new Blob([response.data], { type: "application/pdf" });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `Certificate_${
-        course?.title?.replace(/[^a-z0-9]/gi, "_") || "Course"
-      }.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Certificate downloaded successfully! 🎉");
-    } catch (error) {
-      console.error("Certificate download error:", error);
-      if (error.response?.status === 403) {
-        toast.error("Course must be completed to download certificate");
-      } else {
-        toast.error("Failed to download certificate. Please try again.");
-      }
-    } finally {
-      setDownloadingCertificate(false);
-    }
+    navigate(`/certificate/${courseId}`);
   };
 
   // Mark lecture as completed
@@ -625,9 +597,8 @@ const LectureVideo = () => {
       <div style={{ borderBottom: "1px solid #eee" }}>
         {/* VIDEO ROW */}
         <div
-          className={` mb-1 ${
-            isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
-          }`}
+          className={` mb-1 ${isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
+            }`}
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -685,8 +656,8 @@ const LectureVideo = () => {
           <span style={{ fontSize: "12px", color: "#6b7280" }}>
             {vid.duration
               ? `${Math.floor(vid.duration / 60)}:${String(
-                  Math.floor(vid.duration % 60)
-                ).padStart(2, "0")}`
+                Math.floor(vid.duration % 60)
+              ).padStart(2, "0")}`
               : "5:00"}
           </span>
         </div>
@@ -732,9 +703,8 @@ const LectureVideo = () => {
     // Basic styling to match VideoListItem
     return (
       <div
-        className={` ${
-          isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
-        }`}
+        className={` ${isActive ? "bg-blue-100 border-l-4 border-blue-500" : ""
+          }`}
         style={{
           display: "flex",
           alignItems: "center",
@@ -866,27 +836,17 @@ const LectureVideo = () => {
             </div>
           </div>
 
-          {/* Certificate Download Button */}
+          {/* Certificate Button */}
           {isCourseCompleted && (
             <button
-              onClick={handleDownloadCertificate}
-              disabled={downloadingCertificate}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-sm px-4 py-2 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGetCertificate}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-sm px-4 py-2 font-semibold transition-all"
               style={{
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
             >
-              {downloadingCertificate ? (
-                <>
-                  <FaSpinner className="animate-spin" />
-                  <span>Generating...</span>
-                </>
-              ) : (
-                <>
-                  <FaCertificate />
-                  <span>Download Certificate</span>
-                </>
-              )}
+              <FaCertificate />
+              <span>Get Certificate</span>
             </button>
           )}
 
@@ -906,11 +866,11 @@ const LectureVideo = () => {
       {/* MAIN LAYOUT */}
       <div
         className="flex flex-col md:flex-row min-h-screen px-4 py-5 md:p-0 font-poppins"
-        // style={{
-        //   display: "flex",
-        //   minHeight: "100vh",
-        //   backgroundColor: "#f4f6f9",
-        // }}
+      // style={{
+      //   display: "flex",
+      //   minHeight: "100vh",
+      //   backgroundColor: "#f4f6f9",
+      // }}
       >
         {/* LEFT: VIDEO PLAYER */}
         <div style={{ flex: 1, padding: "20px" }}>
@@ -1033,24 +993,14 @@ const LectureVideo = () => {
                 </div>
               </div>
               <button
-                onClick={handleDownloadCertificate}
-                disabled={downloadingCertificate}
-                className="bg-white text-purple-700 hover:bg-gray-100 rounded-lg px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                onClick={handleGetCertificate}
+                className="bg-white text-blue-700 hover:bg-gray-100 rounded-lg px-6 py-3 font-semibold transition-all flex items-center gap-2"
                 style={{
                   whiteSpace: "nowrap",
                 }}
               >
-                {downloadingCertificate ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <FaCertificate />
-                    <span>Get Certificate</span>
-                  </>
-                )}
+                <FaCertificate />
+                <span>Get Certificate</span>
               </button>
             </div>
           )}

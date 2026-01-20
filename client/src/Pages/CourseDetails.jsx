@@ -5,7 +5,7 @@ import { useStore } from "../Store/store";
 import { Spinner } from "@/components/ui/spinner";
 import { IoMdArrowDropright } from "react-icons/io";
 import { GoVideo } from "react-icons/go";
-import { enrollmentAPI, reviewAPI } from "@/utils/api";
+import { enrollmentAPI, reviewAPI, couponsAPI, cartAPI } from "@/utils/api";
 import { toast } from "sonner";
 import ReviewStats from "@/components/ReviewStats";
 import {
@@ -45,6 +45,12 @@ const CourseDetails = () => {
 
   // Review stats
   const [reviewStats, setReviewStats] = useState(null);
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const toggleSection = (i) => {
     setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
@@ -190,29 +196,81 @@ const CourseDetails = () => {
     });
   };
   console.log("mohit", course);
-  // ⭐ Add to cart
-  const handleAddToCart = () => {
-    localStorage.setItem(
-      "courseToAdd",
-      JSON.stringify({
-        id: course.id,
-        title: course.title,
-        description: course.subtitle,
-        price: course.price,
-        thumbnailUrl: course.thumbnailUrl,
-        isApiCourse: true,
-      })
-    );
+  // ⭐ Add to cart with coupon persistence and backend sync
+  const handleAddToCart = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    navigate("/cart");
+      // If logged in, sync with backend cart first
+      if (token) {
+        try {
+          await cartAPI.addToCart(course._id || course.id);
+          console.log("Added to backend cart successfully");
+        } catch (err) {
+          // Log but don't block - cart might already have this item
+          console.log("Backend cart add:", err.response?.data?.message || err.message);
+        }
+      }
+
+      // Also add to local cart context
+      await addToCart(course);
+
+      // If we have an applied coupon, apply it to the cart as well
+      if (appliedCoupon && token) {
+        try {
+          await cartAPI.applyCoupon(appliedCoupon.couponCode);
+          toast.success(`Included coupon ${appliedCoupon.couponCode} in cart!`);
+        } catch (err) {
+          console.log("Could not persist coupon to cart:", err);
+        }
+      }
+
+      navigate("/cart");
+    } catch (err) {
+      console.error("Add to cart error", err);
+      navigate("/cart"); // Fallback
+    }
   };
 
   const handleBuyNow = () => {
     handleAddToCart();
-    navigate("/cart");
   };
 
-  const handleApplyCoupon = () => navigate("/cart");
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to apply coupon");
+      navigate("/login");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError("");
+
+    try {
+      const res = await couponsAPI.validateForCourse(id, couponCode);
+      if (res.data.valid) {
+        setAppliedCoupon(res.data);
+        toast.success(`Coupon applied! ${res.data.discountPercentage}% off`);
+      }
+    } catch (err) {
+      setCouponError(err.response?.data?.message || "Invalid coupon code");
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
 
   // ⭐ LOADING UI
   if (loading) {
@@ -484,18 +542,28 @@ const CourseDetails = () => {
             />
 
             <CardContent className="flex flex-col">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-2xl font-semibold">
-                  {course.price === 0 || course.price === "0"
-                    ? "Free"
-                    : `₹${course.price}`}
-                </span>
-                {course.price > 0 && course.discount && (
-                  <span className="text-blue-600 text-sm">
-                    {course.discount}% off
+              <div className="flex items-center gap-3 mb-5 flex-wrap">
+                {course.price === 0 || course.price === "0" ? (
+                  <span className="text-2xl font-semibold text-green-600">Free</span>
+                ) : appliedCoupon ? (
+                  <>
+                    <span className="text-2xl font-semibold text-green-600">
+                      ₹{appliedCoupon.discountedPrice}
+                    </span>
+                    <span className="text-lg text-gray-500 line-through">
+                      ₹{appliedCoupon.originalPrice}
+                    </span>
+                    <span className="bg-green-100 text-green-700 text-sm px-2 py-1 rounded font-semibold">
+                      {appliedCoupon.discountPercentage}% off
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-2xl font-semibold">
+                    ₹{course.price}
                   </span>
                 )}
               </div>
+
               {/* Show different buttons based on enrollment status */}
               {checkingEnrollment ? (
                 <div className="mb-5 text-center">
@@ -515,9 +583,8 @@ const CourseDetails = () => {
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
                           style={{
-                            width: `${
-                              enrollmentProgress.progressPercentage || 0
-                            }%`,
+                            width: `${enrollmentProgress.progressPercentage || 0
+                              }%`,
                           }}
                         />
                       </div>
@@ -571,18 +638,56 @@ const CourseDetails = () => {
                 <GoInfinity />
                 Full Lifetime Access
               </div>
-              <div className="flex items-center mb-5 justify-center">
-                <input
-                  className="rounded-l-md px-3 py-[9px] border"
-                  placeholder="Enter coupon code"
-                />
-                <button
-                  onClick={handleApplyCoupon}
-                  className="rounded-r-md bg-Accent hover:bg-Accent/80 px-3 text-white py-2.5"
-                >
-                  Apply
-                </button>
-              </div>{" "}
+
+              {/* Coupon Section - Only show for paid courses */}
+              {course.price > 0 && course.price !== "0" && !isEnrolled && (
+                <div className="border-t pt-4 my-3">
+                  {appliedCoupon ? (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-semibold text-green-700">{appliedCoupon.couponCode}</span>
+                          <span className="text-green-600 text-sm ml-2">applied</span>
+                        </div>
+                        <button
+                          onClick={handleRemoveCoupon}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <p className="text-sm text-green-600 mt-1">
+                        You save ₹{appliedCoupon.discountAmount}!
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center mb-5">
+                        <input
+                          className="flex-1 rounded-l-md px-3 py-[9px] border border-r-0 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Enter coupon code"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError("");
+                          }}
+                          onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        />
+                        <button
+                          onClick={handleApplyCoupon}
+                          disabled={couponLoading}
+                          className="rounded-r-md bg-Accent hover:bg-Accent/80 px-4 text-white py-2.5 disabled:opacity-50"
+                        >
+                          {couponLoading ? "..." : "Apply"}
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-red-500 text-sm my-2">{couponError}</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
