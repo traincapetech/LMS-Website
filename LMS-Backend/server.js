@@ -65,11 +65,17 @@ app.use(
       "https://www.cognify.traincapetech.in",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Last-Check"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "X-Last-Check",
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   })
 );
+
 
 app.use(express.json({ limit: "5mb" }));
 
@@ -106,6 +112,7 @@ app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/questions", require("./routes/questionRoutes"));
 app.use("/api/notes", require("./routes/noteRoutes"));
 app.use("/api/certificate", require("./routes/certificateRoutes"));
+app.use("/api/payment", require("./routes/paymentRoutes"));
 
 // Global error handler
 app.use((err, req, res, next) => {

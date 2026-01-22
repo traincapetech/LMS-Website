@@ -129,8 +129,7 @@ export const couponsAPI = {
   // New course-specific methods
   validateForCourse: (courseId, couponCode) =>
     api.post("/coupons/validate-course", { courseId, couponCode }),
-  getCouponsByCourse: (courseId) =>
-    api.get(`/coupons/course/${courseId}`),
+  getCouponsByCourse: (courseId) => api.get(`/coupons/course/${courseId}`),
   createCouponForCourse: (courseId, data) =>
     api.post(`/coupons/course/${courseId}`, data),
   deleteCouponForCourse: (courseId, couponId) =>
@@ -265,6 +264,12 @@ export const certificateAPI = {
   // Download PDF certificate (returns blob)
   downloadCertificate: (courseId) =>
     api.get(`/certificate/download/${courseId}`, { responseType: "blob" }),
+};
+
+export const paymentAPI = {
+  createCheckoutSession: (data) =>
+    api.post("/payment/create-checkout-session", data),
+  verifyPayment: (data) => api.post("/payment/verify-payment", data),
 };
 
 export default api;

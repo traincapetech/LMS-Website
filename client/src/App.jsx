@@ -17,6 +17,8 @@ import "./App.css";
 import Html from "./CourseContent/Html";
 import Cart from "./Pages/Cart";
 import Payment from "./Pages/Payment";
+import PaymentSuccess from "./Pages/PaymentSuccess";
+import PaymentFailure from "./Pages/PaymentFailure";
 import C from "./CourseContent/C";
 import AdminDashboard from "./Pages/AdminDashboard";
 import PendingCourseDetails from "./Pages/PendingCourseDetails";
@@ -173,6 +175,8 @@ function App() {
               <Route path="/html" element={<Html />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/payment" element={<Payment />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-failure" element={<PaymentFailure />} />
               <Route path="/c" element={<C />} />
               <Route
                 path="/cpp"
@@ -215,7 +219,10 @@ function App() {
               <Route path="/createQuiz" element={<CreateQuiz />} />
               <Route path="/lecture/:lectureId" element={<LectureVideo />} />
               <Route path="/resource/:id" element={<ResourceView />} />
-              <Route path="/certificate/:courseId" element={<CertificatePage />} />
+              <Route
+                path="/certificate/:courseId"
+                element={<CertificatePage />}
+              />
             </Routes>
           </div>
           <Footer />

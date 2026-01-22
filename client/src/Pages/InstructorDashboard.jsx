@@ -395,6 +395,12 @@ function CourseList({ courses }) {
 }
 
 function EmptyCourses({ activeTab }) {
+  const navigate = useNavigate();
+
+  const handleCreateCourse = () => {
+    navigate("/create");
+  };
+
   const label =
     activeTab === "drafts"
       ? "You don’t have any drafts yet."

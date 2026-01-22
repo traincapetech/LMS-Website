@@ -113,7 +113,9 @@ export default function Dashboard() {
       const fetchCoupons = async () => {
         setCouponLoading(true);
         try {
-          const res = await couponsAPI.getCouponsByCourse(courseId || pendingCourseId);
+          const res = await couponsAPI.getCouponsByCourse(
+            courseId || pendingCourseId
+          );
           setCourseCoupons(res.data);
         } catch (err) {
           console.log("Error fetching coupons:", err);
@@ -162,7 +164,10 @@ export default function Dashboard() {
   const handleDeleteCoupon = async (couponId) => {
     if (!window.confirm("Delete this coupon?")) return;
     try {
-      await couponsAPI.deleteCouponForCourse(courseId || pendingCourseId, couponId);
+      await couponsAPI.deleteCouponForCourse(
+        courseId || pendingCourseId,
+        couponId
+      );
       setCourseCoupons(courseCoupons.filter((c) => c._id !== couponId));
       toast.success("Coupon deleted");
     } catch (err) {
@@ -1194,16 +1199,16 @@ export default function Dashboard() {
                                         prev.map((sec) =>
                                           sec.id === section.id
                                             ? {
-                                              ...sec,
-                                              items: sec.items.map((it) =>
-                                                it.id === item.id
-                                                  ? {
-                                                    ...it,
-                                                    uploadProgress: 0,
-                                                  }
-                                                  : it
-                                              ),
-                                            }
+                                                ...sec,
+                                                items: sec.items.map((it) =>
+                                                  it.id === item.id
+                                                    ? {
+                                                        ...it,
+                                                        uploadProgress: 0,
+                                                      }
+                                                    : it
+                                                ),
+                                              }
                                             : sec
                                         )
                                       );
@@ -1218,18 +1223,18 @@ export default function Dashboard() {
                                               prev.map((sec) =>
                                                 sec.id === section.id
                                                   ? {
-                                                    ...sec,
-                                                    items: sec.items.map(
-                                                      (it) =>
-                                                        it.id === item.id
-                                                          ? {
-                                                            ...it,
-                                                            uploadProgress:
-                                                              percent,
-                                                          }
-                                                          : it
-                                                    ),
-                                                  }
+                                                      ...sec,
+                                                      items: sec.items.map(
+                                                        (it) =>
+                                                          it.id === item.id
+                                                            ? {
+                                                                ...it,
+                                                                uploadProgress:
+                                                                  percent,
+                                                              }
+                                                            : it
+                                                      ),
+                                                    }
                                                   : sec
                                               )
                                             );
@@ -1433,14 +1438,62 @@ export default function Dashboard() {
             <h2 className="dash-heading">Pricing</h2>
             <select
               className="input-box"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              value={
+                price === "Free" ||
+                ["9.99", "19.99", "29.99", "49.99", "99.99"].includes(price)
+                  ? price
+                  : "custom"
+              }
+              onChange={(e) => {
+                if (e.target.value === "custom") {
+                  setPrice(""); // Clear for custom input
+                } else {
+                  setPrice(e.target.value);
+                }
+              }}
             >
               <option value="">Select price</option>
               <option value="Free">Free</option>
-              <option value="9.99">₹9.99</option>
-              <option value="19.99">₹19.99</option>
+              <option value="9.99">$9.99</option>
+              <option value="19.99">$19.99</option>
+              <option value="29.99">$29.99</option>
+              <option value="49.99">$49.99</option>
+              <option value="99.99">$99.99</option>
+              <option value="custom">Custom Price</option>
             </select>
+
+            {/* Custom Price Input */}
+            {price !== "Free" &&
+              price !== "9.99" &&
+              price !== "19.99" &&
+              price !== "29.99" &&
+              price !== "49.99" &&
+              price !== "99.99" && (
+                <div style={{ marginTop: 16 }}>
+                  <label
+                    style={{
+                      display: "block",
+                      fontWeight: 600,
+                      marginBottom: 8,
+                    }}
+                  >
+                    Enter Custom Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    className="input-box"
+                    placeholder="e.g., 149.99"
+                    min="0.50"
+                    step="0.01"
+                    value={price === "Free" ? "" : price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    style={{ maxWidth: "200px" }}
+                  />
+                  <p style={{ marginTop: 8, fontSize: 14, color: "#666" }}>
+                    Note: Minimum price is $0.50 (Stripe requirement)
+                  </p>
+                </div>
+              )}
           </div>
         );
       }
@@ -1449,21 +1502,44 @@ export default function Dashboard() {
         return (
           <div>
             <h2 className="dash-heading">Promotions</h2>
-            <p className="dash-desc" style={{ marginBottom: 20, color: "#666" }}>
-              Create discount coupons for your course. Students can use these codes to get discounts.
+            <p
+              className="dash-desc"
+              style={{ marginBottom: 20, color: "#666" }}
+            >
+              Create discount coupons for your course. Students can use these
+              codes to get discounts.
             </p>
 
             {/* Create Coupon Form */}
-            <div className="dash-section" style={{
-              background: "#f8f9fa",
-              padding: 20,
-              borderRadius: 8,
-              marginBottom: 24
-            }}>
-              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>Create New Coupon</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div
+              className="dash-section"
+              style={{
+                background: "#f8f9fa",
+                padding: 20,
+                borderRadius: 8,
+                marginBottom: 24,
+              }}
+            >
+              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>
+                Create New Coupon
+              </h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                }}
+              >
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Coupon Code *</label>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Coupon Code *
+                  </label>
                   <input
                     type="text"
                     className="input-box"
@@ -1474,7 +1550,15 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Discount % *</label>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Discount % *
+                  </label>
                   <input
                     type="number"
                     className="input-box"
@@ -1486,7 +1570,15 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Description (optional)</label>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Description (optional)
+                  </label>
                   <input
                     type="text"
                     className="input-box"
@@ -1496,7 +1588,15 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Valid Until (optional)</label>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: 6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Valid Until (optional)
+                  </label>
                   <input
                     type="date"
                     className="input-box"
@@ -1517,11 +1617,17 @@ export default function Dashboard() {
 
             {/* Existing Coupons */}
             <div className="dash-section">
-              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>Your Coupons</h3>
+              <h3 style={{ fontWeight: 600, marginBottom: 16 }}>
+                Your Coupons
+              </h3>
               {courseCoupons.length === 0 ? (
-                <p style={{ color: "#888", fontStyle: "italic" }}>No coupons created yet</p>
+                <p style={{ color: "#888", fontStyle: "italic" }}>
+                  No coupons created yet
+                </p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                >
                   {courseCoupons.map((coupon) => (
                     <div
                       key={coupon._id}
@@ -1532,31 +1638,42 @@ export default function Dashboard() {
                         padding: 16,
                         background: "white",
                         border: "1px solid #e5e7eb",
-                        borderRadius: 8
+                        borderRadius: 8,
                       }}
                     >
                       <div>
-                        <span style={{
-                          fontWeight: 700,
-                          fontSize: 16,
-                          color: "#2563eb"
-                        }}>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 16,
+                            color: "#2563eb",
+                          }}
+                        >
                           {coupon.code}
                         </span>
-                        <span style={{
-                          marginLeft: 12,
-                          background: "#dcfce7",
-                          color: "#16a34a",
-                          padding: "4px 8px",
-                          borderRadius: 4,
-                          fontSize: 14,
-                          fontWeight: 600
-                        }}>
+                        <span
+                          style={{
+                            marginLeft: 12,
+                            background: "#dcfce7",
+                            color: "#16a34a",
+                            padding: "4px 8px",
+                            borderRadius: 4,
+                            fontSize: 14,
+                            fontWeight: 600,
+                          }}
+                        >
                           {coupon.discountPercentage}% OFF
                         </span>
                         {coupon.validUntil && (
-                          <span style={{ marginLeft: 12, color: "#888", fontSize: 13 }}>
-                            Expires: {new Date(coupon.validUntil).toLocaleDateString()}
+                          <span
+                            style={{
+                              marginLeft: 12,
+                              color: "#888",
+                              fontSize: 13,
+                            }}
+                          >
+                            Expires:{" "}
+                            {new Date(coupon.validUntil).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -1567,7 +1684,7 @@ export default function Dashboard() {
                           cursor: "pointer",
                           background: "none",
                           border: "none",
-                          fontWeight: 500
+                          fontWeight: 500,
                         }}
                       >
                         Delete
@@ -1702,9 +1819,10 @@ export default function Dashboard() {
                 <li key={step.key}>
                   <button
                     className={` px-5 py-4 w-full text-left text-lg font-normal cursor-pointer
-                      ${active === step.key
-                        ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
-                        : "hover:text-blue-600"
+                      ${
+                        active === step.key
+                          ? "border-l-4 border-blue-600 text-blue-600 bg-blue-50"
+                          : "hover:text-blue-600"
                       }`}
                     onClick={() => setActive(step.key)}
                   >
