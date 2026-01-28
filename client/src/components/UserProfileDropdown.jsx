@@ -6,7 +6,6 @@ import {
   FiBell,
   FiMessageSquare,
   FiSettings,
-  FiCreditCard,
   FiLogOut,
   FiGlobe,
   FiEdit2,
@@ -83,7 +82,7 @@ const UserProfileDropdown = ({
         />
       )}
       <div
-        className="h-[600px] overflow-y-auto"
+        className="max-h-[600px] overflow-y-auto"
         style={{
           position: "absolute",
           right: 0,
@@ -232,33 +231,7 @@ const UserProfileDropdown = ({
             label="Account Settings"
             onClick={() => navigate("/settings")}
           />
-          <MenuItem
-            icon={<FiCreditCard />}
-            label="Payment Methods"
-            onClick={() => navigate("/payment-methods")}
-          />
-          <MenuItem
-            icon={<FiUser />}
-            label="Subscriptions"
-            onClick={() => navigate("/subscriptions")}
-          />
-          <MenuItem
-            icon={<FiUser />}
-            label="Credits"
-            onClick={() => navigate("/credits")}
-          />
-          <MenuItem
-            icon={<FiUser />}
-            label="Purchase History"
-            onClick={() => navigate("/purchase-history")}
-          />
-          <Divider />
           <MenuItem icon={<FiGlobe />} label="Language" rightLabel="English" />
-          <MenuItem
-            icon={<FiUser />}
-            label="Public Profile"
-            onClick={() => navigate("/profile")}
-          />
           <Divider />
           <MenuItem
             icon={<FiLogOut />}
