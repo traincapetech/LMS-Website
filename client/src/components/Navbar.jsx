@@ -12,7 +12,7 @@ import UserProfileDropdown from "./UserProfileDropdown";
 import { getAllCourses, searchCourses } from "../Pages/CourseData";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { discussionAPI } from "@/utils/api";
+import { discussionAPI, notificationAPI } from "@/utils/api";
 
 const Navbar = ({ cartCount = 0 }) => {
   const [user, setUser] = useState(null);
@@ -28,6 +28,7 @@ const Navbar = ({ cartCount = 0 }) => {
   const [loginHover, setLoginHover] = useState(false);
   const [isSearchHover, setIsSearchHover] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
 
   const navLinkBaseStyle = {
     textDecoration: "none",
@@ -118,7 +119,7 @@ const Navbar = ({ cartCount = 0 }) => {
     fetchInstructorCourses();
   }, [user]);
 
-  // Poll for unread messages every 30 seconds
+  // Poll for message unread count (every 30s)
   useEffect(() => {
     if (!user) {
       setUnreadCount(0);
@@ -131,12 +132,35 @@ const Navbar = ({ cartCount = 0 }) => {
         const count = res.data.unreadCount || 0;
         setUnreadCount(count);
       } catch (error) {
-        console.error('Failed to fetch unread count:', error);
+        console.error('Failed to fetch message unread count:', error);
       }
     };
 
-    fetchUnreadCount(); // Initial fetch
-    const interval = setInterval(fetchUnreadCount, 30000); // Poll every 30s
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Poll for notification unread count (every 30s)
+  useEffect(() => {
+    if (!user) {
+      setNotificationUnreadCount(0);
+      return;
+    }
+
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await notificationAPI.getUnreadCount();
+        const count = res.data.unreadCount || 0;
+        setNotificationUnreadCount(count);
+      } catch (error) {
+        console.error('Failed to fetch notification count:', error);
+      }
+    };
+
+    fetchNotificationCount();
+    const interval = setInterval(fetchNotificationCount, 30000);
 
     return () => clearInterval(interval);
   }, [user]);
@@ -432,6 +456,7 @@ const Navbar = ({ cartCount = 0 }) => {
                   user={user}
                   cartCount={cartCount}
                   unreadCount={unreadCount}
+                  notificationUnreadCount={notificationUnreadCount}
                   onLogout={handleLogout}
                   onProfilePhotoUpload={(photoUrl) => {
                     const updatedUser = { ...user, photoUrl };

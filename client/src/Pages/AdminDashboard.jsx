@@ -9,6 +9,8 @@ const AdminDashboard = () => {
   const [pendingCourses, setPendingCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [broadcastData, setBroadcastData] = useState({ title: "", message: "", recipientRole: "student" });
   const navigate = useNavigate();
 
   // Check if user is admin
@@ -123,12 +125,35 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleBroadcast = async (e) => {
+    e.preventDefault();
+    if (!broadcastData.title || !broadcastData.message) return alert("Title and message are required");
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/notifications/broadcast`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(broadcastData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Broadcast failed");
+
+      alert(`Success: ${data.message}`);
+      setShowBroadcastModal(false);
+      setBroadcastData({ title: "", message: "", recipientRole: "student" });
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div
       className="mt-20 mx-auto"
       style={{
         maxWidth: 1200,
-
         padding: "40px 24px",
         backgroundColor: "#f8fafc",
         minHeight: "100vh",
@@ -278,6 +303,7 @@ const AdminDashboard = () => {
             Create and manage discount coupons
           </p>
         </div>
+
         <div
           style={{
             background: "white",
@@ -330,10 +356,63 @@ const AdminDashboard = () => {
             Send emails to subscribers
           </p>
         </div>
+
+        <div
+          style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "24px",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #e2e8f0",
+            cursor: "pointer",
+            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          }}
+          onClick={() => setShowBroadcastModal(true)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)";
+            e.currentTarget.style.boxShadow =
+              "0 20px 25px -5px rgba(0, 0, 0, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1)";
+          }}
+        >
+          <div
+            style={{
+              fontSize: "48px",
+              marginBottom: "16px",
+              textAlign: "center",
+            }}
+          >
+            📢
+          </div>
+          <h3
+            style={{
+              fontWeight: "700",
+              fontSize: "20px",
+              color: "#1e293b",
+              marginBottom: "8px",
+              textAlign: "center",
+            }}
+          >
+            Broadcast
+          </h3>
+          <p
+            style={{
+              color: "#64748b",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            Send notifications to users
+          </p>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px 0" }}>Loading...</div>
+        <div style={{ textAlign: "center", padding: "40px 0" }} > Loading...</div >
       ) : error ? (
         <div
           style={{
@@ -820,8 +899,86 @@ const AdminDashboard = () => {
             </div>
           )}
         </>
-      )}
-    </div>
+      )
+      }
+
+      {/* Broadcast Modal */}
+      {
+        showBroadcastModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '12px',
+              width: '90%',
+              maxWidth: '500px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>📢 Send Broadcast</h2>
+              <form onSubmit={handleBroadcast}>
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Title</label>
+                  <input
+                    type="text"
+                    value={broadcastData.title}
+                    onChange={(e) => setBroadcastData({ ...broadcastData, title: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                    placeholder="e.g. New Policy Update"
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Message</label>
+                  <textarea
+                    value={broadcastData.message}
+                    onChange={(e) => setBroadcastData({ ...broadcastData, message: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', minHeight: '100px' }}
+                    placeholder="Type your message here..."
+                    required
+                  />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Recipient</label>
+                  <select
+                    value={broadcastData.recipientRole}
+                    onChange={(e) => setBroadcastData({ ...broadcastData, recipientRole: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}
+                  >
+                    <option value="student">Students</option>
+                    <option value="instructor">Instructors</option>
+                    <option value="admin">Admins</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowBroadcastModal(false)}
+                    style={{ padding: '10px 20px', borderRadius: '6px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ padding: '10px 20px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Send Broadcast
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+    </div >
   );
 };
 

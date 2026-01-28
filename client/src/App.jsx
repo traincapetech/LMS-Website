@@ -54,9 +54,7 @@ export const CartContext = createContext();
 
 // Placeholder pages for profile and dropdown menu
 
-const Notifications = () => (
-  <div style={{ padding: "2rem" }}>Notifications Page</div>
-);
+import Notifications from "./Pages/Notifications";
 
 const AccountSettings = () => (
   <div style={{ padding: "2rem" }}>Account Settings Page</div>

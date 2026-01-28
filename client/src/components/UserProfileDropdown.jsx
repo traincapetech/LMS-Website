@@ -26,6 +26,7 @@ const UserProfileDropdown = ({
   user,
   cartCount = 0,
   unreadCount = 0,
+  notificationUnreadCount = 0,
   onLogout,
   onProfilePhotoUpload,
 }) => {
@@ -214,6 +215,8 @@ const UserProfileDropdown = ({
           <MenuItem
             icon={<FiBell />}
             label="Notifications"
+            badge={notificationUnreadCount > 0 ? `+${notificationUnreadCount}` : null}
+            badgeColor="red"
             onClick={() => navigate("/notifications")}
           />
           <MenuItem
