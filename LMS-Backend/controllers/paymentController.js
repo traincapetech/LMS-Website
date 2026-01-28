@@ -143,6 +143,8 @@ exports.createCheckoutSession = async (req, res) => {
       },
     });
 
+    
+
     res.json({ id: session.id, url: session.url });
   } catch (error) {
     console.error("Error creating checkout session:", error);

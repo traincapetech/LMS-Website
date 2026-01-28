@@ -32,7 +32,7 @@ const Payment = () => {
   const [selected, setSelected] = useState(null);
   const { cart } = useContext(CartContext);
   const [loading, setLoading] = useState(false);
-  console.log(cart);
+  console.log("mohit",cart);
 
   const handleStripePayment = async () => {
     setLoading(true);
@@ -48,8 +48,7 @@ const Payment = () => {
           typeof item.price === "string"
             ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
             : item.price,
-      }));
-      console.log("Mohit", items);
+      })); 
 
       // Get user ID from local storage if available
       const userStr = localStorage.getItem("user");

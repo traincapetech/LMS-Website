@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { IoArrowBack } from "react-icons/io5";
 
 const Courses = () => {
   const [searchParams] = useSearchParams();
@@ -81,11 +82,17 @@ const Courses = () => {
 
   if (error) {
     return (
-      <div style={{ padding: 40, textAlign: "center" }}>
-        <h2 style={{ color: "red" }}>{error}</h2>
-        <p>Try again later.</p>
-      </div>
-    );
+          <div className="min-h-screen w-full flex flex-col items-center justify-center">
+            <div className="border border-red-300 bg-red-100 px-10 py-6 rounded-lg ">
+              <div className="text-3xl text-red-500 font-medium font-poppins">
+                {error || "Course not found"}
+              </div>
+            </div>
+            <Button onClick={() => navigate(-1)} className="mt-5">
+              <IoArrowBack /> Go Back
+            </Button>
+          </div>
+        );
   }
 
   return (

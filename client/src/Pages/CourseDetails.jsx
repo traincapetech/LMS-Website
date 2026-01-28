@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { GoInfinity } from "react-icons/go";
 import { Input } from "@/components/ui/input";
+import { IoArrowBack } from "react-icons/io5";
 const CourseDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -208,7 +209,10 @@ const CourseDetails = () => {
           console.log("Added to backend cart successfully");
         } catch (err) {
           // Log but don't block - cart might already have this item
-          console.log("Backend cart add:", err.response?.data?.message || err.message);
+          console.log(
+            "Backend cart add:",
+            err.response?.data?.message || err.message
+          );
         }
       }
 
@@ -284,21 +288,15 @@ const CourseDetails = () => {
   // ⭐ ERROR UI
   if (error || !course) {
     return (
-      <div
-        style={{
-          background: "#181821",
-          minHeight: "100vh",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 24, color: "#f4c150" }}>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center">
+        <div className="border border-red-300 bg-red-100 px-10 py-6 rounded-lg ">
+          <div className="text-3xl text-red-500 font-medium font-poppins">
             {error || "Course not found"}
           </div>
         </div>
+        <Button onClick={() => navigate(-1)} className="mt-5">
+          <IoArrowBack /> Go Back
+        </Button>
       </div>
     );
   }
@@ -544,14 +542,16 @@ const CourseDetails = () => {
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5 flex-wrap">
                 {course.price === 0 || course.price === "0" ? (
-                  <span className="text-2xl font-semibold text-green-600">Free</span>
+                  <span className="text-2xl font-semibold text-green-600">
+                    Free
+                  </span>
                 ) : appliedCoupon ? (
                   <>
                     <span className="text-2xl font-semibold text-green-600">
-                      ₹{appliedCoupon.discountedPrice}
+                      ${appliedCoupon.discountedPrice}
                     </span>
                     <span className="text-lg text-gray-500 line-through">
-                      ₹{appliedCoupon.originalPrice}
+                      ${appliedCoupon.originalPrice}
                     </span>
                     <span className="bg-green-100 text-green-700 text-sm px-2 py-1 rounded font-semibold">
                       {appliedCoupon.discountPercentage}% off
@@ -559,7 +559,7 @@ const CourseDetails = () => {
                   </>
                 ) : (
                   <span className="text-2xl font-semibold">
-                    ₹{course.price}
+                    ${course.price}
                   </span>
                 )}
               </div>
@@ -583,8 +583,9 @@ const CourseDetails = () => {
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
                           style={{
-                            width: `${enrollmentProgress.progressPercentage || 0
-                              }%`,
+                            width: `${
+                              enrollmentProgress.progressPercentage || 0
+                            }%`,
                           }}
                         />
                       </div>
@@ -646,8 +647,12 @@ const CourseDetails = () => {
                     <div className="bg-green-50 border border-green-200 rounded-md p-3">
                       <div className="flex justify-between items-center">
                         <div>
-                          <span className="font-semibold text-green-700">{appliedCoupon.couponCode}</span>
-                          <span className="text-green-600 text-sm ml-2">applied</span>
+                          <span className="font-semibold text-green-700">
+                            {appliedCoupon.couponCode}
+                          </span>
+                          <span className="text-green-600 text-sm ml-2">
+                            applied
+                          </span>
                         </div>
                         <button
                           onClick={handleRemoveCoupon}
@@ -671,7 +676,9 @@ const CourseDetails = () => {
                             setCouponCode(e.target.value.toUpperCase());
                             setCouponError("");
                           }}
-                          onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleApplyCoupon()
+                          }
                         />
                         <button
                           onClick={handleApplyCoupon}
@@ -682,7 +689,9 @@ const CourseDetails = () => {
                         </button>
                       </div>
                       {couponError && (
-                        <p className="text-red-500 text-sm my-2">{couponError}</p>
+                        <p className="text-red-500 text-sm my-2">
+                          {couponError}
+                        </p>
                       )}
                     </>
                   )}
