@@ -54,30 +54,8 @@ import CertificatePage from "./Pages/CertificatePage";
 // Cart context setup
 export const CartContext = createContext();
 
-// Placeholder pages for profile and dropdown menu
-
-const Notifications = () => (
-  <div style={{ padding: "2rem" }}>Notifications Page</div>
-);
-
-const AccountSettings = () => (
-  <div style={{ padding: "2rem" }}>Account Settings Page</div>
-);
-const PaymentMethods = () => (
-  <div style={{ padding: "2rem" }}>Payment Methods Page</div>
-);
-const Subscriptions = () => (
-  <div style={{ padding: "2rem" }}>Subscriptions Page</div>
-);
-const Credits = () => <div style={{ padding: "2rem" }}>Credits Page</div>;
-const PurchaseHistory = () => (
-  <div style={{ padding: "2rem" }}>Purchase History Page</div>
-);
-const PublicProfile = () => (
-  <div style={{ padding: "2rem" }}>Public Profile Page</div>
-);
-const Profile = () => <div style={{ padding: "2rem" }}>Profile Page</div>;
-const Settings = () => <div style={{ padding: "2rem" }}>Settings Page</div>;
+import Notifications from "./Pages/Notifications";
+import AccountSettings from "./Pages/AccountSettings";
 
 function App() {
   // Initialize cart from localStorage to avoid dual sourcing issues
@@ -209,12 +187,6 @@ function App() {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<AccountSettings />} />
-              <Route path="/payment-methods" element={<PaymentMethods />} />
-              <Route path="/subscriptions" element={<Subscriptions />} />
-              <Route path="/credits" element={<Credits />} />
-              <Route path="/purchase-history" element={<PurchaseHistory />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/public-profile" element={<PublicProfile />} />
               <Route path="/quiz" element={<QuizPage />} />
               <Route path="/createQuiz" element={<CreateQuiz />} />
               <Route path="/lecture/:lectureId" element={<LectureVideo />} />

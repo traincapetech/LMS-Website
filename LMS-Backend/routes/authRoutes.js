@@ -10,4 +10,8 @@ router.post("/reset-password", authController.resetPassword);
 router.post("/verify-otp", authController.verifyOtp);
 router.post("/verify-email", authController.verifyEmail);
 
+// Account Settings routes
+router.post("/change-password", authController.changePassword);
+router.post("/close-account", authController.closeAccount);
+
 module.exports = router;

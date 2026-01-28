@@ -94,6 +94,7 @@ app.use(
   require("./routes/instructorRequestRoutes")
 );
 app.use("/api/courses", require("./routes/courseRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 app.use("/api/pending-courses", require("./routes/pendingCourseRoutes"));
 app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/coupons", require("./routes/couponRoutes"));
