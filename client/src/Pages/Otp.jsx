@@ -14,7 +14,10 @@ const Otp = ({ email, otpFromServer, onSuccess }) => {
       // Call backend to verify OTP
       const res = await otpAPI.verifyOtp({ email, enteredOtp: otp });
 
-      // Save user to localStorage
+      // Save user + token to localStorage
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
       if (res.data.user) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }

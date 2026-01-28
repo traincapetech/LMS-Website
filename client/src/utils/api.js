@@ -76,6 +76,9 @@ export const authAPI = {
   forgotPassword: (email) => api.post("/auth/forgot-password", { email }),
   resetPassword: (data) => api.post("/auth/reset-password", data),
   verifyOtp: (data) => api.post("/auth/verify-otp", data),
+  verifyEmail: (data) => api.post("/auth/verify-email", data),
+  resendVerificationOtp: (email) =>
+    api.post("/auth/verify-email/resend", { email }),
 };
 
 export const profileAPI = {
@@ -117,6 +120,12 @@ export const cartAPI = {
   removeFromCart: (courseId) => api.delete(`/cart/remove/${courseId}`),
   applyCoupon: (couponCode) => api.post("/cart/apply-coupon", { couponCode }),
   removeCoupon: () => api.delete("/cart/remove-coupon"),
+};
+
+export const paymentsAPI = {
+  checkoutCart: (data) => api.post("/payments/checkout", data),
+  createStripeSession: (data) => api.post("/payments/stripe/session", data),
+  confirmOrder: (data) => api.post("/payments/confirm", data),
 };
 
 export const couponsAPI = {
@@ -185,6 +194,8 @@ export const newsletterAPI = {
 export const publicAPI = {
   getStats: () => api.get("/public/stats"),
   contactUs: (data) => api.post("/public/contact", data),
+  getRates: (base, symbols) =>
+    api.get("/public/rates", { params: { base, symbols } }),
 };
 
 export const enrollmentAPI = {

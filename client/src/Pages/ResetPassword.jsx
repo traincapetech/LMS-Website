@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { authAPI } from "@/utils/api";
 
 const ResetPassword = () => {
   const [form, setForm] = useState({ email: "", otp: "", newPassword: "" });
@@ -21,8 +21,14 @@ const ResetPassword = () => {
     setLoading(true);
     setMessage("");
     try {
-              const res = await axios.post("https://lms-backend-5s5x.onrender.com/api/auth/reset-password", form);
-      setMessage(res.data.message || "Password reset successful. You can now log in.");
+      await authAPI.verifyOtp({ email: form.email, otp: form.otp });
+      const res = await authAPI.resetPassword({
+        email: form.email,
+        newPassword: form.newPassword,
+      });
+      setMessage(
+        res.data.message || "Password reset successful. You can now log in."
+      );
       // Optionally, redirect to login page
       // window.location.href = "/login";
     } catch (err) {

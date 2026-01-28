@@ -144,7 +144,7 @@ const ForgotPassword = () => {
               />
             </div>
             <Button disabled={loading}>
-              {loading ? "Sending..." : "Send OTP"}
+              {loading ? "Verifying..." : "Verify OTP"}
             </Button>
           </form>
         )}
@@ -173,7 +173,7 @@ const ForgotPassword = () => {
               />
             </div>
             <Button disabled={loading}>
-              {loading ? "Sending..." : "Send OTP"}
+              {loading ? "Resetting..." : "Reset Password"}
             </Button>
           </form>
         )}

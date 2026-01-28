@@ -11,6 +11,9 @@ const AdminInstructors = () => {
   const [error, setError] = useState("");
   const { addToCart } = useContext(CartContext);
   const navigate = useNavigate(); // Add this hook
+  const BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://lms-backend-5s5x.onrender.com";
 
   // ADMIN PROTECTION
   const user = JSON.parse(localStorage.getItem("user"));
@@ -56,12 +59,12 @@ const AdminInstructors = () => {
       setError("");
       try {
         // Fetch all instructors
-        const res1 = await fetch("https://lms-backend-5s5x.onrender.com/api/profile/instructors");
+        const res1 = await fetch(`${BASE_URL}/api/profile/instructors`);
         const data1 = await res1.json();
         if (!res1.ok) throw new Error(data1.message || "Failed to fetch instructors");
         setInstructors(data1);
         // Fetch all published courses
-        const res2 = await fetch("https://lms-backend-5s5x.onrender.com/api/courses");
+        const res2 = await fetch(`${BASE_URL}/api/courses`);
         const data2 = await res2.json();
         if (!res2.ok) throw new Error(data2.message || "Failed to fetch courses");
         setCourses(data2.filter(c => c.published));
@@ -82,7 +85,7 @@ const AdminInstructors = () => {
         return;
       }
 
-      const response = await axios.post('https://lms-backend-5s5x.onrender.com/api/cart/add', {
+      const response = await axios.post(`${BASE_URL}/api/cart/add`, {
         courseId: course._id
       }, {
         headers: {
@@ -119,6 +122,34 @@ const AdminInstructors = () => {
         instructorEmail: instructor.email
       }
     });
+  };
+
+  const handleDeleteInstructor = async (instructorId) => {
+    if (!window.confirm("Delete this instructor and all their courses?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${BASE_URL}/api/admin/instructors/${instructorId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Delete failed");
+
+      setInstructors((prev) => prev.filter((i) => i._id !== instructorId));
+      setCourses((prev) =>
+        prev.filter(
+          (c) => c.instructor && (c.instructor._id || c.instructor) !== instructorId
+        )
+      );
+      alert(data.message || "Instructor deleted");
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
   if (loading) {
@@ -207,7 +238,8 @@ const AdminInstructors = () => {
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    marginBottom: '12px'
+                    marginBottom: '12px',
+                    gap: '12px'
                   }}>
                     {/* Instructor Avatar */}
                     <div style={{
@@ -252,6 +284,24 @@ const AdminInstructors = () => {
                         </div>
                       )}
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteInstructor(instr._id);
+                      }}
+                      style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
 
                   {/* Stats */}

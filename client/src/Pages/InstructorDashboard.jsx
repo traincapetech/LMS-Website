@@ -210,7 +210,10 @@ export default function InstructorDashboard() {
         {activeTab === "bundles" ? (
           <BundlesEmptyState />
         ) : filteredCourses.length === 0 ? (
-          <EmptyCourses activeTab={activeTab} />
+          <EmptyCourses
+            activeTab={activeTab}
+            onCreateCourse={handleCreateCourse}
+          />
         ) : (
           <CourseList courses={filteredCourses} />
         )}
@@ -394,13 +397,7 @@ function CourseList({ courses }) {
   );
 }
 
-function EmptyCourses({ activeTab }) {
-  const navigate = useNavigate();
-
-  const handleCreateCourse = () => {
-    navigate("/create");
-  };
-
+function EmptyCourses({ activeTab, onCreateCourse }) {
   const label =
     activeTab === "drafts"
       ? "You don’t have any drafts yet."
@@ -420,7 +417,10 @@ function EmptyCourses({ activeTab }) {
       <div className="ic-empty-icon">📚</div>
       <h3 className="ic-empty-title">{label}</h3>
       <p className="ic-empty-text">{desc}</p>
-      <button className="ic-btn-primary" onClick={() => handleCreateCourse()}>
+      <button
+        className="ic-btn-primary"
+        onClick={onCreateCourse}
+      >
         + New course
       </button>
     </div>

@@ -247,6 +247,7 @@ exports.verifyEmail = async (req, res) => {
 
     user.isVerified = true;
     user.verificationOtp = undefined; // Clear OTP after usage
+    user.verificationOtpExpires = undefined;
     await user.save();
 
     return res
@@ -258,95 +259,40 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-// Change Password: For logged-in users
-exports.changePassword = async (req, res) => {
-  const { currentPassword, newPassword, confirmPassword } = req.body;
+exports.resendVerificationOtp = async (req, res) => {
+  const { email } = req.body;
 
-  // Get user ID from authorization header
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized. Please login." });
+  if (!email) {
+    return res.status(400).json({ message: "Email is required." });
   }
 
   try {
-    const decoded = jwt.verify(auth.split(" ")[1], JWT_SECRET);
-    const userId = decoded.userId;
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({ message: "New passwords do not match." });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters." });
-    }
-
-    const user = await User.findById(userId);
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Verify current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect." });
+    if (user.isVerified) {
+      return res
+        .status(200)
+        .json({ message: "Email already verified. Please login." });
     }
 
-    // Hash and save new password
-    user.password = await bcrypt.hash(newPassword, 10);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.verificationOtp = otp;
+    user.verificationOtpExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    return res.status(200).json({ message: "Password changed successfully." });
+    const emailSent = await sendOtpEmail(email, otp, "email-verification");
+    if (!emailSent) {
+      return res
+        .status(500)
+        .json({ message: "Failed to send verification OTP." });
+    }
+
+    return res.status(200).json({ message: "Verification OTP sent." });
   } catch (err) {
-    if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ message: "Invalid token. Please login again." });
-    }
-    console.error("changePassword error:", err);
-    return res.status(500).json({ message: "Server error." });
-  }
-};
-
-// Close Account: Permanently delete user account
-exports.closeAccount = async (req, res) => {
-  const { password } = req.body;
-
-  // Get user ID from authorization header
-  const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized. Please login." });
-  }
-
-  try {
-    const decoded = jwt.verify(auth.split(" ")[1], JWT_SECRET);
-    const userId = decoded.userId;
-
-    if (!password) {
-      return res.status(400).json({ message: "Password is required to close account." });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    // Verify password before deletion
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Password is incorrect." });
-    }
-
-    // Delete the user account
-    await User.findByIdAndDelete(userId);
-
-    return res.status(200).json({ message: "Account closed successfully." });
-  } catch (err) {
-    if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ message: "Invalid token. Please login again." });
-    }
-    console.error("closeAccount error:", err);
+    console.error("resendVerificationOtp error:", err);
     return res.status(500).json({ message: "Server error." });
   }
 };

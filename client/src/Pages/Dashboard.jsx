@@ -1437,64 +1437,43 @@ export default function Dashboard() {
         return (
           <div>
             <h2 className="dash-heading">Pricing</h2>
-            <select
-              className="input-box"
-              value={
-                price === "Free" ||
-                ["9.99", "19.99", "29.99", "49.99", "99.99"].includes(price)
-                  ? price
-                  : "custom"
-              }
-              onChange={(e) => {
-                if (e.target.value === "custom") {
-                  setPrice(""); // Clear for custom input
-                } else {
-                  setPrice(e.target.value);
-                }
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+                maxWidth: 360,
               }}
             >
-              <option value="">Select price</option>
-              <option value="Free">Free</option>
-              <option value="9.99">$9.99</option>
-              <option value="19.99">$19.99</option>
-              <option value="29.99">$29.99</option>
-              <option value="49.99">$49.99</option>
-              <option value="99.99">$99.99</option>
-              <option value="custom">Custom Price</option>
-            </select>
-
-            {/* Custom Price Input */}
-            {price !== "Free" &&
-              price !== "9.99" &&
-              price !== "19.99" &&
-              price !== "29.99" &&
-              price !== "49.99" &&
-              price !== "99.99" && (
-                <div style={{ marginTop: 16 }}>
-                  <label
-                    style={{
-                      display: "block",
-                      fontWeight: 600,
-                      marginBottom: 8,
-                    }}
-                  >
-                    Enter Custom Price ($)
-                  </label>
-                  <input
-                    type="number"
-                    className="input-box"
-                    placeholder="e.g., 149.99"
-                    min="0.50"
-                    step="0.01"
-                    value={price === "Free" ? "" : price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    style={{ maxWidth: "200px" }}
-                  />
-                  <p style={{ marginTop: 8, fontSize: 14, color: "#666" }}>
-                    Note: Minimum price is $0.50 (Stripe requirement)
-                  </p>
-                </div>
-              )}
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={price === "0"}
+                  onChange={(e) => {
+                    setPrice(e.target.checked ? "0" : "");
+                  }}
+                />
+                <span>Free course</span>
+              </label>
+              <div>
+                <label style={{ display: "block", marginBottom: 6 }}>
+                  Price (INR)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input-box"
+                  value={price}
+                  disabled={price === "0"}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Enter amount in INR"
+                />
+                <p style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+                  This sets the base price in INR. Use coupons for discounts.
+                </p>
+              </div>
+            </div>
           </div>
         );
       }

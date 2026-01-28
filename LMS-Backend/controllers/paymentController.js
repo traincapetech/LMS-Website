@@ -1,154 +1,222 @@
-const Stripe = require("stripe");
-const Payment = require("../models/paymentModel");
+const Cart = require("../models/Cart");
+const Order = require("../models/Order");
 const Enrollment = require("../models/Enrollment");
-const Progress = require("../models/Progress");
 const Course = require("../models/Course");
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const { createEnrollmentForUser } = require("./enrollmentController");
+const { getRate } = require("../utils/exchangeRate");
 
-/**
- * Helper function to enroll user in courses after successful payment
- * @param {String} userId - User ID
- * @param {Array} courseIds - Array of course IDs
- * @param {String} paymentId - Stripe payment session ID
- * @param {Number} amountPaid - Amount paid for the courses
- */
-const enrollUserInCourses = async (
-  userId,
-  courseIds,
-  paymentId,
-  amountPaid
-) => {
-  try {
-    const enrollments = [];
+const stripeSecret = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecret ? require("stripe")(stripeSecret) : null;
+const frontendUrl =
+  process.env.FRONTEND_URL || "http://localhost:5173";
 
-    for (const courseId of courseIds) {
-      // Check if course exists
-      const course = await Course.findById(courseId).populate("instructor");
-      if (!course) {
-        console.error(`Course ${courseId} not found, skipping enrollment`);
-        continue;
-      }
-
-      // Check if already enrolled (prevent duplicates)
-      const existingEnrollment = await Enrollment.findOne({
-        user: userId,
-        course: courseId,
-      });
-
-      if (existingEnrollment) {
-        console.log(`User ${userId} already enrolled in course ${courseId}`);
-        enrollments.push(existingEnrollment);
-        continue;
-      }
-
-      // Create enrollment
-      const enrollment = await Enrollment.create({
-        user: userId,
-        course: courseId,
-        enrolledAt: new Date(),
-        lastAccessedAt: new Date(),
-        paymentId: paymentId,
-        paymentMethod: "stripe",
-        amountPaid: amountPaid / courseIds.length, // Split amount across courses
-      });
-
-      // Create progress tracking
-      await Progress.create({
-        enrollment: enrollment._id,
-        user: userId,
-        course: courseId,
-      });
-
-      // Update course learners count
-      await Course.findByIdAndUpdate(courseId, {
-        $inc: { learners: 1 },
-      });
-
-      // Optional: Send welcome message (non-blocking)
-      if (course.instructor) {
-        const { sendWelcomeMessage } = require("./discussionController");
-        sendWelcomeMessage(courseId, userId, course.instructor._id)
-          .then(() =>
-            console.log(
-              `✅ Welcome message sent for enrollment ${enrollment._id}`
-            )
-          )
-          .catch((err) => console.error("⚠️ Welcome message failed:", err));
-      }
-
-      enrollments.push(enrollment);
-      console.log(`✅ User ${userId} enrolled in course ${courseId}`);
-    }
-
-    return enrollments;
-  } catch (error) {
-    console.error("Error enrolling user:", error);
-    throw error;
-  }
+const normalizeTotals = (cart) => {
+  const subtotal = Number(cart.totalBeforeDiscount || 0);
+  const total = Number(cart.totalAfterDiscount || subtotal);
+  return { subtotal, total };
 };
 
-exports.createCheckoutSession = async (req, res) => {
+const collectExistingEnrollments = async (userId, courseIds) => {
+  const existing = await Enrollment.find({
+    user: userId,
+    course: { $in: courseIds },
+  }).select("course");
+  return new Set(existing.map((e) => e.course.toString()));
+};
+
+const validateCourses = async (courseIds) => {
+  const courses = await Course.find({ _id: { $in: courseIds } });
+  const courseMap = new Map(courses.map((c) => [c._id.toString(), c]));
+  const missing = courseIds.filter((id) => !courseMap.has(id.toString()));
+  const unpublished = courses.filter((c) => !c.published);
+  return { courseMap, missing, unpublished };
+};
+
+const fulfillOrder = async (order) => {
+  const discount = Number(order.discountPercentage || 0);
+  const enrollments = [];
+
+  for (const item of order.items) {
+    const basePrice = Number(item.price || 0);
+    const amountPaid =
+      discount > 0 ? Number((basePrice * (100 - discount)) / 100) : basePrice;
+
+    const result = await createEnrollmentForUser({
+      userId: order.user,
+      courseId: item.course,
+      paymentMethod: order.paymentMethod || "manual",
+      amountPaid,
+      paymentId: order.paymentReference || null,
+      orderId: order._id,
+    });
+
+    if (result?.enrollment) {
+      enrollments.push(result.enrollment);
+    }
+  }
+
+  return enrollments;
+};
+
+const normalizeCurrency = (value) =>
+  String(value || "INR").toUpperCase();
+
+const SUPPORTED_CURRENCIES = new Set(["INR", "USD", "EUR"]);
+
+const createOrderFromCart = async ({
+  userId,
+  paymentMethod = "manual",
+  currency = "INR",
+}) => {
+  const cart = await Cart.findOne({ user: userId }).populate("items.course");
+  if (!cart || cart.items.length === 0) {
+    return { error: { status: 400, message: "Cart is empty" } };
+  }
+
+  const courseIds = cart.items.map((item) => item.course?._id).filter(Boolean);
+  const { missing, unpublished } = await validateCourses(courseIds);
+
+  if (missing.length > 0) {
+    return {
+      error: {
+        status: 404,
+        message: "Some courses are no longer available",
+        missing,
+      },
+    };
+  }
+
+  if (unpublished.length > 0) {
+    return {
+      error: {
+        status: 400,
+        message: "Some courses are not published",
+        unpublished: unpublished.map((c) => c._id),
+      },
+    };
+  }
+
+  const existingEnrollments = await collectExistingEnrollments(
+    userId,
+    courseIds
+  );
+  if (existingEnrollments.size > 0) {
+    return {
+      error: {
+        status: 409,
+        message: "Already enrolled in one or more courses",
+        enrolledCourseIds: Array.from(existingEnrollments),
+      },
+    };
+  }
+
+  const baseCurrency = "INR";
+  const resolvedCurrency = normalizeCurrency(currency);
+  if (!SUPPORTED_CURRENCIES.has(resolvedCurrency)) {
+    return {
+      error: {
+        status: 400,
+        message: `Unsupported currency: ${resolvedCurrency}`,
+      },
+    };
+  }
+
+  const { subtotal: baseSubtotal, total: baseTotal } = normalizeTotals(cart);
+  let rate = 1;
+  let effectiveCurrency = resolvedCurrency;
+  if (resolvedCurrency !== baseCurrency) {
+    try {
+      rate = await getRate(baseCurrency, resolvedCurrency);
+    } catch (err) {
+      console.error("Currency conversion failed, falling back to INR:", err.message);
+      rate = 1;
+      effectiveCurrency = baseCurrency;
+    }
+  }
+
+  const subtotal = Number((baseSubtotal * rate).toFixed(2));
+  const total = Number((baseTotal * rate).toFixed(2));
+
+  const orderItems = cart.items.map((item) => {
+    const basePrice = Number(item.course.price || 0);
+    const price = Number((basePrice * rate).toFixed(2));
+    return {
+      course: item.course._id,
+      title: item.course.title || item.course.landingTitle || "Course",
+      price,
+      quantity: item.quantity || 1,
+      basePrice,
+    };
+  });
+
+  const order = await Order.create({
+    user: userId,
+    items: orderItems,
+    currency: effectiveCurrency,
+    baseCurrency,
+    couponCode: cart.couponCode || null,
+    discountPercentage: cart.discountPercentage || 0,
+    subtotal,
+    total,
+    baseSubtotal,
+    baseTotal,
+    paymentMethod,
+    source: "cart",
+    status: "pending",
+  });
+
+  return { order, cart };
+};
+
+const clearCart = async (cart, userId) => {
+  const targetCart = cart || (await Cart.findOne({ user: userId }));
+  if (!targetCart) return;
+  targetCart.items = [];
+  targetCart.couponCode = null;
+  targetCart.discountPercentage = 0;
+  targetCart.totalBeforeDiscount = 0;
+  targetCart.totalAfterDiscount = 0;
+  await targetCart.save();
+};
+
+exports.checkoutCart = async (req, res) => {
   try {
-    const { courseIds, userId } = req.body;
+    const userId = req.user._id || req.user.id;
+    const paymentMethod = req.body?.paymentMethod || "manual";
+    const currency = req.body?.currency || "INR";
 
-    // For now, let's assume single course or handle array.
-    // Ideally you calculate price on backend from DB to prevent tampering.
-    // For this MVP request, we'll assume the frontend sends what's needed, but better to look up.
+    const { order, cart, error } = await createOrderFromCart({
+      userId,
+      paymentMethod,
+      currency,
+    });
+    if (error) {
+      return res.status(error.status).json(error);
+    }
 
-    // Placeholder line items
-    // You should fetch course details here.
-    // const course = await Course.findById(courseId);
+    if (order.total <= 0) {
+      order.status = "paid";
+      order.paidAt = new Date();
+      await order.save();
 
-    // Let's assume the frontend sends simple data for now like "items" array with { name, price, quantity: 1 }
-    // Or simpler: just validation.
+      const enrollments = await fulfillOrder(order);
+      await clearCart(cart, userId);
 
-    const { items } = req.body; // Expecting [{ name: 'Course A', price: 9.99 }] in USD (dollars)
-
-    // Calculate total amount
-    const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
-
-    // Stripe requires minimum $0.50 (50 cents) for USD transactions
-    if (totalAmount < 0.5) {
-      return res.status(400).json({
-        error: `Minimum order amount is $0.50. Current amount: $${totalAmount.toFixed(
-          2
-        )}`,
+      return res.json({
+        message: "Order completed (free checkout)",
+        order,
+        enrollments,
       });
     }
 
-    const lineItems = items.map((item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.name,
-        },
-        unit_amount: Math.round(item.price * 100), // Stripe expects cents for USD
-      },
-      quantity: 1,
-    }));
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"], // Only card payments for USD
-      line_items: lineItems,
-      mode: "payment",
-      success_url: `${
-        process.env.CLIENT_URL || "http://localhost:5173"
-      }/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${
-        process.env.CLIENT_URL || "http://localhost:5173"
-      }/payment-failure`,
-      metadata: {
-        userId: userId,
-        courseIds: JSON.stringify(courseIds || []),
-      },
+    return res.json({
+      message: "Order created",
+      order,
+      requiresPayment: true,
     });
-
-    
-
-    res.json({ id: session.id, url: session.url });
   } catch (error) {
-    console.error("Error creating checkout session:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Checkout error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -205,41 +273,131 @@ exports.webhook = async (req, res) => {
   res.send();
 };
 
-// Fallback for verification without webhook (simple version for localhost)
-exports.verifyPayment = async (req, res) => {
+
+exports.createStripeSession = async (req, res) => {
   try {
-    const { sessionId } = req.body;
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.payment_status === "paid") {
-      // Check if already saved?
-      // Save to DB
-      const existing = await Payment.findOne({ paymentId: session.id });
-      if (!existing) {
-        const userId = session.metadata.userId;
-        const courseIds = JSON.parse(session.metadata.courseIds || "[]");
-
-        await Payment.create({
-          userId: userId,
-          paymentId: session.id,
-          amount: session.amount_total / 100,
-          currency: session.currency,
-          status: "succeeded",
-        });
-
-        // Enroll user in all purchased courses
-        await enrollUserInCourses(
-          userId,
-          courseIds,
-          session.id,
-          session.amount_total / 100
-        );
-      }
-      res.json({ success: true, payment: session });
-    } else {
-      res.json({ success: false });
+    if (!stripe) {
+      return res.status(500).json({ message: "Stripe is not configured" });
     }
+
+    const userId = req.user._id || req.user.id;
+    const currency = req.body?.currency || "INR";
+    const { order, error } = await createOrderFromCart({
+      userId,
+      paymentMethod: "stripe",
+      currency,
+    });
+    if (error) {
+      return res.status(error.status).json(error);
+    }
+
+    if (order.total <= 0) {
+      order.status = "paid";
+      order.paidAt = new Date();
+      await order.save();
+      const enrollments = await fulfillOrder(order);
+      await clearCart(null, userId);
+      return res.json({
+        message: "Order completed (free checkout)",
+        order,
+        enrollments,
+        requiresPayment: false,
+      });
+    }
+
+    const discount = Number(order.discountPercentage || 0);
+    const lineItems = order.items.map((item) => {
+      const basePrice = Number(item.price || 0);
+      const discountedPrice =
+        discount > 0 ? (basePrice * (100 - discount)) / 100 : basePrice;
+      return {
+        quantity: item.quantity || 1,
+        price_data: {
+          currency: order.currency.toLowerCase(),
+          unit_amount: Math.max(0, Math.round(discountedPrice * 100)),
+          product_data: {
+            name: item.title || "Course",
+          },
+        },
+      };
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      metadata: {
+        orderId: order._id.toString(),
+        userId: userId.toString(),
+      },
+      success_url: `${frontendUrl}/payment?status=success&orderId=${order._id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/payment?status=cancelled&orderId=${order._id}`,
+    });
+
+    order.paymentReference = session.id;
+    await order.save();
+
+    res.json({
+      message: "Stripe session created",
+      order,
+      sessionId: session.id,
+      url: session.url,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Stripe session error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.confirmOrder = async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const { orderId, paymentMethod, paymentReference } = req.body || {};
+
+    if (!orderId) {
+      return res.status(400).json({ message: "orderId is required" });
+    }
+
+    const order = await Order.findOne({ _id: orderId, user: userId });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status === "paid") {
+      return res.json({ message: "Order already paid", order });
+    }
+
+    if (order.total > 0) {
+      const allowManual =
+        process.env.NODE_ENV !== "production" ||
+        process.env.PAYMENT_MODE === "manual";
+
+      if (!paymentReference && !allowManual) {
+        return res.status(400).json({
+          message: "paymentReference is required for paid orders",
+        });
+      }
+    }
+
+    order.status = "paid";
+    order.paymentMethod = paymentMethod || order.paymentMethod || "manual";
+    order.paymentReference = paymentReference || order.paymentReference || null;
+    order.paidAt = new Date();
+    await order.save();
+
+    const enrollments = await fulfillOrder(order);
+
+    if (order.source === "cart") {
+      await clearCart(null, userId);
+    }
+
+    res.json({
+      message: "Payment confirmed and enrollment completed",
+      order,
+      enrollments,
+    });
+  } catch (error) {
+    console.error("Confirm order error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

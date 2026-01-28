@@ -9,6 +9,7 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 router.post("/verify-otp", authController.verifyOtp);
 router.post("/verify-email", authController.verifyEmail);
+router.post("/verify-email/resend", authController.resendVerificationOtp);
 
 // Account Settings routes
 router.post("/change-password", authController.changePassword);

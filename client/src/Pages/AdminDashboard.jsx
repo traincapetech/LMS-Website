@@ -7,6 +7,7 @@ const BASE_URL =
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
+  const [selectedPendingIds, setSelectedPendingIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
@@ -125,25 +126,77 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleBroadcast = async (e) => {
-    e.preventDefault();
-    if (!broadcastData.title || !broadcastData.message) return alert("Title and message are required");
+  const togglePendingSelection = (id) => {
+    setSelectedPendingIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
+  const selectAllPending = () => {
+    setSelectedPendingIds(new Set(pendingCourses.map((c) => c._id)));
+  };
+
+  const clearPendingSelection = () => {
+    setSelectedPendingIds(new Set());
+  };
+
+  const handleDeletePending = async (pendingId) => {
+    if (!window.confirm("Delete this course and its assets?")) return;
     try {
-      const res = await fetch(`${BASE_URL}/api/notifications/broadcast`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(broadcastData)
+      const res = await fetch(
+        `${BASE_URL}/api/admin/courses/pending/${pendingId}?deletePublished=true`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Delete failed");
+      setPendingCourses((prev) => prev.filter((c) => c._id !== pendingId));
+      setSelectedPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(pendingId);
+        return next;
+      });
+      alert(data.message || "Course deleted");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPendingIds.size === 0) {
+      alert("Select at least one course");
+      return;
+    }
+    if (!window.confirm("Delete selected courses and their assets?")) return;
+
+    const ids = Array.from(selectedPendingIds);
+    for (const pendingId of ids) {
+      await handleDeletePending(pendingId);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm("Delete ALL courses and assets? This cannot be undone.")) {
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/courses/all`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Broadcast failed");
-
-      alert(`Success: ${data.message}`);
-      setShowBroadcastModal(false);
-      setBroadcastData({ title: "", message: "", recipientRole: "student" });
+      if (!res.ok) throw new Error(data.message || "Delete failed");
+      setPendingCourses([]);
+      setSelectedPendingIds(new Set());
+      alert(data.message || "All courses deleted");
     } catch (err) {
       alert(err.message);
     }
@@ -617,6 +670,67 @@ const AdminDashboard = () => {
           >
             Pending Course Requests
           </h3>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginBottom: 16,
+            }}
+          >
+            <button
+              style={{
+                background: "#0ea5e9",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 14px",
+                cursor: "pointer",
+              }}
+              onClick={selectAllPending}
+            >
+              Select All
+            </button>
+            <button
+              style={{
+                background: "#e2e8f0",
+                color: "#1e293b",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 14px",
+                cursor: "pointer",
+              }}
+              onClick={clearPendingSelection}
+            >
+              Clear Selection
+            </button>
+            <button
+              style={{
+                background: "#ef4444",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 14px",
+                cursor: "pointer",
+              }}
+              onClick={handleDeleteSelected}
+            >
+              Delete Selected
+            </button>
+            <button
+              style={{
+                background: "#7f1d1d",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "8px 14px",
+                cursor: "pointer",
+              }}
+              onClick={handleDeleteAll}
+            >
+              Delete All Courses
+            </button>
+          </div>
           {pendingCourses.length === 0 ? (
             <div
               style={{
@@ -644,10 +758,37 @@ const AdminDashboard = () => {
                       style={{
                         padding: "12px 6px",
                         border: "1px solid #eee",
+                        textAlign: "center",
+                      }}
+                    >
+                      Select
+                    </th>
+                    <th
+                      style={{
+                        padding: "12px 6px",
+                        border: "1px solid #eee",
                         textAlign: "left",
                       }}
                     >
                       Title
+                    </th>
+                    <th
+                      style={{
+                        padding: "12px 6px",
+                        border: "1px solid #eee",
+                        textAlign: "left",
+                      }}
+                    >
+                      Type
+                    </th>
+                    <th
+                      style={{
+                        padding: "12px 6px",
+                        border: "1px solid #eee",
+                        textAlign: "left",
+                      }}
+                    >
+                      Price
                     </th>
                     <th
                       style={{
@@ -736,11 +877,70 @@ const AdminDashboard = () => {
                         style={{
                           padding: "10px 6px",
                           border: "1px solid #eee",
+                          textAlign: "center",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedPendingIds.has(req._id)}
+                          onChange={() => togglePendingSelection(req._id)}
+                        />
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 6px",
+                          border: "1px solid #eee",
                           wordBreak: "break-word",
                           maxWidth: "120px",
                         }}
                       >
                         {req.landingTitle}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 6px",
+                          border: "1px solid #eee",
+                          wordBreak: "break-word",
+                          maxWidth: "120px",
+                          fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
+                        }}
+                      >
+                        {req.courseId ? (
+                          <span
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: 6,
+                              background: "#fef3c7",
+                              color: "#92400e",
+                              fontWeight: 700,
+                            }}
+                          >
+                            Update
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: 6,
+                              background: "#dcfce7",
+                              color: "#166534",
+                              fontWeight: 700,
+                            }}
+                          >
+                            New
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 6px",
+                          border: "1px solid #eee",
+                          wordBreak: "break-word",
+                          maxWidth: "120px",
+                          fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
+                        }}
+                      >
+                        ₹{Number(req.price || 0).toFixed(2)}
                       </td>
                       <td
                         style={{
@@ -854,6 +1054,20 @@ const AdminDashboard = () => {
                               }
                             >
                               Reject
+                            </button>
+                            <button
+                              style={{
+                                background: "#7f1d1d",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: 6,
+                                padding: "4px 8px",
+                                cursor: "pointer",
+                                fontSize: "clamp(0.6rem, 1.8vw, 0.7rem)",
+                              }}
+                              onClick={() => handleDeletePending(req._id)}
+                            >
+                              Delete
                             </button>
                           </div>
                         ) : (

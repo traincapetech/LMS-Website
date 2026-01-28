@@ -6,6 +6,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { IoMdArrowDropright } from "react-icons/io";
 import { GoVideo } from "react-icons/go";
 import { enrollmentAPI, reviewAPI, couponsAPI, cartAPI } from "@/utils/api";
+import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 import ReviewStats from "@/components/ReviewStats";
 import {
@@ -53,6 +54,8 @@ const CourseDetails = () => {
   const [couponError, setCouponError] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
 
+  const { format } = useCurrency();
+
   const toggleSection = (i) => {
     setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
   };
@@ -74,43 +77,10 @@ const CourseDetails = () => {
         return;
       }
 
-      // ADMIN BYPASS: Grant access immediately
       if (user?.role === "admin") {
         console.log("Admin access: Bypassing enrollment check");
         setIsEnrolled(true);
         setCheckingEnrollment(false);
-        // Optionally load progress if possible, but don't block
-        // We can try to fetch progress just for the ticks
-        try {
-          const progressRes = await progressAPI.getCourseProgress(courseId);
-          const completed = progressRes.data.completedLectures || [];
-          const completedIds = new Set(
-            completed.map((l) => l.lectureId?.toString() || l.itemId)
-          );
-          setCompletedLectures(completedIds);
-        } catch (e) {
-          console.log("Admin progress fetch skipped or failed", e);
-        }
-        return;
-      }
-
-      // ADMIN BYPASS: Grant access immediately
-      if (user?.role === "admin") {
-        console.log("Admin access: Bypassing enrollment check");
-        setIsEnrolled(true);
-        setCheckingEnrollment(false);
-        // Optionally load progress if possible, but don't block
-        // We can try to fetch progress just for the ticks
-        try {
-          const progressRes = await progressAPI.getCourseProgress(courseId);
-          const completed = progressRes.data.completedLectures || [];
-          const completedIds = new Set(
-            completed.map((l) => l.lectureId?.toString() || l.itemId)
-          );
-          setCompletedLectures(completedIds);
-        } catch (e) {
-          console.log("Admin progress fetch skipped or failed", e);
-        }
         return;
       }
 
@@ -163,6 +133,12 @@ const CourseDetails = () => {
     if (!token) {
       toast.error("Please login to enroll in courses");
       navigate("/login");
+      return;
+    }
+
+    if (Number(course?.price || 0) > 0) {
+      await handleAddToCart();
+      toast.info("Added to cart. Complete payment to enroll.");
       return;
     }
 
@@ -541,26 +517,24 @@ const CourseDetails = () => {
 
             <CardContent className="flex flex-col">
               <div className="flex items-center gap-3 mb-5 flex-wrap">
-                {course.price === 0 || course.price === "0" ? (
-                  <span className="text-2xl font-semibold text-green-600">
-                    Free
-                  </span>
+              {course.price === 0 || course.price === "0" ? (
+                <span className="text-2xl font-semibold text-green-600">Free</span>
                 ) : appliedCoupon ? (
                   <>
-                    <span className="text-2xl font-semibold text-green-600">
-                      ${appliedCoupon.discountedPrice}
-                    </span>
-                    <span className="text-lg text-gray-500 line-through">
-                      ${appliedCoupon.originalPrice}
-                    </span>
+                  <span className="text-2xl font-semibold text-green-600">
+                    {format(appliedCoupon.discountedPrice)}
+                  </span>
+                  <span className="text-lg text-gray-500 line-through">
+                    {format(appliedCoupon.originalPrice)}
+                  </span>
                     <span className="bg-green-100 text-green-700 text-sm px-2 py-1 rounded font-semibold">
                       {appliedCoupon.discountPercentage}% off
                     </span>
                   </>
                 ) : (
-                  <span className="text-2xl font-semibold">
-                    ${course.price}
-                  </span>
+                <span className="text-2xl font-semibold">
+                  {format(course.price)}
+                </span>
                 )}
               </div>
 
@@ -662,7 +636,7 @@ const CourseDetails = () => {
                         </button>
                       </div>
                       <p className="text-sm text-green-600 mt-1">
-                        You save ₹{appliedCoupon.discountAmount}!
+                        You save {format(appliedCoupon.discountAmount)}!
                       </p>
                     </div>
                   ) : (

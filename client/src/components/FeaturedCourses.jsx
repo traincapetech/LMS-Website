@@ -52,12 +52,16 @@ const FeaturedCourses = ({ courses }) => {
                   }}
                   className="bg-white relative rounded-2xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
-                  <img
-                    src={course.thumbnailUrl}
-                    alt={course.subtitle}
-                    className="w-full h-48 object-cover"
-                    loading="lazy"
-                  />
+                  {course.thumbnailUrl ? (
+                    <img
+                      src={course.thumbnailUrl}
+                      alt={course.subtitle}
+                      className="w-full h-48 object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200" />
+                  )}
 
                   <span className="absolute top-3 right-3 px-2 py-1 bg-green-500 rounded-sm text-white text-sm">
                     {course.isApiCourse ? "New" : ""}

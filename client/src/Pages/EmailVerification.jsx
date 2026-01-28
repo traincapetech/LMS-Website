@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com";
+import { authAPI } from "@/utils/api";
 
 const EmailVerification = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", otp: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const hasRequestedRef = useRef(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email") || "";
     setForm((prev) => ({ ...prev, email }));
+    if (email && !hasRequestedRef.current) {
+      hasRequestedRef.current = true;
+      authAPI
+        .resendVerificationOtp(email)
+        .then((res) => {
+          setMessage(res.data.message || "Verification OTP sent.");
+        })
+        .catch((err) => {
+          setMessage(
+            err.response?.data?.message || "Failed to send verification OTP."
+          );
+        });
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -26,7 +38,7 @@ const EmailVerification = () => {
     setLoading(true);
     setMessage("");
     try {
-      const res = await axios.post(`${API_BASE}/api/auth/verify-email`, form);
+      const res = await authAPI.verifyEmail(form);
       setMessage(res.data.message || "Email verified. Redirecting to login...");
       setTimeout(() => {
         navigate("/login");
@@ -37,6 +49,22 @@ const EmailVerification = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!form.email) return;
+    setResendLoading(true);
+    setMessage("");
+    try {
+      const res = await authAPI.resendVerificationOtp(form.email);
+      setMessage(res.data.message || "Verification OTP sent.");
+    } catch (err) {
+      setMessage(
+        err.response?.data?.message || "Failed to send verification OTP."
+      );
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -120,6 +148,22 @@ const EmailVerification = () => {
             {loading ? "Verifying..." : "Verify & Activate"}
           </button>
         </form>
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resendLoading || !form.email}
+          style={{
+            color: "#5624d0",
+            fontWeight: 600,
+            textDecoration: "none",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            marginBottom: "10px",
+          }}
+        >
+          {resendLoading ? "Resending OTP..." : "Resend OTP"}
+        </button>
         {message && (
           <div
             style={{
