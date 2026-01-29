@@ -1,17 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaUniversity, FaCreditCard, FaStripeS } from "react-icons/fa";
-import { useLocation, useNavigate } from "react-router-dom";
-import { paymentsAPI } from "@/utils/api";
-import { useStore } from "../Store/store";
-import { toast } from "sonner";
-import { useCurrency } from "@/hooks/useCurrency";
+import { CartContext } from "../App";
+import { paymentAPI } from "../utils/api";
 
 const paymentOptions = [
   {
-    id: "upi",
-    label: "UPI",
     id: "upi",
     label: "UPI",
     icon: <FaUniversity size={36} color="#0ea5e9" />,
@@ -19,13 +14,9 @@ const paymentOptions = [
   {
     id: "card",
     label: "Credit/Debit Card",
-    id: "card",
-    label: "Credit/Debit Card",
     icon: <FaCreditCard size={36} color="#6366f1" />,
   },
   {
-    id: "stripe",
-    label: "Stripe Payment",
     id: "stripe",
     label: "Stripe Payment",
     icon: <FaStripeS size={36} color="#635bff" />,
@@ -39,126 +30,51 @@ const paymentOptions = [
 
 const Payment = () => {
   const [selected, setSelected] = useState(null);
-  const [processing, setProcessing] = useState(false);
-  const { backendCart, fetchBackendCart } = useStore();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { currency, format } = useCurrency();
+  const { cart } = useContext(CartContext);
+  const [loading, setLoading] = useState(false);
+  console.log("mohit",cart);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to continue");
-      navigate("/login");
-      return;
-    }
-    fetchBackendCart();
-  }, [fetchBackendCart, navigate]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const status = params.get("status");
-    const orderId = params.get("orderId");
-    const sessionId = params.get("session_id");
-
-    if (status === "success" && orderId && sessionId) {
-      const confirmStripe = async () => {
-        try {
-          setProcessing(true);
-          const res = await paymentsAPI.confirmOrder({
-            orderId,
-            paymentMethod: "stripe",
-            paymentReference: sessionId,
-          });
-
-          if (res.data?.order?.status === "paid") {
-            toast.success("Payment confirmed. Enrollment unlocked!");
-            navigate("/my-learning");
-          } else {
-            toast.error("Payment not confirmed yet.");
-          }
-        } catch (error) {
-          toast.error(error.response?.data?.message || "Payment confirmation failed");
-        } finally {
-          setProcessing(false);
-        }
-      };
-      confirmStripe();
-    }
-  }, [location.search, navigate]);
-
-  const cartSummary = useMemo(() => {
-    if (!backendCart) return null;
-    if (!backendCart.items || backendCart.items.length === 0) return null;
-    const total = Number(backendCart.totalAfterDiscount || 0);
-    const subtotal = Number(backendCart.totalBeforeDiscount || 0);
-    return { total, subtotal };
-  }, [backendCart]);
-
-  const handlePayment = async () => {
-    if (!selected) {
-      toast.error("Please choose a payment method");
-      return;
-    }
-
+  const handleStripePayment = async () => {
+    setLoading(true);
     try {
-      setProcessing(true);
+      // Transform cart items for backend
+      // Cart items structure depends on how they are stored.
+      // Assuming { title, price, _id } based on common patterns.
+      // If price is a string like "$10", need to parse it.
 
-      if (selected === "stripe") {
-        const sessionRes = await paymentsAPI.createStripeSession({
-          paymentMethod: "stripe",
-          currency,
-        });
+      const items = cart.map((item) => ({
+        name: item.title || item.courseName || "Course",
+        price:
+          typeof item.price === "string"
+            ? parseFloat(item.price.replace(/[^0-9.]/g, ""))
+            : item.price,
+      })); 
 
-        if (sessionRes.data?.order?.status === "paid") {
-          toast.success("Payment completed. Enrollment unlocked!");
-          navigate("/my-learning");
-          return;
-        }
+      // Get user ID from local storage if available
+      const userStr = localStorage.getItem("user");
+      const userId = userStr ? JSON.parse(userStr)._id : null;
+      const courseIds = cart.map((item) => item._id);
 
-        const checkoutUrl = sessionRes.data?.url;
-        if (checkoutUrl) {
-          window.location.href = checkoutUrl;
-          return;
-        }
-
-        toast.error("Stripe session could not be created");
-        return;
-      }
-
-      const checkout = await paymentsAPI.checkoutCart({
-        paymentMethod: selected,
-        currency,
+      const { data } = await paymentAPI.createCheckoutSession({
+        items,
+        userId,
+        courseIds,
       });
 
-      const order = checkout.data?.order;
-      if (!order) {
-        toast.error("Unable to create order");
-        return;
-      }
-
-      if (order.status === "paid") {
-        toast.success("Payment completed. Enrollment unlocked!");
-        navigate("/my-learning");
-        return;
-      }
-
-      const confirm = await paymentsAPI.confirmOrder({
-        orderId: order._id,
-        paymentMethod: selected,
-        paymentReference: `manual-${Date.now()}`,
-      });
-
-      if (confirm.data?.order?.status === "paid") {
-        toast.success("Payment completed. Enrollment unlocked!");
-        navigate("/my-learning");
+      // Modern approach: redirect directly to the checkout URL
+      if (data.url) {
+        window.location.href = data.url;
       } else {
-        toast.error("Payment not completed. Please try again.");
+        throw new Error("No checkout URL received from server");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Payment failed");
+      console.error(error);
+      const errorMessage =
+        error.response?.data?.error ||
+        "Payment initiation failed. Please try again.";
+      alert(errorMessage);
     } finally {
-      setProcessing(false);
+      setLoading(false);
     }
   };
 
@@ -195,16 +111,6 @@ const Payment = () => {
       <CardContent
         style={{ display: "flex", flexDirection: "column", gap: 20 }}
       >
-        {cartSummary && (
-          <div style={{ textAlign: "center", fontWeight: 600 }}>
-            Total due: {format(cartSummary.total)}
-          </div>
-        )}
-        {!cartSummary && (
-          <div style={{ textAlign: "center", color: "#666" }}>
-            Your cart is empty. Add a course before paying.
-          </div>
-        )}
         {paymentOptions.map((opt) => (
           <div
             className={`bg-gray-100 ${
@@ -231,8 +137,8 @@ const Payment = () => {
           </div>
         ))}
       </CardContent>
-      {/* Show form/message for selected payment method */}
-      {selected && cartSummary && (
+
+      {selected && (
         <div
           style={{
             marginTop: 24,
@@ -248,24 +154,12 @@ const Payment = () => {
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 12 }}>
                 Pay securely with Stripe
               </div>
-              <input
-                type="text"
-                placeholder="Enter UPI ID"
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  border: "1px solid #bbb",
-                  width: "80%",
-                  marginBottom: 16,
-                }}
-              />
-              <br />
               <Button
-                className="bg-Accent px-5 py-4  hover:bg-Accent/80"
-                onClick={handlePayment}
-                disabled={processing}
+                className="bg-indigo-600 px-8 py-3 w-full hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors"
+                onClick={handleStripePayment}
+                disabled={loading}
               >
-                {processing ? "Processing..." : "Pay Now"}
+                {loading ? "Processing..." : "Proceed to Payment"}
               </Button>
             </>
           ) : (
@@ -273,62 +167,15 @@ const Payment = () => {
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 12 }}>
                 {paymentOptions.find((o) => o.id === selected)?.label}
               </div>
-              <input
-                type="text"
-                placeholder="Card Number"
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  border: "1px solid #bbb",
-                  width: "80%",
-                  marginBottom: 10,
-                }}
-              />
-              <br />
-              <input
-                type="text"
-                placeholder="Expiry (MM/YY)"
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  border: "1px solid #bbb",
-                  width: "38%",
-                  marginRight: 8,
-                  marginBottom: 10,
-                }}
-              />
-              <input
-                type="text"
-                placeholder="CVV"
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 6,
-                  border: "1px solid #bbb",
-                  width: "38%",
-                  marginBottom: 16,
-                }}
-              />
-              <br />
+              <p className="mb-4 text-gray-600">
+                This payment method is currently unavailable. Please check back
+                later.
+              </p>
               <Button
-                className="bg-Accent px-5 py-4  hover:bg-Accent/80"
-                onClick={handlePayment}
-                disabled={processing}
+                disabled
+                className="bg-gray-400 px-5 py-4 w-full cursor-not-allowed"
               >
-                {processing ? "Processing..." : "Pay Now"}
-              </Button>
-            </>
-          )}
-          {selected === "stripe" && (
-            <>
-              <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 12 }}>
-                Pay securely with Stripe
-              </div>
-              <Button
-                className="bg-Accent px-5 py-4  hover:bg-Accent/80"
-                onClick={handlePayment}
-                disabled={processing}
-              >
-                {processing ? "Processing..." : "Pay with Stripe"}
+                Pay Now
               </Button>
             </>
           )}

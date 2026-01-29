@@ -93,6 +93,10 @@ app.use(
   })
 );
 
+// Stripe webhook endpoint - must be BEFORE express.json() middleware
+// because Stripe requires the raw body for signature verification
+const paymentController = require("./controllers/paymentController");
+app.post("/webhook", express.raw({ type: "application/json" }), paymentController.webhook);
 
 app.use(express.json({ limit: "5mb" }));
 

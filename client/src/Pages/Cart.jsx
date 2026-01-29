@@ -8,7 +8,6 @@ import { Code, RefreshCcw } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { useStore } from "../Store/store";
 import { toast } from "sonner";
-import { useCurrency } from "@/hooks/useCurrency";
 
 const courseIcons = {
   "ibm-html": <FaHtml5 size={40} color="#e44d26" />,
@@ -36,7 +35,6 @@ const Cart = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const navigate = useNavigate();
-  const { format } = useCurrency();
 
   useEffect(() => {
     fetchBackendCart();
@@ -153,18 +151,6 @@ const Cart = () => {
   };
 
   const handlePayment = () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to continue");
-      navigate("/login");
-      return;
-    }
-
-    if (displayCart.length === 0) {
-      toast.error("Your cart is empty");
-      return;
-    }
-
     navigate("/payment");
   };
 
@@ -217,17 +203,18 @@ const Cart = () => {
     }
   }, [displayCart, addToCartAPI, fetchBackendCart]);
 
-  // ✅ CALCULATION FIX: Use parseFloat to ensure numbers
-    const totalBeforeDiscount = displayCart.reduce((sum, item) => {
-    const course = isBackendCartActive ? item.course : item;
-    const price = parseFloat(course?.price) || 0; // Convert string to number
+  // ✅ CALCULATION FIX: Use merged cart for totals
+  const totalBeforeDiscount = displayCart.reduce((sum, item) => {
+    const course = item.course;
+    const price = parseFloat(course?.price) || 0;
     return sum + price;
   }, 0);
 
-  // ✅ TOTAL FIX: If backend total is 0 (but we have items), use manual calc
-    const backendTotal = parseFloat(backendCart?.totalAfterDiscount || 0);
-    const totalAfterDiscount =
-      backendTotal > 0 ? backendTotal : totalBeforeDiscount - discountAmount;
+  const backendTotal = parseFloat(backendCart?.totalAfterDiscount || 0);
+  const totalAfterDiscount =
+    backendTotal > 0 && !displayCart.some((item) => item.isLocal)
+      ? backendTotal
+      : totalBeforeDiscount - discountAmount;
 
   if (loading && displayCart.length === 0) {
     return (
@@ -377,49 +364,34 @@ const Cart = () => {
               </div>
             )}
 
-            <div
-              style={{
-                marginTop: 36,
-                background: "#fff",
-                borderRadius: 12,
-                boxShadow: "0 2px 8px #f1f5f9",
-                padding: "24px 32px",
-                textAlign: "right",
-              }}
-            >
-              <div style={{ fontSize: 16, color: "#666", marginBottom: 8 }}>
-                Subtotal:{" "}
-                <span style={{ color: "#222" }}>
-                  {format(totalBeforeDiscount)}
-                </span>
-              </div>
-              {discountAmount > 0 && (
-                <div
-                  style={{ fontSize: 16, color: "#059669", marginBottom: 8 }}
-                >
-                  Discount: <span>-{format(discountAmount)}</span>
+            <div className="mt-8 px-4 md:px-0 divide-y divide-gray-100 bg-blue-50/50 rounded-xl overflow-hidden">
+              <div className="p-4 space-y-3">
+                <div className="flex items-center justify-between text-gray-600">
+                  <span className="font-medium">Subtotal:</span>
+                  <span className="font-bold text-gray-900">
+                    ${totalBeforeDiscount.toFixed(2)}
+                  </span>
                 </div>
-              )}
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: "#222",
-                  marginBottom: 12,
-                }}
-              >
-                Total:{" "}
-                <span style={{ color: "#0ea5e9" }}>
-                  {format(totalAfterDiscount)}
-                </span>
+                {discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-green-600">
+                    <span className="font-medium">Discount:</span>
+                    <span className="font-bold">-${discountAmount}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-blue-100">
+                  <span className="text-xl font-bold text-gray-900">Total:</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    ${totalAfterDiscount.toFixed(2)}
+                  </span>
+                </div>
+                <Button
+                className="bg-linear-to-r text-lg py-6 px-10 w-full from-blue-500 to-indigo-500 mt-4 cursor-pointer"
+                  onClick={handlePayment}
+                  disabled={showPayment}
+                >
+                  Proceed to Payment
+                </Button>
               </div>
-              <Button
-                className="bg-linear-to-r from-blue-500 to-indigo-500 mt-4"
-                onClick={handlePayment}
-                disabled={showPayment}
-              >
-                Proceed to Payment
-              </Button>
             </div>
           </>
         )}
