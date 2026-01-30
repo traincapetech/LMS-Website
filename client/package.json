@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && cp .htaccess dist/ || true",
+    "dev": "node init && vite",
+    "build": "node init && vite build && cp .htaccess dist/ || true",
     "lint": "eslint .",
     "preview": "vite preview"
   },
