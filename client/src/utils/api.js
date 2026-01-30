@@ -2,9 +2,8 @@ import axios from "axios";
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL
-    ? `${import.meta.env.VITE_API_BASE_URL}/api`
-    : "https://lms-backend-5s5x.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://lms-backend-5s5x.onrender.com/api",
+   
   timeout: 60000, // 60 second timeout
   headers: {
     "Content-Type": "application/json",
